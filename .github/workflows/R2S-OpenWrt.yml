@@ -5,11 +5,11 @@ on:
   #    - cron: 5 6 * * 0
   workflow_dispatch:
     inputs:
-      branch:
-        description: "输入 ImmortalWrt 仓库分支名"
-        type: string
+      dev:
+        description: "使用开发版编译"
+        type: boolean
         required: true
-        default: "master"
+        default: true
   watch:
     types: started
 
@@ -55,6 +55,12 @@ jobs:
           DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5 libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
         # -E 表示传递环境变量
         run: |
+          if ${{ inputs.dev }}
+          then
+            echo "branch='master'" >> $GITHUB_ENV
+          else
+            echo "branch='openwrt-23.05'" >> $GITHUB_ENV
+          fi
           sudo swapoff -a &
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc && sudo -E add-apt-repository -y ppa:apt-fast/stable && sudo -E apt-get install -y apt-fast && sudo -E apt-fast -y -qq install ${{ env.DEPENDENCY }} && sudo -E apt-get -qq autoremove --purge && sudo -E apt-get -qq clean
           wait
@@ -64,7 +70,7 @@ jobs:
         uses: actions/checkout@main
         with:
           repository: "immortalwrt/immortalwrt"
-          ref: ${{inputs.branch}}
+          ref: ${{env.branch}}
           path: ImmortalWrt
           fetch-depth: 0
 
@@ -80,16 +86,11 @@ jobs:
         working-directory: ./ImmortalWrt
         run: |
           sudo chown -R runner:runner /home/runner/work/$(basename ${{ github.repository }})
-          cp -r ../SCRIPTS/R2S/. ./ &
           cp -r ../SCRIPTS/. ./
-          /bin/bash 02_prepare_package.sh
-          /bin/bash 02_target_only.sh
-          /bin/bash 04_remove_upx.sh
-          /bin/bash 05_create_acl_for_luci.sh -a
-          cp -rf ../SEED/R2S/config.seed .config
-          make defconfig
-          echo '===== 当前 .config 内容 ==================================================='
-          cat .config
+          /bin/bash 01_prepare_package.sh
+          /bin/bash 02_target_R2S.sh
+          /bin/bash 03_create_acl_for_luci.sh -a
+          wait
 
       - name: 编译 MyImmortalWrt
         id: compileImmortalWrt
@@ -99,9 +100,15 @@ jobs:
           make download -j50
           IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
           echo $?
-          zstd -11 -r -o ../ImmortalWrt-End.zst ./
 
-      - name: 出错 debug 上传
+      - name: debug 压缩目录文件
+        continue-on-error: true
+        if: steps.compileImmortalWrt.outcome == 'failure'
+        working-directory: ./ImmortalWrt
+        run: |
+          zstd -15 -r -o ../ImmortalWrt-End.zst ./
+
+      - name: debug 上传压缩目录文件
         continue-on-error: true
         if: steps.compileImmortalWrt.outcome == 'failure'
         uses: actions/upload-artifact@main
@@ -110,17 +117,17 @@ jobs:
           name: ImmortalWrt-End
           path: ImmortalWrt-End.zst
 
-      - name: 出错 debug
+      - name: debug 详细模式编译
         if: steps.compileImmortalWrt.outcome == 'failure'
         working-directory: ./ImmortalWrt
         run: |
-          echo '===== 项目目录结构 ========================================================='
+          echo '===== 项目目录结构 ====='
           ls ..
-          echo '===== ImmortalWrt目录结构 ================================================='
+          echo '===== ImmortalWrt目录结构 ====='
           ls
-          echo '===== 当前 .config 内容 ==================================================='
+          echo '===== 当前 .config 内容 ====='
           cat .config
-          echo '===== 开始 Debug 模式编译 =================================================='
+          echo '===== 开始 Debug 模式编译 ======'
           make -j1 V=s
 
       - name: 编译完成，打包镜像
@@ -129,6 +136,7 @@ jobs:
           for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
             zstd -11 --rm -o ./output/img/$(basename "$file").zst $file
           done
+          zstd -15 -r -o ./ImmortalWrt-End.zst ./ImmortalWrt/ &
           mkdir -p ./output/sha256sums/
           for file in ./output/img/*; do
             sha256sum "$file" > ./output/sha256sums/$(basename "$file")-sha256.txt
@@ -137,7 +145,7 @@ jobs:
           wait
           zstd -11 -r -o ./output.zst ./output
           ls -Ahl ./output
-          echo '===== 储存空间状态 ====================================================='
+          echo '===== 储存空间状态 ======'
           df -h
 
       - name: 上传至 artifact

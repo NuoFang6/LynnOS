@@ -9,10 +9,10 @@ sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 
 # 预配置文件
-cp -rf ../PATCH/files ./files
-
+cp -rf ../SEED/R2S/config.seed .config
 chmod -R 755 ./
+
 find ./ -name *.orig | xargs rm -f &
 find ./ -name *.rej | xargs rm -f
 
-#exit 0
+wait

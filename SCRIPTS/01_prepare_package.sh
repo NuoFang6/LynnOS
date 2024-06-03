@@ -22,13 +22,17 @@ git clone -b master --single-branch --depth 1 https://github.com/vernesong/OpenC
 rm -rf package/feeds/sirpdboy/luci-app-control-timewol/ &
 
 ### 最后的收尾工作 ###
-# 修改默认ip
-sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
 # 默认开启 Irqbalance
 # sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 关闭缓解措施
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
+# 修改默认ip
+sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
+# 修改默认主机名
+sed -i 's/ImmortalWrt/LynnOS/g' package/base-files/files/bin/config_generate
+sed -i 's/ImmortalWrt/LynnOS/g' package/network/config/wifi-scripts/files/lib/wifi/mac80211.sh
+
 # Nginx
 sed -i "s/large_client_header_buffers 2 1k/large_client_header_buffers 4 32k/g" feeds/packages/net/nginx-util/files/uci.conf.template
 sed -i "s/client_max_body_size 128M/client_max_body_size 2048M/g" feeds/packages/net/nginx-util/files/uci.conf.template
@@ -40,5 +44,8 @@ sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_
 
 # 预配置文件
 cp -rf ../PATCH/files ./files
+
+# 必要 Patch
+cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 
 wait

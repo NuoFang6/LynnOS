@@ -96,6 +96,7 @@ jobs:
         continue-on-error: true
         working-directory: ./ImmortalWrt
         run: |
+          make defconfig
           make download -j50
           IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
           echo $?

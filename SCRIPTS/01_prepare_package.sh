@@ -18,6 +18,8 @@ wget -q -O ../PATCH/files/etc/preinstall/ua3f_armv8.ipk $(curl -s https://api.gi
 # 源码
 # OpenClash
 git clone -b master --single-branch --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+# 有问题的
+rm -rf package/sirpdboy-package/luci-app-control-timewol/ &
 
 ### 最后的收尾工作 ###
 # 修改默认ip

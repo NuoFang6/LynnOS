@@ -25,10 +25,9 @@ jobs:
           cat /proc/cpuinfo | grep 'model name'
           cpu_name=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | awk -F: '{print $2}' | sed 's/^[ \t]*//')
           if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
-            echo "CPU为8370C或7763，继续执行命令"
-            ulimit -a
+            echo "CPU为8370C或7763，继续运行"
           else
-            echo "CPU不为8370C或7763，性能不足，停止执行命令"
+            echo "CPU不为8370C或7763，性能可能不足，停止运行"
             exit 1
           fi
 
@@ -57,9 +56,9 @@ jobs:
         run: |
           if ${{ inputs.dev }}
           then
-            echo "branch='master'" >> $GITHUB_ENV
+            echo "branch=master" >> $GITHUB_ENV
           else
-            echo "branch='openwrt-23.05'" >> $GITHUB_ENV
+            echo "branch=openwrt-23.05" >> $GITHUB_ENV
           fi
           sudo swapoff -a &
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc && sudo -E add-apt-repository -y ppa:apt-fast/stable && sudo -E apt-get install -y apt-fast && sudo -E apt-fast -y -qq install ${{ env.DEPENDENCY }} && sudo -E apt-get -qq autoremove --purge && sudo -E apt-get -qq clean
@@ -104,9 +103,8 @@ jobs:
       - name: debug 压缩目录文件
         continue-on-error: true
         if: steps.compileImmortalWrt.outcome == 'failure'
-        working-directory: ./ImmortalWrt
         run: |
-          zstd -15 -r -o ../ImmortalWrt-End.zst ./
+          zstd -15 -r -o ./ImmortalWrt-End.zst ./ImmortalWrt/
 
       - name: debug 上传压缩目录文件
         continue-on-error: true

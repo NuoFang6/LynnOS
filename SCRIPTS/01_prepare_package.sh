@@ -25,8 +25,9 @@ cp -rf ../PATCH/files ./files
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 # patch -p1 <../PATCH/nginx-util/100-fix-pessimizing-move.patch
 git clone -b master --depth 1 https://github.com/openwrt/packages.git ../openwrt/packages/
-cp -rf ../openwrt/packages/net/nginx-util ./feeds/packages/net/
-cp -rf ../openwrt/packages/lang/perl ./feeds/packages/lang/
+cp -rf ../openwrt/packages/net/nginx-util ./feeds/packages/net/ &
+cp -rf ../openwrt/packages/lang/perl ./feeds/packages/lang/ &
+cp -rf ../openwrt/packages/utils/bluez ./feeds/packages/utils/bluez &
 # 有问题的
 rm -rf feeds/sirpdboy/luci-app-control-timewol/ &
 rm -rf feeds/packages/kernel/mdio-netlink/ &
@@ -35,7 +36,6 @@ rm -rf feeds/packages/kernel/ovpn-dco &
 rm -rf feeds/packages/net/jool &
 rm -rf feeds/packages/libs/xr_usb_serial_common &
 rm -rf feeds/packages/net/open-app-filter &
-rm -rf feeds/packages/utils/bluez &
 
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance

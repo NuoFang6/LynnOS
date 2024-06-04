@@ -1,14 +1,14 @@
 --- a/feeds/packages/net/nginx-util/Makefile
 +++ b/feeds/packages/net/nginx-util/Makefile
 @@ -13,6 +13,10 @@
-CMAKE_OPTIONS+= -DVERSION=$(PKG_VERSION)
+ CMAKE_OPTIONS+= -DVERSION=$(PKG_VERSION)
 
-TARGET_CFLAGS+= -Wno-error=deprecated-declarations
+ TARGET_CFLAGS+= -Wno-error=deprecated-declarations
 
 +ifneq ($(filter $(GCC_MAJOR_VERSION),12 13),)
 + TARGET_CFLAGS += -Wno-error=pessimizing-move
 +endif
 +
-define Package/nginx-ssl-util/default
+ define Package/nginx-ssl-util/default
   SECTION:=net
   CATEGORY:=Network

@@ -1,4 +1,4 @@
-name: R2S-ImmortalWrt
+name: R2S-LynnOS
 
 on:
   #  schedule:
@@ -94,7 +94,7 @@ jobs:
           /bin/bash 03_create_acl_for_luci.sh -a
           wait
 
-      - name: 编译 MyImmortalWrt
+      - name: 编译 LynnOS
         id: compileImmortalWrt
         continue-on-error: true
         working-directory: ./ImmortalWrt
@@ -165,11 +165,11 @@ jobs:
       - name: 创建发行版
         uses: ncipollo/release-action@main
         with:
-          name: MyImmortalWrt-R2s
+          name: R2S-LynnOS
           allowUpdates: true
           prerelease: false
           tag: R2s
-          commit: ImmortalWrt-${{inputs.branch}}
+          commit: 基于 ImmortalWrt-${{inputs.branch}}
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: output/**

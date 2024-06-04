@@ -3,6 +3,7 @@ clear
 
 # 使用 O3 级别的优化
 sed -i 's/-Os/-O3/g' include/target.mk
+sed -i 's/-O2/-O3/g' rules.mk
 
 # 自定义feed源
 cp -rf ../feeds.conf.default ./feeds.conf.default
@@ -32,7 +33,9 @@ cp -rf ../openwrt/packages/utils/bluez ./feeds/packages/utils/bluez &
 # 可删除的
 rm -rf feeds/sirpdboy/luci-app-control-timewol/ &
 rm -rf feeds/luci/luci-app-appfilter/ &
+rm -rf package/feeds/luci/luci-app-appfilter/ &
 rm -rf feeds/packages/mdio-tools/ &
+rm -rf package/feeds/packages/mdio-tools/ &
 rm -rf feeds/packages/kernel/mdio-netlink/ &
 rm -rf feeds/packages/libs/libpfring &
 rm -rf feeds/packages/kernel/ovpn-dco &

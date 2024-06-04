@@ -18,8 +18,24 @@ wget -q -O ../PATCH/files/etc/preinstall/ua3f_armv8.ipk $(curl -s https://api.gi
 # 源码
 # OpenClash
 git clone -b master --single-branch --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+# 预配置文件
+cp -rf ../PATCH/files ./files
+
+# 必要 Patch
+cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
+# patch -p1 <../PATCH/nginx-util/100-fix-pessimizing-move.patch
+git clone -b master --depth 1 https://github.com/openwrt/packages.git ../openwrt/packages/
+cp -rf ../openwrt/packages/net/nginx-util ./feeds/packages/net/
 # 有问题的
-rm -rf package/feeds/sirpdboy/luci-app-control-timewol/ &
+rm -rf feeds/sirpdboy/luci-app-control-timewol/ &
+rm -rf feeds/packages/kernel/mdio-netlink/ &
+rm -rf feeds/packages/libs/libpfring &
+rm -rf feeds/packages/kernel/ovpn-dco &
+rm -rf feeds/packages/net/jool &
+rm -rf feeds/packages/libs/xr_usb_serial_common &
+rm -rf feeds/packages/lang/perl &
+rm -rf feeds/packages/net/open-app-filter &
+rm -rf feeds/packages/utils/bluez &
 
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance
@@ -41,12 +57,5 @@ sed -i '/client_max_body_size/a\\tserver_names_hash_bucket_size 128;' feeds/pack
 sed -i '/ubus_parallel_req/a\        ubus_script_timeout 600;' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
 sed -ri "/luci-webui.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
 sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
-
-# 预配置文件
-cp -rf ../PATCH/files ./files
-
-# 必要 Patch
-cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
-patch -p1 < ../PATCH/nginx-util/100-fix-pessimizing-move.patch
 
 wait

@@ -3,7 +3,7 @@ clear
 
 # 使用 O3 级别的优化
 sed -i 's/-Os/-O3/g' include/target.mk
-sed -i 's/-O2/-O3/g' rules.mk
+#sed -i 's/-O2/-O3/g' rules.mk
 
 # 自定义feed源
 cp -rf ../feeds.conf.default ./feeds.conf.default

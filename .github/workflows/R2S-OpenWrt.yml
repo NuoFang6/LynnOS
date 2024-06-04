@@ -99,20 +99,20 @@ jobs:
           IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
           echo $?
 
-      - name: debug 压缩目录文件
-        continue-on-error: true
-        if: steps.compileImmortalWrt.outcome == 'failure'
-        run: |
-          tar -cf - ./ImmortalWrt/ | zstd -15 -o ./ImmortalWrt-End.tar.zst
+      # - name: debug 压缩目录文件
+      #   continue-on-error: true
+      #   if: steps.compileImmortalWrt.outcome == 'failure'
+      #   run: |
+      #     tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst
 
-      - name: debug 上传压缩目录文件
-        continue-on-error: true
-        if: steps.compileImmortalWrt.outcome == 'failure'
-        uses: actions/upload-artifact@main
-        with:
-          compression-level: 0
-          name: ImmortalWrt-End.tar
-          path: ImmortalWrt-End.tar.zst
+      # - name: debug 上传压缩目录文件
+      #   continue-on-error: true
+      #   if: steps.compileImmortalWrt.outcome == 'failure'
+      #   uses: actions/upload-artifact@main
+      #   with:
+      #     compression-level: 0
+      #     name: ImmortalWrt-End.tar.zst
+      #     path: ImmortalWrt-End.tar.zst
 
       - name: debug 详细模式编译
         if: steps.compileImmortalWrt.outcome == 'failure'
@@ -134,7 +134,7 @@ jobs:
             gzip -9 "$file"
             mv "$file.gz" ./output/img/
           done
-          tar -cf - ./ImmortalWrt/ | zstd -15 -o ./ImmortalWrt-End.tar.zst &
+          # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
           mkdir -p ./output/sha256sums/
           for file in ./output/img/*; do
             sha256sum "$file" > "./output/sha256sums/$(basename "$file")-sha256.txt"
@@ -155,7 +155,7 @@ jobs:
           compression-level: 0
           path: |
             output.tar.zst
-            ImmortalWrt-End.tar.zst
+          # ImmortalWrt-End.tar.zst
 
       - name: 创建发行版
         uses: ncipollo/release-action@main

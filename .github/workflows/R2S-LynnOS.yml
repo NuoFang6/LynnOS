@@ -68,21 +68,13 @@ jobs:
           wait
           sudo -E git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com' && sudo -E git config --global core.abbrev auto
 
-      - name: 克隆 ImmortalWrt 仓库
+      - name: 克隆 ImmortalWrt
         uses: actions/checkout@main
         with:
           repository: "immortalwrt/immortalwrt"
           ref: ${{env.branch}}
           path: ImmortalWrt
           fetch-depth: 0
-
-      - name: 构建缓存
-        uses: HiGarfield/cachewrtbuild@main
-        with:
-          ccache: true
-          toolchain: true
-          mixkey: "r2s"
-          prefix: ${{ github.workspace }}/ImmortalWrt
 
       - name: 运行自定义脚本
         working-directory: ./ImmortalWrt
@@ -93,6 +85,14 @@ jobs:
           /bin/bash 02_target_R2S.sh
           /bin/bash 03_create_acl_for_luci.sh -a
           wait
+
+      - name: 恢复缓存
+        uses: HiGarfield/cachewrtbuild@main
+        with:
+          ccache: true
+          toolchain: true
+          mixkey: "r2s"
+          prefix: ${{ github.workspace }}/ImmortalWrt
 
       - name: 编译 LynnOS
         id: compileImmortalWrt

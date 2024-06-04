@@ -10,6 +10,11 @@ on:
         type: boolean
         required: true
         default: true
+      debug_upload:
+        description: "出错时上传整个目录"
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   build:
@@ -99,20 +104,20 @@ jobs:
           IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
           echo $?
 
-      # - name: debug 压缩目录文件
-      #   continue-on-error: true
-      #   if: steps.compileImmortalWrt.outcome == 'failure'
-      #   run: |
-      #     tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst
+      - name: debug 压缩目录文件
+        continue-on-error: true
+        if: steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true
+        run: |
+          tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst
 
-      # - name: debug 上传压缩目录文件
-      #   continue-on-error: true
-      #   if: steps.compileImmortalWrt.outcome == 'failure'
-      #   uses: actions/upload-artifact@main
-      #   with:
-      #     compression-level: 0
-      #     name: ImmortalWrt-End.tar.zst
-      #     path: ImmortalWrt-End.tar.zst
+      - name: debug 上传压缩目录文件
+        continue-on-error: true
+        if: steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true
+        uses: actions/upload-artifact@main
+        with:
+          compression-level: 0
+          name: ImmortalWrt-End.tar.zst
+          path: ImmortalWrt-End.tar.zst
 
       - name: debug 详细模式编译
         if: steps.compileImmortalWrt.outcome == 'failure'

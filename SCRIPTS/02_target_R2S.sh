@@ -10,7 +10,7 @@ sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/
 
 # 预配置文件
 cp -rf ../SEED/R2S/config.seed .config
-cp -rf ../SEED/R2S/config-6.6 target/linux/rockchip/armv8/config-6.6
+# cp -rf ../SEED/R2S/config-6.6 target/linux/rockchip/armv8/config-6.6
 chmod -R 755 ./
 
 find ./ -name *.orig | xargs rm -f &

@@ -24,12 +24,15 @@ cp -rf ../PATCH/files ./files
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 # patch -p1 <../PATCH/nginx-util/100-fix-pessimizing-move.patch
+# 有问题的 尝试换源
 git clone -b master --depth 1 https://github.com/openwrt/packages.git ../openwrt/packages/
 cp -rf ../openwrt/packages/net/nginx-util ./feeds/packages/net/ &
 cp -rf ../openwrt/packages/lang/perl ./feeds/packages/lang/ &
 cp -rf ../openwrt/packages/utils/bluez ./feeds/packages/utils/bluez &
-# 有问题的
+# 可删除的
 rm -rf feeds/sirpdboy/luci-app-control-timewol/ &
+rm -rf feeds/luci/luci-app-appfilter/ &
+rm -rf feeds/packages/mdio-tools/ &
 rm -rf feeds/packages/kernel/mdio-netlink/ &
 rm -rf feeds/packages/libs/libpfring &
 rm -rf feeds/packages/kernel/ovpn-dco &

@@ -10,8 +10,6 @@ on:
         type: boolean
         required: true
         default: true
-  watch:
-    types: started
 
 jobs:
   build:

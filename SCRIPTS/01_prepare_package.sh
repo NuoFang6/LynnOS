@@ -47,5 +47,6 @@ cp -rf ../PATCH/files ./files
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
+patch -p1 < ../PATCH/nginx-util/100-fix-pessimizing-move.patch
 
 wait

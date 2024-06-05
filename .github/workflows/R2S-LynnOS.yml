@@ -135,18 +135,27 @@ jobs:
       - name: 编译完成，打包镜像
         run: |
           mkdir -p ./output/img/
+          # 压缩并移动文件
           for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
-            gzip -9 "$file"
-            rm -rf "$file"
+            # 检查文件是否已经有.gz后缀
+            if [[ "$file" != *.gz ]]; then
+              gzip -9 "$file"
+              mv "${file}.gz" ./output/img/
+            else
+              mv "$file" ./output/img/
+            fi
           done
-          mv ./ImmortalWrt/bin/targets/rockchip/armv8/* ./output/img/
+
           # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
+
           mkdir -p ./output/sha256sums/
           for file in ./output/img/*; do
             sha256sum "$file" > "./output/sha256sums/$(basename "$file")-sha256.txt"
           done
           tar -cf - ./output/sha256sums/ | zstd -15 -o ./output/sha256sums.tar.zst 
+
           wait
+
           tar -cf - ./output | zstd -15 -o ./output.tar.zst
           ls -Ahl ./output
           echo '===== 储存空间状态 ======'

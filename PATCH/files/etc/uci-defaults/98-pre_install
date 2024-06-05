@@ -55,6 +55,46 @@ uci set system.led_wan.default='0'
 uci del system.led_wan.dev
 uci del system.led_wan.mode
 
+# tailscale
+uci add network device # =cfg0c0f15
+uci set network.@device[-1].name='tailscale0'
+uci set network.tailscale=interface
+uci set network.tailscale.proto='static'
+uci set network.tailscale.device='tailscale0'
+uci add_list network.tailscale.ipaddr='100.123.0.1/32'
+uci set network.tailscale.gateway='192.168.2.1'
+uci add_list network.tailscale.dns='192.168.2.1'
+uci add firewall zone # =cfg11dc81
+uci set firewall.@zone[-1].name='tailscale'
+uci set firewall.@zone[-1].input='ACCEPT'
+uci set firewall.@zone[-1].output='ACCEPT'
+uci set firewall.@zone[-1].forward='ACCEPT'
+uci add_list firewall.@zone[-1].device='tailscale0'
+uci set firewall.@zone[-1].masq_allow_invalid='1'
+uci set firewall.@zone[-1].auto_helper='0'
+uci add_list firewall.@zone[-1].network='tailscale'
+uci add firewall forwarding # =cfg12ad58
+uci set firewall.@forwarding[-1].src='tailscale'
+uci set firewall.@forwarding[-1].dest='docker'
+uci add firewall forwarding # =cfg13ad58
+uci set firewall.@forwarding[-1].src='tailscale'
+uci set firewall.@forwarding[-1].dest='lan'
+uci add firewall forwarding # =cfg14ad58
+uci set firewall.@forwarding[-1].src='tailscale'
+uci set firewall.@forwarding[-1].dest='wan'
+uci add firewall forwarding # =cfg15ad58
+uci set firewall.@forwarding[-1].src='lan'
+uci set firewall.@forwarding[-1].dest='tailscale'
+uci add firewall forwarding # =cfg16ad58
+uci set firewall.@forwarding[-1].src='wan'
+uci set firewall.@forwarding[-1].dest='tailscale'
+# 系统
+uci set system.cfg01e48a.log_proto='udp'
+uci set system.cfg01e48a.conloglevel='8'
+uci set system.cfg01e48a.cronloglevel='5'
+uci set system.cfg01e48a.zram_comp_algo='lz4'
+uci set system.ntp.enable_server='1'
+uci set system.ntp.interface='lan'
 # samba
 # smbpasswd -a root
 uci set samba4.cfg010f89.interface='lan'

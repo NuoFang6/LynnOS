@@ -3,7 +3,61 @@
 [ -n "$(ls /etc/pre_install)" ] && opkg install /etc/pre_install/*.ipk --force-depends
 rm -rf /etc/pre_install
 
+# 挂载前检查文件系统
 uci set fstab.@global[0].check_fs=1
+# 关闭内网ipv6分配
+uci del network.globals.ula_prefix
+# 数据包引导负载均衡
+uci set network.globals.packet_steering='2'
+# dns
+uci del dhcp.cfg01411c.dns_redirect
+uci del dhcp.cfg01411c.nonwildcard
+uci del dhcp.cfg01411c.noresolv
+uci del dhcp.cfg01411c.boguspriv
+uci del dhcp.cfg01411c.filterwin2k
+uci del dhcp.cfg01411c.filter_aaaa
+uci del dhcp.cfg01411c.filter_a
+uci add_list dhcp.cfg01411c.notinterface='wan'
+uci add_list dhcp.cfg01411c.notinterface='wan6'
+uci set dhcp.cfg01411c.port='6666'
+uci del AdGuardHome.AdGuardHome.upxflag
+uci set AdGuardHome.AdGuardHome.redirect='redirect'
+
+# cpufreq
+uci set cpufreq.cpufreq.minfreq0='408000'
+uci set cpufreq.cpufreq.maxfreq0='1608000'
+
+# samba
+# smbpasswd -a root
+uci set samba4.cfg010f89.interface='lan'
+uci set samba4.cfg010f89.enable_extra_tuning='1'
+
+# nginx 禁用https
+uci del nginx._redirect2ssl
+# 删除当前监听443端口的配置
+uci delete nginx.@server[0].listen
+# 添加新的监听80端口的配置
+uci add_list nginx.@server[0].listen='80 default_server'
+uci add_list nginx.@server[0].listen='[::]:80 default_server'
 uci commit
+/etc/init.d/dnsmasq restart
+/etc/init.d/cpufreq restart
+/etc/init.d/nginx restart
+
+# 禁用服务
+/etc/init.d/uhttpd stop
+/etc/init.d/uhttpd disable
+/etc/init.d/tailscale stop
+/etc/init.d/tailscale disable
+/etc/init.d/dockerd stop
+/etc/init.d/dockerd disable
+/etc/init.d/dockerman stop
+/etc/init.d/dockerman disable
+/etc/init.d/wechatpush stop
+/etc/init.d/wechatpush disable
+/etc/init.d/wpad disable
+/etc/init.d/sqm disable
+/etc/init.d/avahi-daemon disable
+/etc/init.d/qbittorrent disable
 
 exit 0

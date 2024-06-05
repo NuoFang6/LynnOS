@@ -3,107 +3,86 @@
 
 START=80
 
-set_interface_2() {
-    for dev in /sys/class/net/*; do
-        local eth=$(basename "$dev")
-        # echo "开启接口特性 on $eth"
-        ethtool -K "$eth" rx-checksum on >/dev/null 2>&1
-        ethtool -K "$eth" tx-checksum-ip-generic on >/dev/null 2>&1 || (
-            ethtool -K "$eth" tx-checksum-ipv4 on >/dev/null 2>&1
-            ethtool -K "$eth" tx-checksum-ipv6 on >/dev/null 2>&1
-        )
-        ethtool -K "$eth" tx-scatter-gather on >/dev/null 2>&1
-        ethtool -K "$eth" gso on >/dev/null 2>&1
-        ethtool -K "$eth" gro on >/dev/null 2>&1
-        ethtool -K "$eth" lro on >/dev/null 2>&1
-        ethtool -K "$eth" tso on >/dev/null 2>&1
-        ethtool -K "$eth" ufo on >/dev/null 2>&1
-        ethtool -K "$eth" rx-gro-list on >/dev/null 2>&1
-        ethtool -K "$eth" rx-udp-gro-forwarding on >/dev/null 2>&1
-        ethtool -K "$eth" tcp-segmentation-offload on >/dev/null 2>&1
-        ethtool -K "$eth" tx-nocache-copy off >/dev/null 2>&1
+autocore() {
+    rfc=4096
+    threads="$(grep -c "processor" "/proc/cpuinfo")"
+
+    sysctl -w net.core.rps_sock_flow_entries="$((rfc * threads))"
+
+    for fileRps in /sys/class/net/eth*/queues/rx-*/rps_cpus; do
+        echo "$threads" >"$fileRps"
     done
 
+    for fileRfc in /sys/class/net/eth*/queues/rx-*/rps_flow_cnt; do
+        echo "$rfc" >"$fileRfc"
+    done
+
+    uci set network.@globals[0].packet_steering="2"
+    uci commit network
+
+    for i in $(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' | grep -v '@' | xargs); do
+        # echo "开启接口特性 on $eth"
+        ethtool -K "$i" rx-checksum on
+        ethtool -K "$i" tx-checksum-ip-generic on || (
+            ethtool -K "$i" tx-checksum-ipv4 on
+            ethtool -K "$i" tx-checksum-ipv6 on
+        )
+        ethtool -K "$i" tx-scatter-gather on
+        ethtool -K "$i" gso on
+        ethtool -K "$i" gro on
+        ethtool -K "$i" lro on
+        ethtool -K "$i" tso on
+        ethtool -K "$i" ufo on
+        ethtool -K "$i" rx-gro-list on
+        ethtool -K "$i" rx-udp-gro-forwarding on
+        ethtool -K "$i" tcp-segmentation-offload on
+        ethtool -K "$i" tx-nocache-copy off
+
+        if ethtool -i "$i" | grep -q "driver: igc"; then
+            ethtool -G "$i" rx "$(ethtool -g "$i" | awk '/^RX:/ {print $2; exit}')"
+            ethtool -G "$i" tx "$(ethtool -g "$i" | awk '/^TX:/ {print $2; exit}')"
+        fi
+    done
+} >"/dev/null" 2>&1
+
+mod_qdisc() {
     # 修改 eth1（wan） 接口的队列调度器
-    tc qdisc replace dev eth1 root fq_codel >/dev/null 2>&1
-    # tc qdisc replace dev eth1 root cake bandwidth 20Mbit internet diffserv3 >/dev/null 2>&1
+    tc qdisc replace dev eth1 root fq_codel
+    # tc qdisc replace dev eth1 root cake bandwidth 20Mbit internet diffserv3
 
     # 修改 eth0 (lan) 接口的队列调度器
-    tc qdisc replace dev eth0 root fq_codel >/dev/null 2>&1
-    # tc qdisc replace dev eth0 root cake bandwidth 100Mbit internet diffserv3 >/dev/null 2>&1
+    tc qdisc replace dev eth0 root fq_codel
+    # tc qdisc replace dev eth0 root cake bandwidth 100Mbit internet diffserv3
 
     # 修改 tailscale0 接口的队列调度器
-    tc qdisc replace dev tailscale0 root fq_codel >/dev/null 2>&1
-    # tc qdisc replace dev tailscale0 root cake unlimited besteffort internet >/dev/null 2>&1
+    tc qdisc replace dev tailscale0 root fq_codel
+    # tc qdisc replace dev tailscale0 root cake unlimited besteffort internet
 
     # 修改 utun 接口的队列调度器
-    tc qdisc replace dev utun root fq_codel >/dev/null 2>&1
-    # tc qdisc replace dev utun root cake unlimited besteffort internet >/dev/null 2>&1
+    tc qdisc replace dev utun root fq_codel
+    # tc qdisc replace dev utun root cake unlimited besteffort internet
 
-}
-
-gen_hex_mask() {
-    local cores=$1
-    local mask=0
-    for core in $(echo $cores | awk '{print}'); do
-        local bit="$((1 << $core))"
-        let "mask = mask | bit" # 使用按位或运算符来设置相应的位
-    done
-    local hex="$(printf %x "$mask")"
-    echo "$hex"
-}
-
-set_core_mask() {
-    local file=$1
-    local cores=$2
-    local mask="$(gen_hex_mask "$cores")"
-    echo $mask >$file 2>/dev/null
-    # cat $file 2>/dev/null
-}
-
-set_interface() {
-    local interface=$1
-    local cores=$2
-
-    # echo "using cores: $cores for interface: $interface"
-
-    for file in /sys/class/net/$interface/queues/rx-[0-9]*/rps_cpus; do
-        set_core_mask $file "$cores"
-    done
-
-    for file in /sys/class/net/$interface/queues/tx-[0-9]*/xps_cpus; do
-        set_core_mask $file "$cores"
-    done
-}
-
-set_interface_queues() {
-    for dev in /sys/class/net/*; do
-        [ -d "$dev" ] || continue
-
-        local interface=$(basename $dev)
-        # echo $interface
-        set_interface $interface "$queue_cores"
-    done
-}
+} >"/dev/null" 2>&1
 
 queue_cores="0 1 2 3"
 start() {
+    logger "开始优化"
+
     bash /etc/xyw/login.sh
 
-    logger "开启接口特性"
-    set_interface_2
+    autocore
 
-    # echo "网络设备绑定CPU：$queue_cores"
-    logger "网络设备绑定CPU：$queue_cores"
-    set_interface_queues
+    mod_qdisc
 
-    # bash /root/setirq.sh
+    nft delete table ip filter
+    nft delete table ip nat
+    nft delete table ip6 filter
+    nft delete table ip6 nat
+    iptables -F
+    iptables -X
+    iptables -Z
 
-    nft delete table ip filter 2>/dev/null
-    nft delete table ip nat 2>/dev/null
-    nft delete table ip6 filter 2>/dev/null
-    nft delete table ip6 nat 2>/dev/null
-
+    wait
     sync
     echo 1 >/proc/sys/vm/drop_caches
     /etc/init.d/zram compact

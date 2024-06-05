@@ -6,6 +6,9 @@ clear
 sed -i 's,-mcpu=generic,-mcpu=cortex-a53+crypto,g' include/target.mk
 sed -i 's,-mcpu=cortex-a53,-mcpu=cortex-a53+crypto,g' include/target.mk
 
+# 关闭缓解措施
+sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
+
 # 交换 LAN/WAN 口
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network

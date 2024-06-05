@@ -23,12 +23,7 @@ git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git package/ne
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
-# patch -p1 <../PATCH/nginx-util/100-fix-pessimizing-move.patch
-# 有问题的 尝试换源
-# git clone -b master --depth 1 https://github.com/openwrt/packages.git ../openwrt/packages/
-# cp -rf ../openwrt/packages/net/nginx-util ./feeds/packages/net/ &
-# cp -rf ../openwrt/packages/lang/perl ./feeds/packages/lang/ &
-# cp -rf ../openwrt/packages/utils/bluez ./feeds/packages/utils/bluez &
+
 # 可删除的
 rm -rf feeds/sirpdboy/luci-app-control-timewol/ &
 rm -rf feeds/luci/luci-app-appfilter/ &
@@ -45,13 +40,15 @@ rm -rf feeds/packages/openvpn/ &
 rm -rf package/feeds/packages/openvpn/ &
 rm -rf feeds/telephony/freeswitch/ &
 rm -rf package/feeds/telephony/freeswitch &
+rm -rf package/feeds/luci/luci-app-openvpn-server &
+rm -rf package/feeds/telephony/freetdm &
+rm -rf package/feeds/telephony/freeswitch-mod-bcg729 &
 
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance
 # sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
-# 关闭缓解措施
-sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
+
 # 修改默认ip
 sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
 # 修改默认主机名
@@ -72,20 +69,9 @@ cp -rf ../PATCH/files ./
 
 # Clash 内核
 mkdir -p files/etc/openclash/core
-
-CLASH_DEV_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/core-lateset/dev/clash-linux-${1}.tar.gz"
-CLASH_TUN_URL=$(curl -fsSL https://api.github.com/repos/vernesong/OpenClash/contents/core-lateset/premium | grep download_url | grep $1 | awk -F '"' '{print $4}')
-CLASH_META_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/core-lateset/meta/clash-linux-${1}.tar.gz"
-GEOIP_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
-GEOSITE_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
-
-wget -qO- $CLASH_DEV_URL | tar xOvz >files/etc/openclash/core/clash
-wget -qO- $CLASH_TUN_URL | gunzip -c >files/etc/openclash/core/clash_tun
-wget -qO- $CLASH_META_URL | tar xOvz >files/etc/openclash/core/clash_meta
-wget -qO- $GEOIP_URL >files/etc/openclash/GeoIP.dat
-wget -qO- $GEOSITE_URL >files/etc/openclash/GeoSite.dat
+# TODO
 
 chmod +x files/etc/openclash/core/clash*
-chmod +x files/init.d/youhua
+chmod +x files/etc/init.d/youhua
 
 wait

@@ -134,30 +134,34 @@ jobs:
 
       - name: 编译完成，打包镜像
         run: |
-          mkdir -p ./output/img/
-          # 压缩并移动文件
-          for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
-            # 检查文件是否已经有.gz后缀
-            if [[ "$file" != *.gz ]]; then
-              gzip -9 "$file"
-              mv "${file}.gz" ./output/img/
-            else
-              mv "$file" ./output/img/
-            fi
-          done
+          # mkdir -p ./output/img/
+          # # 压缩并移动文件
+          # for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
+          #   # 检查文件是否已经有.gz后缀
+          #   if [[ "$file" != *.gz ]]; then
+          #     gzip -9 "$file"
+          #     mv "${file}.gz" ./output/img/
+          #   else
+          #     mv "$file" ./output/img/
+          #   fi
+          # done
 
-          # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
+          # # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
 
-          mkdir -p ./output/sha256sums/
-          for file in ./output/img/*; do
-            sha256sum "$file" > "./output/sha256sums/$(basename "$file")-sha256.txt"
-          done
-          tar -cf - ./output/sha256sums/ | zstd -15 -o ./output/sha256sums.tar.zst 
+          # mkdir -p ./output/sha256sums/
+          # for file in ./output/img/*; do
+          #   sha256sum "$file" > "./output/sha256sums/$(basename "$file")-sha256.txt"
+          # done
+          # tar -cf - ./output/sha256sums/ | zstd -15 -o ./output/sha256sums.tar.zst 
 
-          wait
+          # wait
 
-          tar -cf - ./output | zstd -15 -o ./output.tar.zst
-          ls -Ahl ./output
+          # tar -cf - ./output | zstd -15 -o ./output.tar.zst
+          # ls -Ahl ./output
+
+          ls -Ahl ./ImmortalWrt/bin/targets/rockchip/armv8/
+          tar -cf - ./ImmortalWrt/bin/targets/rockchip/armv8/ | zstd -16 -T4 -o ./output.tar.zst
+
           echo '===== 储存空间状态 ======'
           df -h
           # grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -182,4 +186,4 @@ jobs:
           commit: 基于 ImmortalWrt-${{inputs.branch}}
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: output/**
+          artifacts: output.tar.zst

@@ -42,6 +42,9 @@ rm -rf feeds/packages/kernel/ovpn-dco &
 rm -rf feeds/packages/net/jool &
 rm -rf feeds/packages/libs/xr_usb_serial_common &
 rm -rf feeds/packages/net/open-app-filter &
+rm -rf feeds/packages/openvpn/ &
+rm -rf feeds/telephony/freeswitch/ &
+
 
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance

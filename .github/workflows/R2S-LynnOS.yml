@@ -137,8 +137,9 @@ jobs:
           mkdir -p ./output/img/
           for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
             gzip -9 "$file"
-            mv "$file.gz" ./output/img/
+            rm -rf "$file"
           done
+          mv ./ImmortalWrt/bin/targets/rockchip/armv8/* ./output/img/
           # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
           mkdir -p ./output/sha256sums/
           for file in ./output/img/*; do

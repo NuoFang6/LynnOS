@@ -134,7 +134,8 @@ jobs:
 
       - name: 编译完成，打包镜像
         run: |
-          # mkdir -p ./output/img/
+          mkdir -p ./output/img/
+
           # # 压缩并移动文件
           # for file in ./ImmortalWrt/bin/targets/rockchip/armv8/*; do
           #   # 检查文件是否已经有.gz后缀

@@ -1,0 +1,2 @@
+*/4 * * * * bash /etc/xyw/login.sh
+0 4 * * * /etc/init.d/youhua start

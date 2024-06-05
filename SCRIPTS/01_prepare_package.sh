@@ -14,13 +14,12 @@ cp -rf ../feeds.conf.default ./feeds.conf.default
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 非源码 ipk
 # UA3F
-mkdir -p ../PATCH/files/etc/preinstall/
-wget -q -O ../PATCH/files/etc/preinstall/ua3f_armv8.ipk $(curl -s https://api.github.com/repos/SunBK201/UA3F/releases/latest | grep browser_download_url | grep armv8.ipk | cut -d '"' -f 4) &
+mkdir -p ../PATCH/files/etc/pre_install/
+wget -q -O ../PATCH/files/etc/pre_install/ua3f_armv8.ipk $(curl -s https://api.github.com/repos/SunBK201/UA3F/releases/latest | grep browser_download_url | grep armv8.ipk | cut -d '"' -f 4) &
+
 # 源码
 # OpenClash
-git clone -b master --single-branch --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
-# 预配置文件
-cp -rf ../PATCH/files ./files
+git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
@@ -43,8 +42,9 @@ rm -rf feeds/packages/net/jool &
 rm -rf feeds/packages/libs/xr_usb_serial_common &
 rm -rf feeds/packages/net/open-app-filter &
 rm -rf feeds/packages/openvpn/ &
+rm -rf package/feeds/packages/openvpn/ &
 rm -rf feeds/telephony/freeswitch/ &
-
+rm -rf package/feeds/telephony/freeswitch &
 
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance
@@ -66,5 +66,26 @@ sed -i '/client_max_body_size/a\\tserver_names_hash_bucket_size 128;' feeds/pack
 sed -i '/ubus_parallel_req/a\        ubus_script_timeout 600;' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
 sed -ri "/luci-webui.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
 sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
+
+# 预配置文件
+cp -rf ../PATCH/files ./
+
+# Clash 内核
+mkdir -p files/etc/openclash/core
+
+CLASH_DEV_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/core-lateset/dev/clash-linux-${1}.tar.gz"
+CLASH_TUN_URL=$(curl -fsSL https://api.github.com/repos/vernesong/OpenClash/contents/core-lateset/premium | grep download_url | grep $1 | awk -F '"' '{print $4}')
+CLASH_META_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/core-lateset/meta/clash-linux-${1}.tar.gz"
+GEOIP_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
+GEOSITE_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
+
+wget -qO- $CLASH_DEV_URL | tar xOvz >files/etc/openclash/core/clash
+wget -qO- $CLASH_TUN_URL | gunzip -c >files/etc/openclash/core/clash_tun
+wget -qO- $CLASH_META_URL | tar xOvz >files/etc/openclash/core/clash_meta
+wget -qO- $GEOIP_URL >files/etc/openclash/GeoIP.dat
+wget -qO- $GEOSITE_URL >files/etc/openclash/GeoSite.dat
+
+chmod +x files/etc/openclash/core/clash*
+chmod +x files/init.d/youhua
 
 wait

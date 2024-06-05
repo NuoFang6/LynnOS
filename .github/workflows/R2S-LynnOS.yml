@@ -83,7 +83,7 @@ jobs:
           cp -r ../SCRIPTS/. ./
           /bin/bash 01_prepare_package.sh
           /bin/bash 02_target_R2S.sh
-          /bin/bash 03_create_acl_for_luci.sh -a
+          # /bin/bash 03_create_acl_for_luci.sh -a
           wait
 
       - name: 恢复缓存
@@ -182,9 +182,10 @@ jobs:
         with:
           name: R2S-LynnOS
           allowUpdates: true
+          artifactErrorsFailBuild: false
           prerelease: false
           tag: R2s
-          commit: 基于 ImmortalWrt-${{inputs.branch}}
+          commit: 基于 ImmortalWrt ${{env.branch}}
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: output.tar.zst

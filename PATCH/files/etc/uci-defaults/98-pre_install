@@ -9,6 +9,8 @@ uci set fstab.@global[0].check_fs=1
 uci del network.globals.ula_prefix
 # 数据包引导负载均衡
 uci set network.globals.packet_steering='2'
+# irq
+uci set irqbalance.irqbalance.enabled='1'
 # dns
 uci del dhcp.cfg01411c.dns_redirect
 uci del dhcp.cfg01411c.nonwildcard
@@ -22,10 +24,36 @@ uci add_list dhcp.cfg01411c.notinterface='wan6'
 uci set dhcp.cfg01411c.port='6666'
 uci del AdGuardHome.AdGuardHome.upxflag
 uci set AdGuardHome.AdGuardHome.redirect='redirect'
+# lan接口
+uci del dhcp.lan.ra
+uci del dhcp.lan.ra_slaac
+uci del dhcp.lan.ra_flags
+uci del dhcp.lan.max_preferred_lifetime
+uci del dhcp.lan.max_valid_lifetime
+uci add_list network.lan.dns='192.168.2.1'
+uci add_list dhcp.lan.dhcp_option='6,192.168.2.1,192.168.2.1'
+# wan 接口
+uci set network.wan.hostname='*'
+uci set network.wan.peerdns='0'
+uci add_list network.wan.dns='192.168.2.1'
 
 # cpufreq
 uci set cpufreq.cpufreq.minfreq0='408000'
 uci set cpufreq.cpufreq.maxfreq0='1608000'
+
+# led
+uci add system led # =cfg068bba
+uci set system.@led[-1].name='SYS'
+uci set system.@led[-1].sysfs='red:status'
+uci set system.@led[-1].trigger='heartbeat'
+uci del system.led_lan.dev
+uci del system.led_lan.mode
+uci set system.led_lan.trigger='none'
+uci set system.led_lan.default='0'
+uci set system.led_wan.trigger='none'
+uci set system.led_wan.default='0'
+uci del system.led_wan.dev
+uci del system.led_wan.mode
 
 # samba
 # smbpasswd -a root

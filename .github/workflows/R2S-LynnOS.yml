@@ -179,6 +179,7 @@ jobs:
 
       - name: 创建发行版
         uses: ncipollo/release-action@main
+        continue-on-error: true
         with:
           name: R2S
           allowUpdates: true

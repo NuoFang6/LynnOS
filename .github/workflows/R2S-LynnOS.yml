@@ -91,6 +91,7 @@ jobs:
         with:
           ccache: true
           toolchain: true
+          skip: true
           mixkey: "r2s"
           prefix: ${{ github.workspace }}/ImmortalWrt
 

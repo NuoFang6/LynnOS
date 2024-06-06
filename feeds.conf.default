@@ -2,4 +2,3 @@ src-git packages https://github.com/immortalwrt/packages.git
 src-git telephony https://github.com/openwrt/telephony.git
 src-git routing https://github.com/openwrt/routing.git
 src-git luci https://github.com/immortalwrt/luci.git
-src-git sirpdboy https://github.com/sirpdboy/sirpdboy-package.git

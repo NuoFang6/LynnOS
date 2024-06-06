@@ -161,7 +161,7 @@ jobs:
           # ls -Ahl ./output
 
           ls -Ahl ./ImmortalWrt/bin/targets/rockchip/armv8/
-          tar -cf - ./ImmortalWrt/bin/targets/rockchip/armv8/ | zstd -16 -T4 -o ./output.tar.zst
+          tar -cf - ./ImmortalWrt/bin/targets/rockchip/armv8/ | zstd -17 -T4 -o ./output.tar.zst
 
           echo '===== 储存空间状态 ======'
           df -h

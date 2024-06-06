@@ -179,13 +179,14 @@ jobs:
 
       - name: 创建发行版
         uses: ncipollo/release-action@main
+        continue-on-error: true
         with:
-          name: R2S-LynnOS
+          name: R2S
           allowUpdates: true
           artifactErrorsFailBuild: false
           prerelease: false
-          tag: R2s
-          commit: 基于 ImmortalWrt ${{env.branch}}
+          tag: r2s
+          commit: "基于 ImmortalWrt ${{env.branch}}"
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: output.tar.zst

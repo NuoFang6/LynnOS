@@ -16,7 +16,7 @@ uneedpkg="luci-app-control-timewol luci-app-appfilter mdio-tools mdio-netlink li
 uneedpkg="$uneedpkg luci-app-openclash luci-app-netdata"
 
 ./scripts/feeds uninstall $uneedpkg
-
+rm -rf ./package/sirpdboy-package/luci-app-control-timewol
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 源码
 git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash

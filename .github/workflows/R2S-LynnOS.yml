@@ -53,7 +53,7 @@ jobs:
 
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
-        if: ${{ env.maximize }} == true
+        if: env.maximize == true
         with:
           swap-size-mb: 512
           temp-reserve-mb: 128
@@ -68,7 +68,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: 准备编译环境
-        if: ${{ env.maximize }} == true
+        if: env.maximize == true
         env:
           # 无交互安装
           DEBIAN_FRONTEND: noninteractive

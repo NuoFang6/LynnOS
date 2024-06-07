@@ -109,7 +109,7 @@ jobs:
         continue-on-error: true
         if: steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true
         run: |
-          tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst
+          tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T0 -o ./ImmortalWrt-End.tar.zst
 
       - name: debug 上传压缩目录文件
         continue-on-error: true
@@ -136,9 +136,9 @@ jobs:
       - name: 编译完成，打包镜像
         working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
         run: |
-          tar -cf - ./packages | zstd -17 -T4 -o ./output.tar.zst
+          tar -cf - ./packages --remove-files | zstd -15 -T0 -o ./packages.tar.zst
 
-          # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T4 -o ./ImmortalWrt-End.tar.zst &
+          # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T0 -o ./ImmortalWrt-End.tar.zst
 
           ls -Ahl ./
           tar -cf - ./ | zstd -17 -T4 -o ./output.tar.zst
@@ -151,9 +151,7 @@ jobs:
         with:
           name: Output
           compression-level: 0
-          path: |
-            output.tar.zst
-          # ImmortalWrt-End.tar.zst
+          path: ImmortalWrt/bin/targets/rockchip/armv8/*
 
       - name: 创建发行版
         uses: ncipollo/release-action@main
@@ -168,4 +166,4 @@ jobs:
           commit: "main"
           body: "${{ env.CURRENT_TIME }} 自动发布 R2S"
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: output.tar.zst
+          artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*

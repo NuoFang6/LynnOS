@@ -33,9 +33,11 @@ jobs:
           cat /proc/cpuinfo | grep 'model name'
           cpu_name=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | awk -F: '{print $2}' | sed 's/^[ \t]*//')
           if [[ "$cpu_name" =~ "Intel" ]]; then
+            echo "maximize=false" >> $GITHUB_ENV
             echo "检测到Intel CPU，继续运行"
           else
             if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
+              echo "maximize=true" >> $GITHUB_ENV
               echo "CPU为8370C或7763，继续运行"
             else
               echo "CPU不为8370C或7763，性能可能不足，停止运行"
@@ -45,6 +47,7 @@ jobs:
 
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
+        if: ${{ env.maximize }}
         with:
           swap-size-mb: 512
           temp-reserve-mb: 128

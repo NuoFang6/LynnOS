@@ -28,16 +28,19 @@ jobs:
 
     steps:
       - name: 检查运行硬件
-        if: ${{ inputs.runner }} != 'self-hosted'
         run: |
           echo -e "Total CPU cores\t: $(nproc)"
           cat /proc/cpuinfo | grep 'model name'
           cpu_name=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | awk -F: '{print $2}' | sed 's/^[ \t]*//')
-          if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
-            echo "CPU为8370C或7763，继续运行"
+          if [[ "$cpu_name" =~ "Intel" ]]; then
+            echo "检测到Intel CPU，继续运行"
           else
-            echo "CPU不为8370C或7763，性能可能不足，停止运行"
-            exit 1
+            if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
+              echo "CPU为8370C或7763，继续运行"
+            else
+              echo "CPU不为8370C或7763，性能可能不足，停止运行"
+              exit 1
+            fi
           fi
 
       - name: 最大化储存空间

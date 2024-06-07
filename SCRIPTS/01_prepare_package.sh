@@ -30,6 +30,13 @@ wget -q -O ../PATCH/files/etc/pre_install/ua3f_armv8.ipk $(curl -s https://api.g
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 
+# Patch LuCI 以支持自定义 nft 规则
+patch -p1 <../PATCH/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
+
+pushd feeds/luci # 临时进入 ./feeds/luci
+patch -p1 <../../../PATCH/fw4/04-luci-add-firewall4-nft-rules-file.patch
+popd # 回到原目录
+
 ### 最后的收尾工作 ###
 # 默认开启 Irqbalance
 # sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config

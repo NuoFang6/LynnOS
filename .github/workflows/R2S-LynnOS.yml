@@ -5,6 +5,11 @@ on:
   #    - cron: 5 6 * * 0
   workflow_dispatch:
     inputs:
+      runner:
+        description: 使用的运行器
+        type: string
+        required: true
+        default: ubuntu-22.04
       dev:
         description: "使用开发版编译"
         type: boolean
@@ -18,7 +23,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.runner }}
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
@@ -76,6 +81,15 @@ jobs:
           path: ImmortalWrt
           fetch-depth: 0
 
+      - name: 恢复缓存
+        uses: HiGarfield/cachewrtbuild@main
+        with:
+          ccache: true
+          toolchain: true
+          skip: true
+          mixkey: "r2s"
+          prefix: ${{ github.workspace }}/ImmortalWrt
+
       - name: 运行自定义脚本
         working-directory: ./ImmortalWrt
         run: |
@@ -85,15 +99,6 @@ jobs:
           /bin/bash 02_target_R2S.sh
           # /bin/bash 03_create_acl_for_luci.sh -a
           wait
-
-      - name: 恢复缓存
-        uses: HiGarfield/cachewrtbuild@main
-        with:
-          ccache: true
-          toolchain: true
-          skip: true
-          mixkey: "r2s"
-          prefix: ${{ github.workspace }}/ImmortalWrt
 
       - name: 编译 LynnOS
         id: compileImmortalWrt

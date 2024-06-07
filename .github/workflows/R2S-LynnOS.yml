@@ -83,7 +83,7 @@ jobs:
           repository: "immortalwrt/immortalwrt"
           ref: ${{env.branch}}
           path: ImmortalWrt
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: 恢复缓存
         uses: HiGarfield/cachewrtbuild@main

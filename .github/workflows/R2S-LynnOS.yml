@@ -28,6 +28,7 @@ jobs:
 
     steps:
       - name: 检查运行硬件
+        if: ${{ inputs.runner }} != 'self-hosted'
         run: |
           echo -e "Total CPU cores\t: $(nproc)"
           cat /proc/cpuinfo | grep 'model name'

@@ -13,11 +13,11 @@ on:
         type: string
         required: true
         default: ubuntu-22.04
-      dev:
-        description: "使用开发版编译"
-        type: boolean
-        required: true
-        default: true
+      # dev:
+      #   description: "使用开发版编译"
+      #   type: boolean
+      #   required: true
+      #   default: true
       debug_upload:
         description: "出错时上传整个目录"
         type: boolean
@@ -37,12 +37,6 @@ jobs:
           if [[ "$cpu_name" =~ "Intel" ]]; then
             echo "maximize=false" >> $GITHUB_ENV
             echo "检测到Intel CPU，继续运行"
-            if ${{ inputs.dev || true }}
-            then
-              echo "branch=master" >> $GITHUB_ENV
-            else
-              echo "branch=openwrt-23.05" >> $GITHUB_ENV
-            fi
           else
             if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
               echo "maximize=true" >> $GITHUB_ENV
@@ -52,6 +46,12 @@ jobs:
               exit 1
             fi
           fi
+        # if ${{ inputs.dev }}
+        #   then
+        #     echo "branch=master" >> $GITHUB_ENV
+        #   else
+        #     echo "branch=openwrt-23.05" >> $GITHUB_ENV
+        # fi
 
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
@@ -93,7 +93,8 @@ jobs:
         uses: actions/checkout@main
         with:
           repository: "immortalwrt/immortalwrt"
-          ref: ${{env.branch}}
+          # ref: ${{env.branch}}
+          ref: master
           path: ImmortalWrt
           fetch-depth: 1
 

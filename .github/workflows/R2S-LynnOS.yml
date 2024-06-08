@@ -20,6 +20,11 @@ on:
         type: boolean
         required: true
         default: false
+      notbuild:
+        description: "不进行编译"
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   Build:
@@ -46,7 +51,7 @@ jobs:
 
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
-        if: env.maximize == 'true'
+        if: env.maximize == 'true' || inputs.notbuild == false
         with:
           swap-size-mb: 512
           temp-reserve-mb: 128
@@ -83,6 +88,7 @@ jobs:
           fetch-depth: 1
 
       - name: 恢复缓存
+        if: inputs.notbuild == false
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
@@ -104,6 +110,7 @@ jobs:
 
       - name: 编译 LynnOS
         id: compileImmortalWrt
+        if: inputs.notbuild == false
         continue-on-error: true
         working-directory: ./ImmortalWrt
         run: |
@@ -114,13 +121,13 @@ jobs:
 
       - name: debug 压缩目录文件
         continue-on-error: true
-        if: steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true
+        if: (steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true) || inputs.notbuild == true
         run: |
           tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T0 -o ./ImmortalWrt-End.tar.zst
 
       - name: debug 上传压缩目录文件
         continue-on-error: true
-        if: steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true
+        if: (steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true) || inputs.notbuild == true
         uses: actions/upload-artifact@main
         with:
           compression-level: 0
@@ -141,6 +148,7 @@ jobs:
           make -j1 V=s
 
       - name: 编译完成，打包镜像
+        if: steps.compileImmortalWrt.outcome == 'success'
         working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
         run: |
           tar -cf - ./packages --remove-files | zstd -15 -T0 -o ./packages.tar.zst
@@ -156,6 +164,7 @@ jobs:
           echo "TAG=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: 上传至 artifact
+        if: steps.compileImmortalWrt.outcome == 'success'
         uses: actions/upload-artifact@main
         with:
           name: Output
@@ -163,6 +172,7 @@ jobs:
           path: ImmortalWrt/bin/targets/rockchip/armv8/*
 
       - name: 创建发行版
+        if: steps.compileImmortalWrt.outcome == 'success'
         uses: ncipollo/release-action@main
         continue-on-error: true
         with:

@@ -89,7 +89,7 @@ CONFIG_TARGET_BOARD="rockchip"
 CONFIG_TARGET_SUBTARGET="armv8"
 CONFIG_TARGET_PROFILE="DEVICE_friendlyarm_nanopi-r2s"
 CONFIG_TARGET_ARCH_PACKAGES="aarch64_generic"
-CONFIG_DEFAULT_TARGET_OPTIMIZATION="-O3 -pipe -mcpu=cortex-a53+crypto+crypto"
+CONFIG_DEFAULT_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+simd+crypto -mtune=cortex-a53 -mcpu=cortex-a53+crypto"
 CONFIG_CPU_TYPE="generic"
 CONFIG_LINUX_6_6=y
 CONFIG_DEFAULT_automount=y

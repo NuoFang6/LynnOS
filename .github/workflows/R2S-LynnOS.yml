@@ -3,9 +3,9 @@ name: R2S-LynnOS
 on:
   schedule:
     - cron: 0 3 * * 6
-  push:
-    tags:
-      - "v*.*.*"
+  # push:
+  #   tags:
+  #     - "v*.*.*"
   workflow_dispatch:
     inputs:
       runner:

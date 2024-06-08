@@ -2,9 +2,7 @@
 clear
 
 # 使用专属优化
-# sed -i 's,-mcpu=generic,-march=armv8-a+crc+simd+crypto -mtune=cortex-a53 -mcpu=cortex-a53+crypto,g' include/target.mk
-sed -i 's,-mcpu=generic,-mcpu=cortex-a53+crypto,g' include/target.mk
-sed -i 's,-mcpu=cortex-a53,-mcpu=cortex-a53+crypto,g' include/target.mk
+patch -p1 <../PATCH/target/target_r2s.patch
 
 # 关闭缓解措施
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript

@@ -88,9 +88,9 @@ CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="rockchip"
 CONFIG_TARGET_SUBTARGET="armv8"
 CONFIG_TARGET_PROFILE="DEVICE_friendlyarm_nanopi-r2s"
-CONFIG_TARGET_ARCH_PACKAGES="aarch64_generic"
+CONFIG_TARGET_ARCH_PACKAGES="aarch64_cortex-a53"
 CONFIG_DEFAULT_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+simd+crypto -mtune=cortex-a53 -mcpu=cortex-a53+crypto"
-CONFIG_CPU_TYPE="generic"
+CONFIG_CPU_TYPE="cortex-a53"
 CONFIG_LINUX_6_6=y
 CONFIG_DEFAULT_automount=y
 CONFIG_DEFAULT_base-files=y
@@ -515,10 +515,9 @@ CONFIG_TARGET_INIT_SUPPRESS_STDERR=y
 # CONFIG_VERSIONOPT is not set
 CONFIG_PER_FEED_REPO=y
 CONFIG_FEED_packages=y
-CONFIG_FEED_luci=y
-CONFIG_FEED_routing=y
 CONFIG_FEED_telephony=y
-CONFIG_FEED_sirpdboy=y
+CONFIG_FEED_routing=y
+CONFIG_FEED_luci=y
 
 #
 # Base system
@@ -2155,18 +2154,18 @@ CONFIG_PACKAGE_kmod-crypto-acompress=y
 CONFIG_PACKAGE_kmod-crypto-aead=y
 CONFIG_PACKAGE_kmod-crypto-arc4=y
 CONFIG_PACKAGE_kmod-crypto-authenc=y
-CONFIG_PACKAGE_kmod-crypto-cbc=m
+CONFIG_PACKAGE_kmod-crypto-cbc=y
 CONFIG_PACKAGE_kmod-crypto-ccm=y
-CONFIG_PACKAGE_kmod-crypto-chacha20poly1305=m
+CONFIG_PACKAGE_kmod-crypto-chacha20poly1305=y
 CONFIG_PACKAGE_kmod-crypto-cmac=y
 CONFIG_PACKAGE_kmod-crypto-crc32=y
 CONFIG_PACKAGE_kmod-crypto-crc32c=y
 CONFIG_PACKAGE_kmod-crypto-ctr=y
 CONFIG_PACKAGE_kmod-crypto-cts=m
-CONFIG_PACKAGE_kmod-crypto-deflate=m
+CONFIG_PACKAGE_kmod-crypto-deflate=y
 CONFIG_PACKAGE_kmod-crypto-des=y
 CONFIG_PACKAGE_kmod-crypto-ecb=y
-CONFIG_PACKAGE_kmod-crypto-ecdh=m
+CONFIG_PACKAGE_kmod-crypto-ecdh=y
 CONFIG_PACKAGE_kmod-crypto-echainiv=m
 CONFIG_PACKAGE_kmod-crypto-essiv=m
 CONFIG_PACKAGE_kmod-crypto-fcrypt=m
@@ -2178,7 +2177,7 @@ CONFIG_PACKAGE_kmod-crypto-hash=y
 CONFIG_PACKAGE_kmod-crypto-hmac=y
 CONFIG_PACKAGE_kmod-crypto-hw-hifn-795x=m
 CONFIG_PACKAGE_kmod-crypto-hw-padlock=m
-CONFIG_PACKAGE_kmod-crypto-kpp=m
+CONFIG_PACKAGE_kmod-crypto-kpp=y
 CONFIG_PACKAGE_kmod-crypto-manager=y
 CONFIG_PACKAGE_kmod-crypto-md4=m
 CONFIG_PACKAGE_kmod-crypto-md5=y
@@ -2196,7 +2195,7 @@ CONFIG_PACKAGE_kmod-crypto-sha512=y
 CONFIG_PACKAGE_kmod-crypto-test=m
 CONFIG_PACKAGE_kmod-crypto-user=y
 CONFIG_PACKAGE_kmod-crypto-xcbc=m
-CONFIG_PACKAGE_kmod-crypto-xts=m
+CONFIG_PACKAGE_kmod-crypto-xts=y
 CONFIG_PACKAGE_kmod-cryptodev=y
 # end of Cryptographic API modules
 
@@ -5261,7 +5260,6 @@ CONFIG_PACKAGE_luci-app-argon-config=y
 # CONFIG_PACKAGE_luci-app-clamav is not set
 # CONFIG_PACKAGE_luci-app-cloudflared is not set
 # CONFIG_PACKAGE_luci-app-commands is not set
-# CONFIG_PACKAGE_luci-app-control-timewol is not set
 CONFIG_PACKAGE_luci-app-cpufreq=y
 # CONFIG_PACKAGE_luci-app-cpulimit is not set
 # CONFIG_PACKAGE_luci-app-crowdsec-firewall-bouncer is not set

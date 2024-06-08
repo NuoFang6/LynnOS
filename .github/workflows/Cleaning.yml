@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Cleanup-Old-Releases:
+  Cleanup:
     runs-on: ubuntu-latest
     steps:
       - name: Delete Older Releases
@@ -18,18 +18,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  Cleanup-Old-Artifacts:
-    runs-on: ubuntu-latest
-    steps:
       - name: Cleanup Old Action Artifacts
         uses: c-hive/gha-remove-artifacts@master
         with:
           age: "3 days"
           skip-recent: 3
 
-  Cleanup-Workflow-Logs:
-    runs-on: ubuntu-latest
-    steps:
       - name: Cleanup Workflow Logs
         uses: Mattraks/delete-workflow-runs@main
         with:

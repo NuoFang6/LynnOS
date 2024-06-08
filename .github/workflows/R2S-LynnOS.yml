@@ -1,8 +1,11 @@
 name: R2S-LynnOS
 
 on:
-  #  schedule:
-  #    - cron: 5 6 * * 0
+  schedule:
+    - cron: 0 3 * * 6
+  push:
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       runner:
@@ -22,7 +25,7 @@ on:
         default: false
 
 jobs:
-  build:
+  Build:
     runs-on: ${{ inputs.runner }}
     if: github.event.repository.owner.id == github.event.sender.id
 
@@ -143,13 +146,13 @@ jobs:
         if: steps.compileImmortalWrt.outcome == 'failure'
         working-directory: ./ImmortalWrt
         run: |
-          echo '===== 项目目录结构 ====='
+          echo '=============== 项目目录结构 ==============='
           ls ..
-          echo '===== ImmortalWrt目录结构 ====='
+          echo '=============== ImmortalWrt目录结构 ==============='
           ls
-          echo '===== 当前 .config 内容 ====='
+          echo '=============== 当前 .config 内容 ==============='
           cat .config
-          echo '===== 开始 Debug 模式编译 ======'
+          echo '=============== 开始 Debug 模式编译 ================'
           make -j1 V=s
 
       - name: 编译完成，打包镜像
@@ -165,24 +168,47 @@ jobs:
           echo '===== 储存空间状态 ======'
           df -h
           echo "CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
+          if [ -z "${{ github.ref }}" ]; then
+            TAG="v$(date +'%Y%m%d%H%M%S')-alpha"
+            echo "TAG=$TAG" >> $GITHUB_ENV
+            echo "alpha=true" >> $GITHUB_ENV
+            echo "当前tag: $TAG"
+          else
+            echo "TAG=${{ github.ref }}" >> $GITHUB_ENV
+            echo "alpha=false" >> $GITHUB_ENV
+            echo "当前tag: ${{ github.ref }}"
+          fi
+
       - name: 上传至 artifact
         uses: actions/upload-artifact@main
         with:
           name: Output
-          compression-level: 0
+          compression-level: 9
           path: ImmortalWrt/bin/targets/rockchip/armv8/*
 
       - name: 创建发行版
         uses: ncipollo/release-action@main
         continue-on-error: true
         with:
-          name: R2S
+          name: LynnOS-R2S
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: false
-          prerelease: false
-          tag: r2s
-          commit: "main"
-          body: "${{ env.CURRENT_TIME }} 自动发布 R2S"
+          prerelease: ${{ env.alpha }}
+          commit: main
+          tag: ${{ env.TAG }}
+          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-R2S"
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*
+
+      - name: 标记成功
+        if: success()
+        run: |
+          TAG_NAME="Success-$(date +'%Y%m%d%H%M%S')"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag $TAG_NAME
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git $TAG_NAME
+
+  clean:
+    uses: ./.github/workflows/Cleaning.yml

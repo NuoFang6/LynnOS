@@ -28,5 +28,6 @@ chmod -R 755 ./
 
 find ./ -name *.orig | xargs rm -f &
 find ./ -name *.rej | xargs rm -f
+rm -rf ./package/sirpdboy-package/luci-app-control-timewol
 
 wait

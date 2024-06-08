@@ -3,11 +3,12 @@ name: Cleaning
 on:
   # schedule:
   #   - cron: 1 1 * * 1
+  workflow_call:
   workflow_dispatch:
 
 jobs:
   Cleanup-Old-Releases:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Delete Older Releases
         uses: dev-drprasad/delete-older-releases@master
@@ -18,7 +19,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   Cleanup-Old-Artifacts:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Cleanup Old Action Artifacts
         uses: c-hive/gha-remove-artifacts@master
@@ -27,7 +28,7 @@ jobs:
           skip-recent: 3
 
   Cleanup-Workflow-Logs:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Cleanup Workflow Logs
         uses: Mattraks/delete-workflow-runs@main

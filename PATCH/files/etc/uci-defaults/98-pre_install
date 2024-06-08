@@ -23,7 +23,10 @@ uci add_list dhcp.cfg01411c.notinterface='wan'
 uci add_list dhcp.cfg01411c.notinterface='wan6'
 uci set dhcp.cfg01411c.port='6666'
 uci del AdGuardHome.AdGuardHome.upxflag
-uci set AdGuardHome.AdGuardHome.redirect='redirect'
+uci set AdGuardHome.AdGuardHome.core_version='latest'
+uci set AdGuardHome.AdGuardHome.redirect='exchange'
+uci set AdGuardHome.AdGuardHome.update_url='https://mirror.ghproxy.com/https://github.com/AdguardTeam/AdGuardHome/releases/download/${Cloud_Version}/AdGuardHome_linux_${Arch}.tar.gz'
+uci set AdGuardHome.AdGuardHome.enabled='1'
 # lan接口
 uci del dhcp.lan.ra
 uci del dhcp.lan.ra_slaac
@@ -88,6 +91,37 @@ uci set firewall.@forwarding[-1].dest='tailscale'
 uci add firewall forwarding # =cfg16ad58
 uci set firewall.@forwarding[-1].src='wan'
 uci set firewall.@forwarding[-1].dest='tailscale'
+uci set firewall.cfg01e63d.synflood_protect='1'
+uci set firewall.cfg01e63d.input='ACCEPT'
+uci set firewall.cfg01e63d.forward='ACCEPT'
+uci set firewall.cfg03dc81.forward='ACCEPT'
+uci add firewall rule # =cfg1592bd
+uci set firewall.@rule[-1].name='Tailscale'
+uci set firewall.@rule[-1].src_port='61412'
+uci set firewall.@rule[-1].dest='*'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci add firewall rule # =cfg1692bd
+uci set firewall.@rule[-1].name='Tailscale2'
+uci set firewall.@rule[-1].src='*'
+uci set firewall.@rule[-1].dest='*'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci add firewall rule # =cfg1792bd
+uci set firewall.@rule[-1].name='Tailscale3'
+uci set firewall.@rule[-1].src='wan'
+uci set firewall.@rule[-1].dest_port='61412'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci set firewall.cfg1692bd.src_port='61412'
+uci reorder firewall.@rule[-1]=21
+uci del firewall.cfg1692bd.src_port
+uci set firewall.cfg1692bd.dest_port='61412'
+uci add firewall rule # =cfg1892bd
+uci set firewall.@rule[-1].name='Tailscale4'
+uci set firewall.@rule[-1].src='*'
+uci set firewall.@rule[-1].src_port='61412'
+uci set firewall.@rule[-1].dest='*'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci reorder firewall.@rule[-1]=22
+
 # 系统
 uci set system.cfg01e48a.log_proto='udp'
 uci set system.cfg01e48a.conloglevel='8'
@@ -99,22 +133,46 @@ uci set system.ntp.interface='lan'
 # smbpasswd -a root
 uci set samba4.cfg010f89.interface='lan'
 uci set samba4.cfg010f89.enable_extra_tuning='1'
+uci add samba4 sambashare # =cfg02e23c
+uci set samba4.@sambashare[-1].name='root'
+uci set samba4.@sambashare[-1].path='/'
+uci set samba4.@sambashare[-1].read_only='no'
+uci set samba4.@sambashare[-1].users='root'
+uci set samba4.@sambashare[-1].guest_ok='yes'
+uci set samba4.@sambashare[-1].create_mask='0666'
+uci set samba4.@sambashare[-1].dir_mask='0777'
 
+# UPUN
+uci del upnpd.config.enable_upnp
+uci del upnpd.config.enable_natpmp
+uci del upnpd.config.secure_mode
+uci del upnpd.config.log_output
+uci set upnpd.config.enabled='1'
+uci set upnpd.config.use_stun='1'
+uci set upnpd.config.stun_host='stun.miwifi.com'
+
+# UA3F
+uci set ua3f.main.ua='Ftn67-sdbv'
+uci set ua3f.main.log_level='fatal'
+uci set ua3f.enabled.enabled='1'
+
+# Uhttpd 删除当前监听443端口的配置
+uci del uhttpd.main.listen_https
+uci del uhttpd.main.lua_prefix
+uci set uhttpd.main.lua_prefix='/cgi-bin/luci=/usr/lib/lua/luci/sgi/uhttpd.lua'
+uci set uhttpd.defaults.bits='1024'
 # nginx 禁用https
-uci del nginx._redirect2ssl
-# 删除当前监听443端口的配置
-uci delete nginx.@server[0].listen
+# uci del nginx._redirect2ssl
+# uci delete nginx.@server[0].listen
 # 添加新的监听80端口的配置
-uci add_list nginx.@server[0].listen='80 default_server'
-uci add_list nginx.@server[0].listen='[::]:80 default_server'
+# uci add_list nginx.@server[0].listen='80 default_server'
+# uci add_list nginx.@server[0].listen='[::]:80 default_server'
 uci commit
 /etc/init.d/dnsmasq restart
 /etc/init.d/cpufreq restart
 /etc/init.d/nginx restart
 
 # 禁用服务
-/etc/init.d/uhttpd stop
-/etc/init.d/uhttpd disable
 /etc/init.d/tailscale stop
 /etc/init.d/tailscale disable
 /etc/init.d/dockerd stop

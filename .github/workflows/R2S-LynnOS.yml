@@ -7,7 +7,7 @@ on:
     branches:
       - "main"
     paths:
-      - ".github/workflows/R2S-LynnOS.yml"
+      - "SCRIPTS/01_prepare_package.sh"
   workflow_dispatch:
     inputs:
       runner:
@@ -51,7 +51,7 @@ jobs:
 
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
-        if: env.maximize == 'true' || inputs.notbuild == false
+        if: env.maximize == 'true' && inputs.notbuild == false
         with:
           swap-size-mb: 512
           temp-reserve-mb: 128
@@ -109,8 +109,8 @@ jobs:
           wait
 
       - name: 编译 LynnOS
-        id: compileImmortalWrt
         if: inputs.notbuild == false
+        id: compileImmortalWrt
         continue-on-error: true
         working-directory: ./ImmortalWrt
         run: |
@@ -123,7 +123,7 @@ jobs:
         continue-on-error: true
         if: (steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true) || inputs.notbuild == true
         run: |
-          tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T0 -o ./ImmortalWrt-End.tar.zst
+          tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
 
       - name: debug 上传压缩目录文件
         continue-on-error: true
@@ -135,6 +135,7 @@ jobs:
           path: ImmortalWrt-End.tar.zst
 
       - name: debug 详细模式编译
+        id: debugCompile
         if: steps.compileImmortalWrt.outcome == 'failure'
         working-directory: ./ImmortalWrt
         run: |
@@ -148,7 +149,7 @@ jobs:
           make -j1 V=s
 
       - name: 编译完成，打包镜像
-        if: steps.compileImmortalWrt.outcome == 'success'
+        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
         working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
         run: |
           tar -cf - ./packages --remove-files | zstd -15 -T0 -o ./packages.tar.zst
@@ -164,7 +165,7 @@ jobs:
           echo "TAG=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: 上传至 artifact
-        if: steps.compileImmortalWrt.outcome == 'success'
+        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
         uses: actions/upload-artifact@main
         with:
           name: Output
@@ -172,7 +173,7 @@ jobs:
           path: ImmortalWrt/bin/targets/rockchip/armv8/*
 
       - name: 创建发行版
-        if: steps.compileImmortalWrt.outcome == 'success'
+        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
         uses: ncipollo/release-action@main
         continue-on-error: true
         with:

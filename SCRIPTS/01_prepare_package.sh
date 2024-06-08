@@ -16,7 +16,6 @@ uneedpkg="luci-app-control-timewol luci-app-appfilter mdio-tools mdio-netlink li
 uneedpkg="$uneedpkg luci-app-openclash luci-app-netdata"
 
 ./scripts/feeds uninstall $uneedpkg
-rm -rf ./package/sirpdboy-package/luci-app-control-timewol
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 源码
 git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
@@ -32,6 +31,7 @@ cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 
 # Patch LuCI 以支持自定义 nft 规则
 patch -p1 <../PATCH/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
+patch -p1 <../PATCH/squashfs/add_zstd_support.patch
 
 pushd feeds/luci # 临时进入 ./feeds/luci
 patch -p1 <../../../PATCH/fw4/04-luci-add-firewall4-nft-rules-file.patch

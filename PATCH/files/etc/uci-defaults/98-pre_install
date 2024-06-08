@@ -173,8 +173,8 @@ uci commit
 /etc/init.d/nginx restart
 
 # 禁用服务
-/etc/init.d/tailscale stop
-/etc/init.d/tailscale disable
+# /etc/init.d/tailscale stop
+# /etc/init.d/tailscale disable
 /etc/init.d/dockerd stop
 /etc/init.d/dockerd disable
 /etc/init.d/dockerman stop

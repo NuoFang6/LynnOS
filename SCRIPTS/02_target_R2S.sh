@@ -19,9 +19,8 @@ cp -rf ../SEED/R2S/config.seed .config
 cat <<EOL >>../SEED/R2S/config-6.6
 # CONFIG_ARM_SMMU_V3_PMU is not set
 # CONFIG_ARM_CORESIGHT_PMU_ARCH_SYSTEM_PMU is not set
-# CONFIG_CRYPTO_DEV_ROCKCHIP is not set
-CONFIG_GCC_ASM_GOTO_OUTPUT_WORKAROUND=y
 # CONFIG_IIO_SCMI is not set
+CONFIG_GCC_ASM_GOTO_OUTPUT_WORKAROUND=y
 EOL
 cp -rf ../SEED/R2S/config-6.6 target/linux/rockchip/armv8/config-6.6
 chmod -R 755 ./

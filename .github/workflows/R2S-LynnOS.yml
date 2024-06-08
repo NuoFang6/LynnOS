@@ -94,6 +94,7 @@ jobs:
       - name: 运行自定义脚本
         working-directory: ./ImmortalWrt
         run: |
+          export TERM=xterm
           #sudo chown -R runner:runner /home/runner/work/$(basename ${{ github.repository }})
           cp -r ../SCRIPTS/. ./
           /bin/bash 01_prepare_package.sh
@@ -152,16 +153,7 @@ jobs:
           echo '===== 储存空间状态 ======'
           df -h
           echo "CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
-          if [ -z "${{ github.ref }}" ]; then
-            TAG="v$(date +'%Y%m%d%H%M%S')-alpha"
-            echo "TAG=$TAG" >> $GITHUB_ENV
-            echo "alpha=true" >> $GITHUB_ENV
-            echo "当前tag: $TAG"
-          else
-            echo "TAG=${{ github.ref }}" >> $GITHUB_ENV
-            echo "alpha=false" >> $GITHUB_ENV
-            echo "当前tag: ${{ github.ref }}"
-          fi
+          echo "TAG=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: 上传至 artifact
         uses: actions/upload-artifact@main
@@ -178,21 +170,11 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: false
-          prerelease: ${{ env.alpha }}
           commit: main
-          tag: ${{ env.TAG }}
+          tag: "Success-${{ env.TAG }}"
           body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-R2S"
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*
-
-      - name: 标记成功
-        if: success()
-        run: |
-          TAG_NAME="Success-$(date +'%Y%m%d%H%M%S')"
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git tag $TAG_NAME
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git $TAG_NAME
 
   clean:
     needs: Build

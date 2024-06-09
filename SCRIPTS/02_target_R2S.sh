@@ -14,11 +14,13 @@ sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/
 # 预配置文件
 cp -rf ../SEED/R2S/config.seed .config
 
+sed -i '/CONFIG_GCC10_NO_ARRAY_BOUNDS=y/d' ../SEED/R2S/config-6.6
 cat <<EOL >>../SEED/R2S/config-6.6
-# CONFIG_ARM_SMMU_V3_PMU is not set
 # CONFIG_ARM_CORESIGHT_PMU_ARCH_SYSTEM_PMU is not set
-# CONFIG_IIO_SCMI is not set
+# CONFIG_ARM_SMMU_V3_PMU is not set
+CONFIG_GCC11_NO_ARRAY_BOUNDS=y
 CONFIG_GCC_ASM_GOTO_OUTPUT_WORKAROUND=y
+# CONFIG_IIO_SCMI is not set
 CONFIG_RANDOMIZE_BASE=y
 CONFIG_RANDOMIZE_MODULE_REGION_FULL=y
 EOL

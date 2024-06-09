@@ -14,7 +14,7 @@ cp -rf ../feeds.conf.default ./feeds.conf.default
 ./scripts/feeds install -a
 # 可删除的
 
-uneedpkg="luci-app-control-timewol luci-app-appfilter mdio-tools mdio-netlink libpfring ovpn-dco jool xr_usb_serial_common open-app-filter openvpn freeswitch luci-app-openvpn-server freetdm freeswitch-mod-bcg729"
+uneedpkg="luci-app-appfilter mdio-tools mdio-netlink libpfring ovpn-dco jool xr_usb_serial_common open-app-filter openvpn freeswitch luci-app-openvpn-server freetdm freeswitch-mod-bcg729"
 uneedpkg="$uneedpkg luci-app-openclash luci-app-netdata"
 
 ./scripts/feeds uninstall $uneedpkg
@@ -27,6 +27,8 @@ git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git package/sir
 # UA3F
 mkdir -p ../PATCH/files/etc/pre_install/
 wget -q -O ../PATCH/files/etc/pre_install/ua3f_armv8.ipk $(curl -s https://api.github.com/repos/SunBK201/UA3F/releases/latest | grep browser_download_url | grep armv8.ipk | cut -d '"' -f 4) &
+
+rm -rf ./package/sirpdboy-package/luci-app-control-timewol
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/

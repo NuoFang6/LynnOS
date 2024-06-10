@@ -35,7 +35,6 @@ cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
 
 # Patch LuCI 以支持自定义 nft 规则
 patch -p1 <../PATCH/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
-patch -p1 <../PATCH/squashfs/add_zstd_support.patch
 
 pushd feeds/luci # 临时进入 ./feeds/luci
 patch -p1 <../../../PATCH/fw4/04-luci-add-firewall4-nft-rules-file.patch

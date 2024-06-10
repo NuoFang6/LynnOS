@@ -3,6 +3,7 @@ clear
 
 # 使用专属优化
 patch -p1 <../PATCH/target/target_r2s.patch
+patch -p1 <../PATCH/squashfs/add_zstd_support.patch
 sed -i 's/# CONFIG_KERNEL_ZSTD is not set/CONFIG_KERNEL_ZSTD=y/g' target/linux/generic/config-6.6
 
 # 关闭缓解措施
@@ -25,6 +26,7 @@ CONFIG_GCC_ASM_GOTO_OUTPUT_WORKAROUND=y
 CONFIG_RANDOMIZE_BASE=y
 CONFIG_RANDOMIZE_MODULE_REGION_FULL=y
 # CONFIG_MPTCP_IPV6 is not set
+# CONFIG_CRYPTO_DEV_ROCKCHIP is not set
 EOL
 cp -rf ../SEED/R2S/config-6.6 target/linux/rockchip/armv8/config-6.6
 chmod -R 755 ./

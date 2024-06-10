@@ -187,6 +187,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*
 
-  clean:
-    needs: Build
-    uses: ./.github/workflows/Cleaning.yml
+  # clean:
+  #   needs: Build
+  #   uses: ./.github/workflows/Cleaning.yml

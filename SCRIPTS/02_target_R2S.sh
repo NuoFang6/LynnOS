@@ -4,7 +4,6 @@ clear
 # 使用专属优化
 patch -p1 <../PATCH/target/target_r2s.patch
 patch -p1 <../PATCH/squashfs/add_zstd_support.patch
-sed -i 's/# CONFIG_KERNEL_ZSTD is not set/CONFIG_KERNEL_ZSTD=y/g' target/linux/generic/config-6.6
 
 # 关闭缓解措施
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript

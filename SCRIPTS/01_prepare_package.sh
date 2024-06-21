@@ -26,7 +26,7 @@ git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git ./package/s
 mkdir -p ./2305packages/
 git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages
 rm -rf ./feeds/packages/lang/ruby
-
+cp -rf ./2305packages/lang/ruby ./feeds/packages/lang/ruby
 # 非源码 ipk
 # UA3F
 mkdir -p ../PATCH/files/etc/pre_install/

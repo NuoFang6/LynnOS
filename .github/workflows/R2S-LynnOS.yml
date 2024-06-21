@@ -53,7 +53,7 @@ jobs:
           {
             sudo swapoff -a &
             sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-            sudo -E add-apt-repository -y --quiet ppa:apt-fast/stable
+            sudo -E add-apt-repository -y ppa:apt-fast/stable
             sudo -E apt-get -qq install -y apt-fast
             sudo -E apt-fast -qq install -y $DEPENDENCY
             sudo -E apt-get -qq autoremove --purge

@@ -5,7 +5,7 @@
 clear
 
 # 使用 O3 级别的优化
-sed -i 's/-Os/-O3/g' include/target.mk
+sed -i 's/-Os/-O3/g' ./include/target.mk
 
 # 自定义feed源
 cp -rf ../feeds.conf.default ./feeds.conf.default
@@ -20,8 +20,12 @@ uneedpkg="$uneedpkg luci-app-openclash luci-app-netdata"
 ./scripts/feeds uninstall $uneedpkg
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 源码
-git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
-git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git package/sirpdboy-package
+git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/new/luci-app-openclash
+git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git ./package/sirpdboy-package
+# 滚回修复无法编译的
+mkdir -p ./2305packages/
+git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages
+rm -rf ./feeds/packages/lang/ruby
 
 # 非源码 ipk
 # UA3F

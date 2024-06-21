@@ -10,21 +10,21 @@ sed -i 's/-Os/-O3/g' ./include/target.mk
 # 自定义feed源
 cp -rf ../feeds.conf.default ./feeds.conf.default
 # 更新 Feeds
-./scripts/feeds update -a
-./scripts/feeds install -a
+./scripts/feeds update -a >/dev/null
+./scripts/feeds install -a >/dev/null
 # 可删除的
 
 uneedpkg="luci-app-appfilter mdio-tools mdio-netlink libpfring ovpn-dco jool xr_usb_serial_common open-app-filter openvpn freeswitch luci-app-openvpn-server freetdm freeswitch-mod-bcg729"
 uneedpkg="$uneedpkg luci-app-openclash luci-app-netdata"
 
-./scripts/feeds uninstall $uneedpkg
+./scripts/feeds uninstall $uneedpkg >/dev/null
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 源码
-git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/new/luci-app-openclash
-git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git ./package/sirpdboy-package
+git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/new/luci-app-openclash >/dev/null
+git clone --depth 1 https://github.com/sirpdboy/sirpdboy-package.git ./package/sirpdboy-package >/dev/null
 # 滚回修复无法编译的
 mkdir -p ./2305packages/
-git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages
+git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages >/dev/null
 rm -rf ./feeds/packages/lang/ruby
 cp -rf ./2305packages/lang/ruby ./feeds/packages/lang/ruby
 # 非源码 ipk

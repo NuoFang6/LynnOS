@@ -10,47 +10,22 @@ on:
   #     - "SCRIPTS/01_prepare_package.sh"
   workflow_dispatch:
     inputs:
-      runner:
-        description: 使用的运行器
-        type: string
-        required: true
-        default: ubuntu-22.04
-      debug_upload:
-        description: "出错时上传整个目录"
+      build:
+        description: "进行编译"
         type: boolean
+        default: true
         required: true
-        default: false
-      notbuild:
-        description: "不进行编译"
-        type: boolean
-        required: true
-        default: false
 
 jobs:
   Build:
-    runs-on: ${{ inputs.runner || 'ubuntu-22.04' }}
+    env:
+      TAG: r2s
+      CURRENT_TIME: "2024"
+    runs-on: "ubuntu-22.04"
     steps:
-      - name: 检查运行硬件
-        run: |
-          echo -e "Total CPU cores\t: $(nproc)"
-          cat /proc/cpuinfo | grep 'model name'
-          cpu_name=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | awk -F: '{print $2}' | sed 's/^[ \t]*//')
-          if [[ "$cpu_name" =~ "Intel" ]]; then
-            echo "maximize=false" >> $GITHUB_ENV
-            echo "检测到Intel CPU，继续运行"
-          else
-            if [[ "$cpu_name" =~ "8370C" || "$cpu_name" =~ "7763" ]]; then
-              echo "maximize=true" >> $GITHUB_ENV
-              echo "CPU为8370C或7763，继续运行"
-            else
-              echo "CPU不为8370C或7763，性能可能不足，停止运行"
-              exit 1
-            fi
-          fi
-
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
-        if: env.maximize == 'true' && inputs.notbuild == false
+        if: inputs.build == true
         with:
           swap-size-mb: 512
           temp-reserve-mb: 128
@@ -63,9 +38,11 @@ jobs:
 
       - name: 克隆代码
         uses: actions/checkout@main
+        with:
+          ref: main
+          fetch-depth: 1
 
       - name: 准备编译环境
-        if: env.maximize == 'true'
         env:
           # 无交互安装
           DEBIAN_FRONTEND: noninteractive
@@ -73,21 +50,35 @@ jobs:
           DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5 libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
         # -E 表示传递环境变量
         run: |
-          sudo swapoff -a &
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc && sudo -E add-apt-repository -y ppa:apt-fast/stable && sudo -E apt-get install -y apt-fast && sudo -E apt-fast -y -qq install ${{ env.DEPENDENCY }} && sudo -E apt-get -qq autoremove --purge && sudo -E apt-get -qq clean
+          {
+            sudo swapoff -a &
+            sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+            sudo -E add-apt-repository -y --quiet ppa:apt-fast/stable
+            sudo -E apt-get -qq install -y apt-fast
+            sudo -E apt-fast -qq install -y $DEPENDENCY
+            sudo -E apt-get -qq autoremove --purge
+            sudo -E apt-get -qq clean
+            sudo -E git config --global user.name 'GitHub Actions'
+            sudo -E git config --global user.email 'noreply@github.com'
+            sudo -E git config --global core.abbrev auto
+          } >/dev/null
           wait
-          sudo -E git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com' && sudo -E git config --global core.abbrev auto
+          git clone -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git ./ImmortalWrt >/dev/null
 
-      - name: 克隆 ImmortalWrt
-        uses: actions/checkout@main
-        with:
-          repository: "immortalwrt/immortalwrt"
-          ref: master
-          path: ImmortalWrt
-          fetch-depth: 1
+      - name: 运行自定义脚本
+        env:
+          TERM: xterm
+        run: |
+          pushd ./ImmortalWrt
+          cp -r ../SCRIPTS/. ./
+          bash 01_prepare_package.sh
+          bash 02_target_R2S.sh
+          bash 03_create_acl_for_luci.sh -a
+          wait && popd
+          tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
 
       - name: 恢复缓存
-        if: inputs.notbuild == false
+        if: inputs.build == true
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
@@ -96,83 +87,48 @@ jobs:
           mixkey: "r2s"
           prefix: ${{ github.workspace }}/ImmortalWrt
 
-      - name: 运行自定义脚本
-        working-directory: ./ImmortalWrt
-        run: |
-          export TERM=xterm
-          #sudo chown -R runner:runner /home/runner/work/$(basename ${{ github.repository }})
-          cp -r ../SCRIPTS/. ./
-          /bin/bash 01_prepare_package.sh
-          /bin/bash 02_target_R2S.sh
-          # /bin/bash 03_create_acl_for_luci.sh -a
-          wait
-
       - name: 编译 LynnOS
-        if: inputs.notbuild == false
-        id: compileImmortalWrt
+        if: inputs.build == true
+        id: build
         continue-on-error: true
         working-directory: ./ImmortalWrt
+        env:
+          IGNORE_ERRORS: 1
         run: |
           make defconfig
           make download -j50
-          IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
-          echo $?
+          make -j$(($(nproc) + 1))
 
-      - name: debug 压缩目录文件
+      - name: debug 详细日志编译
+        if: steps.build.outcome == 'failure'
         continue-on-error: true
-        if: (steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true) || inputs.notbuild == true
-        run: |
-          tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
-
-      - name: debug 上传压缩目录文件
-        continue-on-error: true
-        if: (steps.compileImmortalWrt.outcome == 'failure' && inputs.debug_upload == true) || inputs.notbuild == true
-        uses: actions/upload-artifact@main
-        with:
-          compression-level: 0
-          name: ImmortalWrt-End.tar.zst
-          path: ImmortalWrt-End.tar.zst
-
-      - name: debug 详细模式编译
-        id: debugCompile
-        if: steps.compileImmortalWrt.outcome == 'failure'
         working-directory: ./ImmortalWrt
         run: |
-          echo '=============== 项目目录结构 ==============='
-          ls ..
-          echo '=============== ImmortalWrt目录结构 ==============='
-          ls
-          echo '=============== 当前 .config 内容 ==============='
-          cat .config
-          echo '=============== 开始 Debug 模式编译 ================'
           make -j1 V=s
 
       - name: 编译完成，打包镜像
-        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
+        if: steps.build.outcome == 'success'
         working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
         run: |
-          tar -cf - ./packages --remove-files | zstd -15 -T0 -o ./packages.tar.zst
-
-          # tar -cf - ./ImmortalWrt/ | zstd --ultra -22 -T0 -o ./ImmortalWrt-End.tar.zst
-
-          ls -Ahl ./
-          tar -cf - ./ | zstd -17 -T0 -o ./output.tar.zst
-
-          echo '===== 储存空间状态 ======'
-          df -h
+          tar -cf - ./packages --remove-files | zstd -19 -T0 -o ./packages.tar.zst
+          tar -cf - ./ | zstd -19 -T0 -o ./output.tar.zst
           echo "CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
           echo "TAG=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+          df -h
 
       - name: 上传至 artifact
-        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
         uses: actions/upload-artifact@main
+        continue-on-error: true
         with:
           name: Output
-          compression-level: 9
-          path: ImmortalWrt/bin/targets/rockchip/armv8/*
+          if-no-files-found: warn
+          compression-level: 0
+          path: |
+            ImmortalWrt-End.tar.zst
+            ImmortalWrt/bin/targets/rockchip/armv8/output.tar.zst
 
       - name: 创建发行版
-        if: steps.compileImmortalWrt.outcome == 'success' || steps.debugCompile.outcome == 'success'
+        if: steps.build.outcome == 'success'
         uses: ncipollo/release-action@main
         continue-on-error: true
         with:

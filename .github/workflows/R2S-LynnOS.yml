@@ -25,9 +25,9 @@ jobs:
     steps:
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
-        if: inputs.build == true
+        if: inputs.build == true || github.event.schedule
         with:
-          swap-size-mb: 16
+          swap-size-mb: 1
           temp-reserve-mb: 100
           root-reserve-mb: 4096
           remove-dotnet: "true"
@@ -82,7 +82,7 @@ jobs:
           sudo df -h
 
       - name: 恢复缓存
-        if: inputs.build == true
+        if: inputs.build == true || github.event.schedule
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
@@ -92,7 +92,7 @@ jobs:
           prefix: ${{ github.workspace }}/ImmortalWrt
 
       - name: 编译 LynnOS
-        if: inputs.build == true
+        if: inputs.build == true || github.event.schedule
         id: build
         continue-on-error: true
         working-directory: ./ImmortalWrt

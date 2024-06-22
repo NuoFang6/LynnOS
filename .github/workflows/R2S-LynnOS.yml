@@ -3,11 +3,12 @@ name: R2S-LynnOS
 on:
   schedule:
     - cron: 0 3 * * 6
-  # push:
-  #   branches:
-  #     - "main"
-  #   paths:
-  #     - "SCRIPTS/01_prepare_package.sh"
+  push:
+    branches:
+      - "main"
+    paths:
+      - "SCRIPTS/01_prepare_package.sh"
+      - ".github/workflows/**"
   workflow_dispatch:
     inputs:
       build:

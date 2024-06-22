@@ -2,7 +2,8 @@ name: R2S-LynnOS
 
 on:
   schedule:
-    - cron: 0 3 * * 6
+    - cron: 00 17 * * 5
+    # 北京时间(UTC+8) 星期六早上 1:00
   push:
     branches:
       - "main"
@@ -19,10 +20,13 @@ on:
 
 jobs:
   Build:
+    runs-on: "ubuntu-22.04"
     env:
       TAG: r2s
       CURRENT_TIME: "2024"
-    runs-on: "ubuntu-22.04"
+      TERM: xterm
+      # 无交互
+      DEBIAN_FRONTEND: noninteractive
     steps:
       - name: 最大化储存空间
         uses: easimon/maximize-build-space@master
@@ -45,8 +49,6 @@ jobs:
 
       - name: 准备编译环境
         env:
-          # 无交互安装
-          DEBIAN_FRONTEND: noninteractive
           # 依赖
           DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5 libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
         # -E 表示传递环境变量
@@ -70,8 +72,6 @@ jobs:
           git clone -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git ./ImmortalWrt >/dev/null
 
       - name: 运行自定义脚本
-        env:
-          TERM: xterm
         run: |
           pushd ./ImmortalWrt
           cp -r ../SCRIPTS/. ./

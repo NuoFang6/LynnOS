@@ -52,12 +52,15 @@ jobs:
         run: |
           {
             sudo swapoff -a &
-            sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-            sudo -E add-apt-repository -y ppa:apt-fast/stable
-            sudo -E apt-get -qq install -y apt-fast
+            sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc &
+            sudo rm -rf /etc/apt/sources.list.d/*
+            /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+            cp -rf ./apt-fast.conf /etc
+            sudo -E apt-fast -qq update -y
+            sudo -E apt-fast -qq dist-upgrade -y
             sudo -E apt-fast -qq install -y $DEPENDENCY
-            sudo -E apt-get -qq autoremove --purge
-            sudo -E apt-get -qq clean
+            sudo -E apt-fast -qq autoremove --purge -y
+            sudo -E apt-fast -qq clean -y
             sudo -E git config --global user.name 'GitHub Actions'
             sudo -E git config --global user.email 'noreply@github.com'
             sudo -E git config --global core.abbrev auto

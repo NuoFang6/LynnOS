@@ -116,7 +116,9 @@ jobs:
         working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
         run: |
           tar -cf - ./packages --remove-files | zstd -19 -T0 -o ./packages.tar.zst
-          tar -cf - ./ | zstd -19 -T0 -o ./output.tar.zst
+          cd ..
+          tar -cf - ./armv8 | zstd -19 -T0 -o ./output.tar.zst
+          cp -rf ./output.tar.zst ./armv8
           echo "CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
           echo "TAG=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
           df -h

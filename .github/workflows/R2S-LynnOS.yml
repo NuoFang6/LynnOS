@@ -27,7 +27,8 @@ jobs:
         uses: easimon/maximize-build-space@master
         if: inputs.build == true
         with:
-          temp-reserve-mb: 128
+          swap-size-mb: 16
+          temp-reserve-mb: 100
           root-reserve-mb: 4096
           remove-dotnet: "true"
           remove-android: "true"
@@ -53,7 +54,7 @@ jobs:
             sudo swapoff -a &
             sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc &
             sudo rm -rf /etc/apt/sources.list.d/*
-            /bin/bash -c "$(curl -sL https://git.io/vokNn)" >/dev/null
+            /bin/bash -c "$(curl -sL https://git.io/vokNn)"
             sudo -E cp -rf ./apt-fast.conf /etc
             sudo -E apt-fast -qq update -y
             sudo -E apt-fast -qq dist-upgrade -y
@@ -78,6 +79,7 @@ jobs:
           bash 03_create_acl_for_luci.sh -a
           wait && popd
           tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
+          sudo df -h
 
       - name: 恢复缓存
         if: inputs.build == true

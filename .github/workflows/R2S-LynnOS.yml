@@ -101,6 +101,7 @@ jobs:
         env:
           IGNORE_ERRORS: 1
         run: |
+          make defconfig
           make download -j50
           make -j$(($(nproc) + 1))
 

@@ -78,6 +78,7 @@ jobs:
           bash 01_prepare_package.sh
           bash 02_target_R2S.sh
           bash 03_create_acl_for_luci.sh -a
+          make prepare_kernel_conf -j$(($(nproc) + 1))
           make defconfig
           wait && popd
           tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
@@ -101,7 +102,6 @@ jobs:
         env:
           IGNORE_ERRORS: 1
         run: |
-          make defconfig
           make download -j50
           make -j$(($(nproc) + 1))
 

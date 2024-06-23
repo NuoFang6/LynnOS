@@ -6,7 +6,7 @@ patch -p1 <../PATCH/target/target_r2s.patch
 patch -p1 <../PATCH/squashfs/add_zstd_support.patch
 
 # 关闭缓解措施
-sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
+sed -i 's,rootwait,rootwait mitigations=off rootfs_mount_options.threads=4,g' target/linux/rockchip/image/default.bootscript
 
 # 交换 LAN/WAN 口
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# 预配置文件
+cp -rf ../PATCH/files ./
+
+chmod +x files/etc/init.d/youhua
+
 # 非源码 ipk
 # UA3F
 mkdir -p ../PATCH/files/etc/pre_install/

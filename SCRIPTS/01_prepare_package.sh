@@ -42,6 +42,5 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
 # 修改默认主机名
 sed -i 's/ImmortalWrt/LynnOS/g' package/base-files/files/bin/config_generate
-sed -i 's/ImmortalWrt/LynnOS/g' package/network/config/wifi-scripts/files/lib/wifi/mac80211.sh
 
 wait

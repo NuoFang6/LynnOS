@@ -22,7 +22,7 @@ jobs:
   Build:
     runs-on: "ubuntu-22.04"
     env:
-      TAG: r2s
+      TAG: R2s
       CURRENT_TIME: "2024"
       TERM: xterm
       # 无交互
@@ -61,6 +61,10 @@ jobs:
             sudo -E cp -rf ./apt-fast.conf /etc
             sudo -E apt-fast -qq update -y
             sudo -E apt-fast -qq dist-upgrade -y
+          } >/dev/null
+          wait
+          echo "更新完成，开始安装依赖"
+          { 
             sudo -E apt-fast -qq install -y $DEPENDENCY
             sudo -E apt-fast -qq autoremove --purge -y
             sudo -E apt-fast -qq clean -y
@@ -76,11 +80,15 @@ jobs:
           pushd ./ImmortalWrt
           cp -r ../SCRIPTS/. ./
           bash 01_prepare_package.sh
-          bash 02_target_R2S.sh
+          bash 02_target_${{ env.TAG }}.sh
           bash 03_create_acl_for_luci.sh -a
           make defconfig
           wait && popd
-          tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
+          if [ "${{ github.event.inputs.build }}" = "true" ]; then
+            tar -cf - ./ImmortalWrt/ | zstd -8 -T0 -o ./ImmortalWrt-End.tar.zst
+          else
+            tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
+          fi
           sudo df -h
 
       - name: 恢复缓存
@@ -90,7 +98,7 @@ jobs:
           ccache: true
           toolchain: true
           skip: true
-          mixkey: "r2s"
+          mixkey: "${{ env.TAG }}"
           prefix: ${{ github.workspace }}/ImmortalWrt
 
       - name: 编译 LynnOS
@@ -139,16 +147,12 @@ jobs:
         uses: ncipollo/release-action@main
         continue-on-error: true
         with:
-          name: LynnOS-R2S
+          name: LynnOS-${{ env.TAG }}
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: false
           commit: main
           tag: "Success-${{ env.TAG }}"
-          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-R2S"
+          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.TAG }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*
-
-  # clean:
-  #   needs: Build
-  #   uses: ./.github/workflows/Cleaning.yml

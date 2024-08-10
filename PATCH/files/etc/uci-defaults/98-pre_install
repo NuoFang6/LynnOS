@@ -12,6 +12,16 @@ uci set network.globals.packet_steering='2'
 # irq
 uci set irqbalance.irqbalance.enabled='1'
 # dns
+uci del dhcp.cfg01411c.dns_redirect
+uci del dhcp.cfg01411c.nonwildcard
+uci del dhcp.cfg01411c.noresolv
+uci del dhcp.cfg01411c.boguspriv
+uci del dhcp.cfg01411c.filterwin2k
+uci del dhcp.cfg01411c.filter_aaaa
+uci del dhcp.cfg01411c.filter_a
+uci add_list dhcp.cfg01411c.notinterface='wan'
+uci add_list dhcp.cfg01411c.notinterface='wan6'
+uci set dhcp.cfg01411c.port='6666'
 uci del AdGuardHome.AdGuardHome.upxflag
 uci set AdGuardHome.AdGuardHome.core_version='latest'
 uci set AdGuardHome.AdGuardHome.redirect='exchange'
@@ -35,7 +45,7 @@ uci set cpufreq.cpufreq.minfreq0='408000'
 uci set cpufreq.cpufreq.maxfreq0='1608000'
 
 # led
-uci add system led
+uci add system led # =cfg068bba
 uci set system.@led[-1].name='SYS'
 uci set system.@led[-1].sysfs='red:status'
 uci set system.@led[-1].trigger='heartbeat'
@@ -49,7 +59,7 @@ uci del system.led_wan.dev
 uci del system.led_wan.mode
 
 # tailscale
-uci add network device
+uci add network device # =cfg0c0f15
 uci set network.@device[-1].name='tailscale0'
 uci set network.tailscale=interface
 uci set network.tailscale.proto='static'
@@ -57,7 +67,7 @@ uci set network.tailscale.device='tailscale0'
 uci add_list network.tailscale.ipaddr='100.123.0.1/32'
 uci set network.tailscale.gateway='192.168.2.1'
 uci add_list network.tailscale.dns='192.168.2.1'
-uci add firewall zone
+uci add firewall zone # =cfg11dc81
 uci set firewall.@zone[-1].name='tailscale'
 uci set firewall.@zone[-1].input='ACCEPT'
 uci set firewall.@zone[-1].output='ACCEPT'
@@ -66,38 +76,45 @@ uci add_list firewall.@zone[-1].device='tailscale0'
 uci set firewall.@zone[-1].masq_allow_invalid='1'
 uci set firewall.@zone[-1].auto_helper='0'
 uci add_list firewall.@zone[-1].network='tailscale'
-uci add firewall forwarding
+uci add firewall forwarding # =cfg12ad58
 uci set firewall.@forwarding[-1].src='tailscale'
 uci set firewall.@forwarding[-1].dest='docker'
-uci add firewall forwarding
+uci add firewall forwarding # =cfg13ad58
 uci set firewall.@forwarding[-1].src='tailscale'
 uci set firewall.@forwarding[-1].dest='lan'
-uci add firewall forwarding
+uci add firewall forwarding # =cfg14ad58
 uci set firewall.@forwarding[-1].src='tailscale'
 uci set firewall.@forwarding[-1].dest='wan'
-uci add firewall forwarding
+uci add firewall forwarding # =cfg15ad58
 uci set firewall.@forwarding[-1].src='lan'
 uci set firewall.@forwarding[-1].dest='tailscale'
-uci add firewall forwarding
+uci add firewall forwarding # =cfg16ad58
 uci set firewall.@forwarding[-1].src='wan'
 uci set firewall.@forwarding[-1].dest='tailscale'
-uci add firewall rule
+uci set firewall.cfg01e63d.synflood_protect='1'
+uci set firewall.cfg01e63d.input='ACCEPT'
+uci set firewall.cfg01e63d.forward='ACCEPT'
+uci set firewall.cfg03dc81.forward='ACCEPT'
+uci add firewall rule # =cfg1592bd
 uci set firewall.@rule[-1].name='Tailscale'
 uci set firewall.@rule[-1].src_port='61412'
 uci set firewall.@rule[-1].dest='*'
 uci set firewall.@rule[-1].target='ACCEPT'
-uci add firewall rule
+uci add firewall rule # =cfg1692bd
 uci set firewall.@rule[-1].name='Tailscale2'
 uci set firewall.@rule[-1].src='*'
 uci set firewall.@rule[-1].dest='*'
 uci set firewall.@rule[-1].target='ACCEPT'
-uci add firewall rule
+uci add firewall rule # =cfg1792bd
 uci set firewall.@rule[-1].name='Tailscale3'
 uci set firewall.@rule[-1].src='wan'
 uci set firewall.@rule[-1].dest_port='61412'
 uci set firewall.@rule[-1].target='ACCEPT'
+uci set firewall.cfg1692bd.src_port='61412'
 uci reorder firewall.@rule[-1]=21
-uci add firewall rule
+uci del firewall.cfg1692bd.src_port
+uci set firewall.cfg1692bd.dest_port='61412'
+uci add firewall rule # =cfg1892bd
 uci set firewall.@rule[-1].name='Tailscale4'
 uci set firewall.@rule[-1].src='*'
 uci set firewall.@rule[-1].src_port='61412'
@@ -106,11 +123,17 @@ uci set firewall.@rule[-1].target='ACCEPT'
 uci reorder firewall.@rule[-1]=22
 
 # 系统
+uci set system.cfg01e48a.log_proto='udp'
+uci set system.cfg01e48a.conloglevel='8'
+uci set system.cfg01e48a.cronloglevel='5'
+uci set system.cfg01e48a.zram_comp_algo='lz4'
 uci set system.ntp.enable_server='1'
 uci set system.ntp.interface='lan'
 # samba
 # smbpasswd -a root
-uci add samba4 sambashare
+uci set samba4.cfg010f89.interface='lan'
+uci set samba4.cfg010f89.enable_extra_tuning='1'
+uci add samba4 sambashare # =cfg02e23c
 uci set samba4.@sambashare[-1].name='root'
 uci set samba4.@sambashare[-1].path='/'
 uci set samba4.@sambashare[-1].read_only='no'

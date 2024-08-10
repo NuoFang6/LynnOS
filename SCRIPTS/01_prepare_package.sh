@@ -27,6 +27,7 @@ cp -rf ./2305packages/lang/ruby ./feeds/packages/lang/ruby
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
+cp -rf ../PATCH/patches-6.6/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-6.6/
 
 # Patch LuCI 以支持自定义 nft 规则
 patch -p1 <../PATCH/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch

@@ -42,7 +42,9 @@ uci add_list network.wan.dns='192.168.2.1'
 
 # cpufreq
 uci set cpufreq.cpufreq.minfreq0='408000'
+# uci set cpufreq.cpufreq.maxfreq0='1512000'
 uci set cpufreq.cpufreq.maxfreq0='1608000'
+uci set cpufreq.global.set='1'
 
 # led
 uci add system led # =cfg068bba
@@ -114,7 +116,7 @@ uci set firewall.cfg1692bd.src_port='61412'
 uci reorder firewall.@rule[-1]=21
 uci del firewall.cfg1692bd.src_port
 uci set firewall.cfg1692bd.dest_port='61412'
-uci add firewall rule # =cfg1892bd
+uci add firewall rule
 uci set firewall.@rule[-1].name='Tailscale4'
 uci set firewall.@rule[-1].src='*'
 uci set firewall.@rule[-1].src_port='61412'
@@ -123,12 +125,12 @@ uci set firewall.@rule[-1].target='ACCEPT'
 uci reorder firewall.@rule[-1]=22
 
 # 系统
-uci set system.cfg01e48a.log_proto='udp'
-uci set system.cfg01e48a.conloglevel='8'
-uci set system.cfg01e48a.cronloglevel='5'
-uci set system.cfg01e48a.zram_comp_algo='lz4'
+uci set system.@system[0].zram_comp_algo='lz4'
 uci set system.ntp.enable_server='1'
 uci set system.ntp.interface='lan'
+uci del system.ntp.server
+uci add_list system.ntp.server='ntp.tencent.com'
+uci add_list system.ntp.server='ntp.aliyun.com'
 # samba
 # smbpasswd -a root
 uci set samba4.cfg010f89.interface='lan'
@@ -167,7 +169,9 @@ uci set uhttpd.defaults.bits='1024'
 # 添加新的监听80端口的配置
 # uci add_list nginx.@server[0].listen='80 default_server'
 # uci add_list nginx.@server[0].listen='[::]:80 default_server'
+
 uci commit
+
 /etc/init.d/dnsmasq restart
 /etc/init.d/cpufreq restart
 /etc/init.d/nginx restart
@@ -185,5 +189,7 @@ uci commit
 /etc/init.d/sqm disable
 /etc/init.d/avahi-daemon disable
 /etc/init.d/qbittorrent disable
+/etc/init.d/wsdd2 stop
+/etc/init.d/wsdd2 disable
 
 exit 0

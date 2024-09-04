@@ -24,6 +24,8 @@ mkdir -p ./2305packages/
 git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages >/dev/null
 rm -rf ./feeds/packages/lang/ruby
 cp -rf ./2305packages/lang/ruby ./feeds/packages/lang/ruby
+rm -rf ./feeds/packages/libs/qt6base
+cp -rf ./2305packages/libs/qt6base ./feeds/packages/libs/qt6base
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/

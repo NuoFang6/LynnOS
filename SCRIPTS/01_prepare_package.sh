@@ -36,7 +36,7 @@ pushd feeds/luci # 临时进入 ./feeds/luci
 patch -p1 <../../../PATCH/fw4/04-luci-add-firewall4-nft-rules-file.patch
 popd # 回到原目录
 pushd feeds/packages/libs/qt6base
-patch -p1 <../../../../../PATCH/qt6/qt6base_disable_lto.patch
+patch -p0 <../../../../../PATCH/qt6/qt6base_disable_lto.patch
 popd
 
 ### 最后的收尾工作 ###

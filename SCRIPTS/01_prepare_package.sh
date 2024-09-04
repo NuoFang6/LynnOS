@@ -24,8 +24,6 @@ mkdir -p ./2305packages/
 git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages >/dev/null
 rm -rf ./feeds/packages/lang/ruby
 cp -rf ./2305packages/lang/ruby ./feeds/packages/lang/ruby
-rm -rf ./feeds/packages/libs/qt6base
-cp -rf ./2305packages/libs/qt6base ./feeds/packages/libs/qt6base
 
 # 必要 Patch
 cp -rf ../PATCH/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
@@ -37,6 +35,9 @@ patch -p1 <../PATCH/fw4/100-openwrt-firewall4-add-custom-nft-command-support.pat
 pushd feeds/luci # 临时进入 ./feeds/luci
 patch -p1 <../../../PATCH/fw4/04-luci-add-firewall4-nft-rules-file.patch
 popd # 回到原目录
+pushd feeds/packages/libs/qt6base
+patch -p1 <../../../../../PATCH/qt6/qt6base_disable_lto.patch
+popd
 
 ### 最后的收尾工作 ###
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf

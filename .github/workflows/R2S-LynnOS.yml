@@ -138,20 +138,23 @@ jobs:
           echo "合并配置"
           make defconfig
 
+          echo "压缩最终提交配置"
+          tar -C ../immortalWrt -cf - . | zstd -8 -T0 -o /home/runner/work/LynnOS/immortalWrt-End.tar.zst
           sudo df -h
 
       #
       # ..存在的文件：
       #   ├── LynnOS/
       #   ├── immortalWrt/
+      #   ├── immortalWrt-End.tar.zst （ 需要上传！）
       #
 
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main
         with:
-          name: immortalWrt-End.zip
-          compression-level: 9
-          path: /home/runner/work/LynnOS/immortalWrt
+          name: immortalWrt-End
+          compression-level: 0
+          path: /home/runner/work/LynnOS/immortalWrt-End.tar.zst
 
       - name: 配置缓存
         if: env.needBuild == true

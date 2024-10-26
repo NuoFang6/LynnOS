@@ -26,7 +26,7 @@ git clone -b master --depth 1 https://github.com/qwq233/UA4F.git ./package/ua4f 
 cp -rf $opath/files ./
 chmod +x ./files/etc/init.d/youhua
 #
-cp -rf $opath/seed/R2S/.config .config
+cp -rf $opath/seed/R2S/.config ./
 #
 # CONFIG_GCC10_NO_ARRAY_BOUNDS=y
 # # CONFIG_ARM_CORESIGHT_PMU_ARCH_SYSTEM_PMU is not set

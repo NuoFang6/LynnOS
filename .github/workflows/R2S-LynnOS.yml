@@ -131,9 +131,8 @@ jobs:
           cp -r ../LynnOS/script/. ./
           # 脚本将在 immortalWrt 目录下运行
 
-          bash 01_prepare_package.sh
-          bash 02_target_${{ env.TARGET }}.sh
-          bash 03_create_acl_for_luci.sh -a
+          bash 01_target_${{ env.TARGET }}.sh
+          bash 02_create_acl_for_luci.sh -a
           wait
 
           echo "合并配置"

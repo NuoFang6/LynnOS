@@ -87,7 +87,7 @@ jobs:
 
           echo "修改系统配置"
           sudo swapoff -a &
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /etc/apt/sources.list.d/*
+          sudo rm -rf /etc/apt/sources.list.d/*
 
           echo "完成"
 

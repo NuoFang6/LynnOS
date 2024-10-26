@@ -157,7 +157,7 @@ jobs:
           path: /home/runner/work/LynnOS/immortalWrt-End.tar.zst
 
       - name: 配置缓存
-        if: env.needBuild == true
+        if: env.needBuild == 'true'
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
@@ -167,7 +167,7 @@ jobs:
           prefix: /home/runner/work/LynnOS/immortalWrt
 
       - name: 编译 LynnOS
-        if: env.needBuild == true
+        if: env.needBuild == 'true'
 
         continue-on-error: true
         env:
@@ -187,7 +187,7 @@ jobs:
           fi
 
       - name: 详细输出编译
-        if: env.buildSuccess == false
+        if: env.buildSuccess == 'false'
 
         continue-on-error: true
         env:
@@ -204,7 +204,7 @@ jobs:
           fi
 
       - name: 编译完成，准备上传
-        if: env.buildSuccess == true
+        if: env.buildSuccess == 'true'
         working-directory: ../immortalWrt/bin/targets/rockchip/armv8/
         run: |
           #当前目录：../immortalWrt/bin/targets/rockchip/armv8/
@@ -228,7 +228,7 @@ jobs:
       #
 
       - name: 上传至 artifact
-        if: env.buildSuccess == true
+        if: env.buildSuccess == 'true'
         uses: actions/upload-artifact@main
         with:
           name: output.zip
@@ -237,7 +237,7 @@ jobs:
             /home/runner/work/LynnOS/immortalWrt/bin/targets/rockchip/armv8/output.tar.zst
 
       - name: 创建发行版
-        if: env.buildSuccess == true
+        if: env.buildSuccess == 'true'
         uses: ncipollo/release-action@main
         with:
           name: LynnOS-${{ env.TARGET }}-${{ env.CURRENT_TIME }}

@@ -111,7 +111,7 @@ jobs:
           rustup -q target add aarch64-unknown-linux-musl
 
           echo "克隆 immortalwrt"
-          git clone -q -b ${{ inputs.branch }} --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
+          git clone -q -b "${{ inputs.branch }}" --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
 
       #
       # ..存在的文件：

@@ -8,7 +8,7 @@ cp -rf $opath/script/feeds.conf.default ./feeds.conf.default
 
 #* 更新 Feeds
 ./scripts/feeds update -a >/dev/null
-./scripts/feeds install -a -p >/dev/null
+./scripts/feeds install -a >/dev/null
 
 #* 移除无用软件包
 uneedpkg="luci-app-appfilter luci-app-openclash"

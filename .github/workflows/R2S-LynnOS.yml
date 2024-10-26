@@ -46,7 +46,7 @@ jobs:
         if: inputs.build == true || github.event.schedule
         with:
           swap-size-mb: 1
-          temp-reserve-mb: 200
+          temp-reserve-mb: 1024
           root-reserve-mb: 5000
           remove-dotnet: "true"
           remove-android: "true"
@@ -176,7 +176,7 @@ jobs:
         working-directory: ../immortalWrt
         run: |
           echo "下载所需文件"
-          make download -j16
+          make download -j32
 
           echo "开始编译"
           make -j$(($(nproc) + 1))

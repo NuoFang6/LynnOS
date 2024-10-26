@@ -4,7 +4,7 @@
 opath="/home/runner/work/LynnOS/LynnOS"
 
 #* 自定义feed源
-cp -rf $opath/feeds.conf.default ./feeds.conf.default
+cp -rf $opath/script/feeds.conf.default ./feeds.conf.default
 
 #* 更新 Feeds
 ./scripts/feeds update -a >/dev/null
@@ -23,7 +23,7 @@ git clone -b master --depth 1 https://github.com/qwq233/UA4F.git ./package/ua4f 
 # git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages >/dev/null
 
 #* 预配置文件
-cp -rf $opath/file ./
+cp -rf $opath/files ./
 chmod +x ./files/etc/init.d/youhua
 #
 cp -rf $opath/seed/R2S/.config .config

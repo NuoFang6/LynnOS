@@ -151,7 +151,7 @@ jobs:
         with:
           name: immortalWrt-End.zip
           compression-level: 9
-          path: ../immortalWrt
+          path: /home/runner/work/LynnOS/immortalWrt
 
       - name: 配置缓存
         if: env.needBuild == true
@@ -231,7 +231,7 @@ jobs:
           name: output.zip
           compression-level: 0
           path: |
-            ../immortalWrt/bin/targets/rockchip/armv8/output.tar.zst
+            /home/runner/work/LynnOS/immortalWrt/bin/targets/rockchip/armv8/output.tar.zst
 
       - name: 创建发行版
         if: env.buildSuccess == true

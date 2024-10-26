@@ -1,26 +1,25 @@
 name: R2S-LynnOS
 
 on:
-  # schedule:
-  #   - cron: 00 17 * * 5
-  # 北京时间(UTC+8) 星期六早上 1:00
-  # push:
-  #   branches:
-  #     - "main"
-  #   paths:
-  #     - "script/01_prepare_package.sh"
-  #     - ".github/workflows/**"
+  schedule:
+    - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
+  push:
+    branches:
+      - "main"
+    paths:
+      - "script/01_prepare_package.sh"
+      - ".github/workflows/**"
   workflow_dispatch:
     inputs:
       branch:
         description: "选择分支"
-        required: true
         default: "openwrt-23.05"
         type: string
+        required: true
       build:
         description: "进行编译"
-        type: boolean
         default: true
+        type: boolean
         required: true
 
 jobs:
@@ -28,26 +27,23 @@ jobs:
     runs-on: "ubuntu-22.04"
 
     env:
-      TAG: R2s
+      TARGET: R2S
       CURRENT_TIME: "2024"
       needBuild: false
       buildSuccess: none
+
       TERM: xterm
-      # 无交互
-      DEBIAN_FRONTEND: noninteractive
+      DEBIAN_FRONTEND: noninteractive # 无交互
+
+      # 官方依赖项
+      DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+      # 自定义依赖项
+      CUSTOM_DEPENDENCIES: zstd
 
     steps:
-      - name: 写入环境变量
-        run: |
-          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
-            echo "needBuild=true" >> $GITHUB_ENV
-          else
-            echo "needBuild=false" >> $GITHUB_ENV
-          fi
-
-      - name: 最大化储存空间
+      - name: 准备储存空间
         uses: easimon/maximize-build-space@master
-        if: env.needBuild == true
+        if: inputs.build == true || github.event.schedule
         with:
           swap-size-mb: 1
           temp-reserve-mb: 200
@@ -58,131 +54,192 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
 
-      - name: 克隆代码
+      - name: 准备代码
         uses: actions/checkout@main
         with:
           ref: main
           fetch-depth: 1
 
-      - name: 准备编译环境
-        env:
-          # 依赖
-          DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
-        # -E 表示传递环境变量
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #
+
+      - name: 准备系统环境
         run: |
-          echo "开始更新"
-          {
-            sudo swapoff -a &
-            sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc &
-            sudo rm -rf /etc/apt/sources.list.d/*
-            /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-            sudo -E cp -rf ./script/apt-fast.conf /etc
+          echo "写入 env"
+          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
+            echo "needBuild=true" >> $GITHUB_ENV
+          else
+            echo "needBuild=false" >> $GITHUB_ENV
+          fi
+          # 追加依赖项
+          echo "DEPENDENCY=${DEPENDENCY} ${CUSTOM_DEPENDENCIES}" >> $GITHUB_ENV
+
+          echo "配置 git"
+          sudo -E git config --global user.name "github-actions[bot]"
+          sudo -E git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          sudo -E git config --global core.abbrev auto
+
+          echo "修改系统配置"
+          sudo swapoff -a &
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /etc/apt/sources.list.d/*
+
+          echo "完成"
+
+      - name: 准备编译环境
+        run: |
+          echo "安装 apt-fast"
+          /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+
+          # 当前目录：/home/runner/work/LynnOS/LynnOS
+          sudo -E cp -rf ./script/apt-fast.conf /etc
+
+          echo "安装编译依赖"
+          { 
             sudo -E apt-fast -qq update -y
             sudo -E apt-fast -qq dist-upgrade -y
-          } >/dev/null
-          wait
-          echo "更新完成，开始安装依赖"
-          { 
             sudo -E apt-fast -qq install -y $DEPENDENCY
             sudo -E apt-fast -qq autoremove --purge -y
             sudo -E apt-fast -qq clean -y
-            sudo -E git config --global user.name 'GitHub Actions'
-            sudo -E git config --global user.email 'noreply@github.com'
-            sudo -E git config --global core.abbrev auto
           } >/dev/null
-          wait
-          git clone -b ${{ inputs.build }} --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ./ImmortalWrt >/dev/null
+
+          echo "安装 rust"
+          curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -q -y
+          source $HOME/.cargo/env
+          rustup -q default nightly
+          rustup -q target add aarch64-unknown-linux-musl
+
+          echo "克隆 immortalwrt"
+          git clone -q -b ${{ inputs.branch }} --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
+
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #
 
       - name: 运行自定义脚本
+        working-directory: ../immortalWrt
         run: |
-          pushd ./ImmortalWrt
-          cp -r ../script/. ./
-          bash 01_prepare_package.sh
-          bash 02_target_${{ env.TAG }}.sh
-          bash 03_create_acl_for_luci.sh -a
-          make defconfig
-          wait && popd
+          # 当前目录：/home/runner/work/LynnOS/immortalWrt
 
-          if [ "${{ env.needBuild }}" = "true" ]; then
-            tar -cf - ./ImmortalWrt/ | zstd -8 -T0 -o ./ImmortalWrt-End.tar.zst
-          else
-            tar -cf - ./ImmortalWrt/ | zstd -19 -T0 -o ./ImmortalWrt-End.tar.zst
-          fi
+          cp -r ../LynnOS/script/. ./
+          # 脚本将在 immortalWrt 目录下运行
+
+          bash 01_prepare_package.sh
+          bash 02_target_${{ env.TARGET }}.sh
+          bash 03_create_acl_for_luci.sh -a
+          wait
+
+          echo "合并配置"
+          make defconfig
 
           sudo df -h
 
-      - name: 恢复缓存
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #
+
+      - name: 上传最终提交配置
+        uses: actions/upload-artifact@main
+        with:
+          name: immortalWrt-End.zip
+          compression-level: 9
+          path: ../immortalWrt
+
+      - name: 配置缓存
         if: env.needBuild == true
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
           toolchain: true
           skip: true
-          mixkey: "${{ env.TAG }}"
-          prefix: ${{ github.workspace }}/ImmortalWrt
+          mixkey: "${{ env.TARGET }}"
+          prefix: /home/runner/work/LynnOS/immortalWrt
 
       - name: 编译 LynnOS
         if: env.needBuild == true
-        id: build
+
         continue-on-error: true
-        working-directory: ./ImmortalWrt
         env:
           IGNORE_ERRORS: 1
+
+        working-directory: ../immortalWrt
         run: |
+          echo "下载所需文件"
           make download -j32
 
+          echo "开始编译"
           if make -j$(($(nproc) + 1)); then
             echo "buildSuccess=true" >> $GITHUB_ENV
           else
             echo "buildSuccess=false" >> $GITHUB_ENV
+            echo "编译失败！"
           fi
 
-      - name: debug 详细日志编译
+      - name: 详细输出编译
         if: env.buildSuccess == false
-        continue-on-error: true
-        working-directory: ./ImmortalWrt
-        run: |
-          make -j1 V=s
 
-      - name: 编译完成，打包镜像
-        if: env.buildSuccess == true
-        working-directory: ./ImmortalWrt/bin/targets/rockchip/armv8/
+        continue-on-error: true
+        env:
+          IGNORE_ERRORS: 1
+
+        working-directory: ../immortalWrt
         run: |
-          ## ./ImmortalWrt/bin/targets/rockchip/armv8/
+          echo "开始详细输出编译"
+          if make -j1 V=s; then
+            echo "buildSuccess=true" >> $GITHUB_ENV
+          else
+            echo "buildSuccess=false" >> $GITHUB_ENV
+            echo "编译仍然失败！"
+          fi
+
+      - name: 编译完成，准备上传
+        if: env.buildSuccess == true
+        working-directory: ../immortalWrt/bin/targets/rockchip/armv8/
+        run: |
+          #当前目录：../immortalWrt/bin/targets/rockchip/armv8/
           tar -cf - ./packages --remove-files | zstd -19 -T0 -o ./packages.tar.zst
           cd .. 
 
-          ## ./ImmortalWrt/bin/targets/rockchip/
+          #当前目录：../immortalWrt/bin/targets/rockchip/
           tar -cf - ./armv8 | zstd -19 -T0 -o ./output.tar.zst
           cp -rf ./output.tar.zst ./armv8
-
 
           echo "CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
 
           df -h
 
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #   ├── immortalWrt/bin/targets/rockchip/armv8/packages.tar.zst （ 需要上传！）
+      #   ├── immortalWrt/bin/targets/rockchip/armv8/output.tar.zst （ 需要上传！）
+      #
+
       - name: 上传至 artifact
+        if: env.buildSuccess == true
         uses: actions/upload-artifact@main
-        continue-on-error: true
         with:
-          name: Output
-          if-no-files-found: warn
+          name: output.zip
           compression-level: 0
           path: |
-            ImmortalWrt-End.tar.zst
-            ImmortalWrt/bin/targets/rockchip/armv8/output.tar.zst
+            ../immortalWrt/bin/targets/rockchip/armv8/output.tar.zst
 
       - name: 创建发行版
         if: env.buildSuccess == true
         uses: ncipollo/release-action@main
-        continue-on-error: true
         with:
-          name: LynnOS-${{ env.TAG }}-${{ env.CURRENT_TIME }}
+          name: LynnOS-${{ env.TARGET }}-${{ env.CURRENT_TIME }}
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: false
           commit: main
-          tag: "Success-${{ env.TAG }}-${{ env.CURRENT_TIME }}"
-          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.TAG }}"
+          tag: "Success-${{ env.TARGET }}-${{ env.CURRENT_TIME }}"
+          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.TARGET }}"
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: ImmortalWrt/bin/targets/rockchip/armv8/*
+          artifacts: immortalWrt/bin/targets/rockchip/armv8/*

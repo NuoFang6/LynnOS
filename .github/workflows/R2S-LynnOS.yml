@@ -28,6 +28,7 @@ jobs:
 
     env:
       TARGET: R2S
+      branch: "openwrt-23.05"
       CURRENT_TIME: "2024"
       needBuild: false
       buildSuccess: none
@@ -73,6 +74,9 @@ jobs:
           else
             echo "needBuild=false" >> $GITHUB_ENV
           fi
+          if [ -n "${{ inputs.branch }}" ]; then
+            echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
+          fi
           # 追加依赖项
           echo "DEPENDENCY=${DEPENDENCY} ${CUSTOM_DEPENDENCIES}" >> $GITHUB_ENV
 
@@ -111,7 +115,7 @@ jobs:
           rustup -q target add aarch64-unknown-linux-musl
 
           echo "克隆 immortalwrt"
-          git clone -q -b "${{ inputs.branch }}" --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
+          git clone -q -b "${{ env.branch }}" --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
 
       #
       # ..存在的文件：

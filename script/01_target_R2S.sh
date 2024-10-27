@@ -7,20 +7,29 @@ opath="/home/runner/work/LynnOS/LynnOS"
 cp -rf $opath/script/feeds.conf.default ./feeds.conf.default
 
 #* 更新 Feeds
-./scripts/feeds update -a >/dev/null
-./scripts/feeds install -a >/dev/null
+./scripts/feeds update -a > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
+./scripts/feeds install -a > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
 
 #* 移除无用软件包
 uneedpkg="luci-app-appfilter luci-app-openclash"
-./scripts/feeds uninstall $uneedpkg >/dev/null
+# 缺少依赖的包
+uneedpkg="$uneedpkg bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2"
+# 无法编译的包
+uneedpkg="$uneedpkg libffi ruby"
+#
+./scripts/feeds uninstall $uneedpkg > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
 
 #* 获取额外的软件包
-git clone -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/luci-app-openclash >/dev/null
-git clone -b master --depth 1 https://github.com/qwq233/UA4F.git ./package/ua4f >/dev/null
-
-#* 滚回无法编译的包
-# mkdir -p ./2305packages/
-# git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages >/dev/null
+git clone -q -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/luci-app-openclash
+git clone -q -b master --depth 1 https://github.com/qwq233/UA4F.git ./package/ua4f
+# 替换无法编译的包
+git clone -q -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/packages.git ./2305packages
+cp -rf ./2305packages/libs/libffi ./package/
+cp -rf ./2305packages/lang/ruby ./package/
+git clone -q -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt
+rm -rf ./tools/meson && cp -rf ./masterImmortalWrt/tools/meson ./tools/
+# 缺失的依赖
+cp -rf ./masterImmortalWrt/package/emortal/cpufreq ./package/emortal/
 
 #* 预配置文件
 cp -rf $opath/files ./

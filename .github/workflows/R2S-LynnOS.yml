@@ -47,7 +47,7 @@ jobs:
         with:
           swap-size-mb: 1
           temp-reserve-mb: 1024
-          root-reserve-mb: 4096
+          root-reserve-mb: 5120
           build-mount-path: "/home/runner/work/LynnOS"
           remove-dotnet: "true"
           remove-android: "true"
@@ -177,7 +177,7 @@ jobs:
         working-directory: ../immortalWrt
         run: |
           echo "下载所需文件"
-          make download -j32
+          make download -j16
 
           echo "开始编译"
           make -j$(($(nproc) + 1))

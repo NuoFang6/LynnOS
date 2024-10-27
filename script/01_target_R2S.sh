@@ -7,17 +7,17 @@ opath="/home/runner/work/LynnOS/LynnOS"
 cp -rf $opath/script/feeds.conf.default ./feeds.conf.default
 
 #* 更新 Feeds
-./scripts/feeds update -a > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
-./scripts/feeds install -a > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
+./scripts/feeds update -a 2>&1 | grep -i "WARNING"
+./scripts/feeds install -a 2>&1 | grep -i "WARNING"
 
 #* 移除无用软件包
 uneedpkg="luci-app-appfilter luci-app-openclash"
 # 缺少依赖的包
-uneedpkg="$uneedpkg bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2"
+uneedpkg="$uneedpkg bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2 pdns mpd netwhere libtorrent-rasterbar kea i2pd hyperscan freetdm domoticz dnsdist pdns-recursor schroot trojan trojan-plus"
 # 无法编译的包
 uneedpkg="$uneedpkg libffi ruby"
 #
-./scripts/feeds uninstall $uneedpkg > /dev/null 2>&1 | grep -i "WARNING\|ERROR"
+./scripts/feeds uninstall $uneedpkg 2>&1 | grep -i "WARNING"
 
 #* 获取额外的软件包
 git clone -q -b dev --depth 1 https://github.com/vernesong/OpenClash.git ./package/luci-app-openclash

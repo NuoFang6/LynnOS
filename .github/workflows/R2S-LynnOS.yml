@@ -68,7 +68,7 @@ jobs:
       - name: 准备代码
         uses: actions/checkout@main
         with:
-          ref: main
+          ref: master
           fetch-depth: 1
 
       #

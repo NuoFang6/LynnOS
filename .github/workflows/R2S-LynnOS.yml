@@ -1,0 +1,315 @@
+name: R2S-LynnOS
+
+on:
+  # schedule:
+  #   - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
+  # push:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - "script/**"
+  #     - ".github/workflows/**"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "选择分支"
+        default: "master"
+        type: string
+        required: true
+      build:
+        description: "进行编译"
+        default: true
+        type: boolean
+        required: true
+      kernelMenu:
+        description: "编译内核配置菜单、检查内核配置完整性"
+        default: false
+        type: boolean
+        required: true
+      ignoreError:
+        description: "忽略编译错误"
+        default: false
+        type: boolean
+        required: true
+
+jobs:
+  Build:
+    runs-on: "ubuntu-22.04"
+
+    env:
+      TARGET: R2S
+      branch: "openwrt-23.05"
+      CURRENT_TIME: "2024"
+      needBuild: false
+
+      TERM: xterm
+      DEBIAN_FRONTEND: noninteractive # 无交互
+
+      # 官方依赖项
+      DEPENDENCY: ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
+      # 自定义依赖项
+      CUSTOM_DEPENDENCIES: liblz4-dev libffi-dev
+
+    steps:
+      - name: 准备储存空间
+        uses: easimon/maximize-build-space@master
+        if: inputs.build == true || github.event.schedule
+        with:
+          swap-size-mb: 1
+          temp-reserve-mb: 1024
+          root-reserve-mb: 5120
+          build-mount-path: "/home/runner/work/LynnOS"
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+
+      - name: 准备代码
+        uses: actions/checkout@main
+        with:
+          ref: main
+          fetch-depth: 1
+
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #
+
+      - name: 准备系统环境
+        run: |
+          echo "修改临时目录"
+          mkdir -p /home/runner/work/LynnOS/tmp
+          export TMPDIR=/home/runner/work/LynnOS/tmp
+          echo "TMPDIR=${TMPDIR}" >> $GITHUB_ENV
+
+          echo "写入 env"
+          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
+            echo "needBuild=true" >> $GITHUB_ENV
+          else
+            echo "needBuild=false" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ inputs.branch }}" ]; then
+            echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
+          fi
+          # 追加依赖项
+          echo "DEPENDENCY=${DEPENDENCY} ${CUSTOM_DEPENDENCIES}" >> $GITHUB_ENV
+
+          echo "配置 git"
+          sudo -E git config --global user.name "github-actions[bot]"
+          sudo -E git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          sudo -E git config --global core.abbrev auto
+
+          echo "修改系统配置"
+          sudo swapoff -a
+          sudo rm -rf /etc/apt/sources.list.d/*
+          sudo timedatectl set-timezone 'Asia/Shanghai'
+
+          echo "删除并禁用 snap"
+          {
+            set +e # 关闭自动退出
+            sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
+            while [ "$sum" -ne 0 ]; do
+                for p in $(snap list | awk 'NR>=2{print $1}'); do
+                    sudo snap remove --purge "$p"
+                done
+                sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
+            done
+            sudo systemctl stop snapd
+            sudo systemctl disable --now snapd.socket
+            for m in /snap/core/*; do
+              sudo umount $m
+            done
+            sudo apt autoremove --purge snapd -y
+            sudo rm -rf ~/snap
+            sudo rm -rf /snap
+            sudo rm -rf /var/snap
+            sudo rm -rf /var/lib/snapd
+            sudo rm -rf /var/cache/snapd
+            echo -e "\nPackage: snapd\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/nosnap.pref
+            echo -e "\nPackage: firefox\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/no-firefox.pref
+            set -e # 重新开启自动退出
+          } >/dev/null
+
+          echo "完成"
+
+      - name: 准备编译环境
+        run: |
+          echo "安装 apt-fast"
+          /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+
+          # 当前目录：/home/runner/work/LynnOS/LynnOS
+          sudo -E cp -rf ./script/apt-fast.conf /etc
+
+          echo "安装编译依赖"
+          { 
+            sudo -E apt-fast update -y
+            sudo -E apt-fast dist-upgrade -y
+            sudo -E apt-fast install -y $DEPENDENCY
+            sudo -E apt-fast autoremove --purge -y
+            sudo -E apt-fast clean -y
+          } >/dev/null
+
+          echo "安装 rust"
+          curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -q -y
+          source $HOME/.cargo/env
+          rustup -q default nightly
+          rustup -q target add aarch64-unknown-linux-musl
+
+          echo "克隆 immortalwrt"
+          git clone -q -b "${{ env.branch }}" --depth 1 --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt.git ../immortalWrt
+
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #
+
+      - name: 运行自定义脚本
+        working-directory: ../immortalWrt
+        run: |
+          # 当前目录：/home/runner/work/LynnOS/immortalWrt
+
+          cp -r ../LynnOS/script/. ./
+          # 脚本将在 immortalWrt 目录下运行
+
+          bash 01_target_${{ env.TARGET }}.sh
+          bash 02_create_acl_for_luci.sh -a
+          wait
+
+          echo "合并配置"
+          make defconfig -j$(($(nproc) + 1))
+
+          if [ "${{ inputs.kernelMenu }}" = "true" ]; then
+            echo "编译内核配置菜单"
+            make kernel_oldconfig -j$(($(nproc) + 1))
+          fi
+
+          echo "添加强制配置"
+          echo -e "\nCONFIG_MOLD=y\nCONFIG_USE_MOLD=y" >>./.config
+          if [ "${{ inputs.ignoreError }}" = "true" ]; then
+            echo -e '\nCONFIG_TARGET_OPTIONS=y\nCONFIG_TARGET_OPTIMIZATION="-O0 -pipe -mcpu=generic"' >>./.config
+          fi
+
+          echo "压缩最终提交配置"
+          rm -rf ./2305packages
+          rm -rf ./masterImmortalWrt
+          rm -rf ./lede
+          tar -C ../immortalWrt -cf - . | zstd -10 -T0 -o /home/runner/work/LynnOS/immortalWrt-End.tar.zst
+          sudo df -h
+
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #   ├── immortalWrt-End.tar.zst （ 需要上传！）
+      #
+
+      - name: 上传最终提交配置
+        uses: actions/upload-artifact@main
+        with:
+          name: immortalWrt-End
+          compression-level: 0
+          path: /home/runner/work/LynnOS/immortalWrt-End.tar.zst
+
+      - name: 配置缓存
+        if: env.needBuild == 'true'
+        uses: HiGarfield/cachewrtbuild@main
+        with:
+          ccache: true
+          toolchain: true
+          skip: true
+          mixkey: "${{ env.TARGET }}"
+          prefix: /home/runner/work/LynnOS/immortalWrt
+
+      - name: 编译 LynnOS
+        if: env.needBuild == 'true'
+
+        id: build
+        continue-on-error: true
+        working-directory: ../immortalWrt
+        run: |
+          rm -rf /home/runner/work/LynnOS/immortalWrt-End.tar.zst &
+
+          echo "下载所需文件"
+          make download -j16
+
+          if [ "${{ inputs.ignoreError }}" = "true" ]; then
+            echo "开始编译（忽略错误）"
+            IGNORE_ERRORS=1 make -i -j$(($(nproc) + 1))
+          else
+            echo "开始编译"
+            make -j$(($(nproc) + 1))
+          fi
+
+      - name: 详细输出编译
+        if: steps.build.outcome == 'failure'
+        working-directory: ../immortalWrt
+        run: |
+          if ["${{ inputs.ignoreError }}" = "true"]; then
+            echo "开始详细输出编译（忽略错误）"
+            IGNORE_ERRORS=1 make -i -j1 V=sc
+          else
+            echo "开始详细输出编译"
+            make -j1 V=sc
+          fi
+
+      - name: 编译完成，准备上传
+        if: steps.build.outcome == 'success'
+        working-directory: ../immortalWrt/bin/targets/rockchip/armv8/
+        run: |
+          #当前目录：../immortalWrt/bin/targets/rockchip/armv8/
+          tar -cf - ./packages --remove-files | zstd -10 -T0 -o ./packages.tar.zst
+          cd .. 
+
+          #当前目录：../immortalWrt/bin/targets/rockchip/
+          tar -cf - ./armv8 | zstd -10 -T0 -o ./output.tar.zst
+          cp -rf ./output.tar.zst ./armv8
+
+          echo "CURRENT_TIME=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
+
+          df -h
+
+      #
+      # ..存在的文件：
+      #   ├── LynnOS/
+      #   ├── immortalWrt/
+      #   ├── immortalWrt/bin/targets/rockchip/armv8/packages.tar.zst （ 需要上传！）
+      #   ├── immortalWrt/bin/targets/rockchip/armv8/output.tar.zst （ 需要上传！）
+      #
+
+      - name: 上传至 artifact
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@main
+        with:
+          name: output.zip
+          compression-level: 0
+          path: |
+            /home/runner/work/LynnOS/immortalWrt/bin/targets/rockchip/armv8/output.tar.zst
+
+      - name: 创建发行版
+        if: steps.build.outcome == 'success' && inputs.ignoreError == false
+        continue-on-error: true
+        uses: ncipollo/release-action@main
+        with:
+          name: LynnOS-${{ env.TARGET }}-${{ env.CURRENT_TIME }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: false
+          commit: main
+          tag: "${{ env.TARGET }}-${{ env.CURRENT_TIME }}"
+          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.TARGET }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: /home/runner/work/LynnOS/immortalWrt/bin/targets/rockchip/armv8/*
+
+  Clean:
+    if: ${{ always() }}
+    needs: Build
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: igorjs/gh-actions-clean-workflow@v6
+        with:
+          runs_older_than: 0
+          runs_to_keep: 7

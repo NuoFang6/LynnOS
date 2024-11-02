@@ -1,0 +1,11 @@
+--- a/feeds/packages/libs/qt6base/Makefile	2024-09-04 11:24:14.908769915 +0800
++++ b/feeds/packages/libs/qt6base/Makefile	2024-09-04 11:24:53.378764500 +0800
+@@ -56,6 +56,8 @@
+ endef
+ 
+ TARGET_CFLAGS+= -I$(STAGING_DIR)/usr/include/libdrm
++TARGET_CFLAGS+= -fno-lto
++TARGET_CXXFLAGS+= -fno-lto
+ ifdef CONFIG_USE_GLIBC
+   ifeq ($(ARCH),x86_64)
+     TARGET_LDFLAGS+= -Wl,--sysroot=$(TOOLCHAIN_ROOT_DIR)

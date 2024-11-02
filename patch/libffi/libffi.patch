@@ -1,0 +1,15 @@
+diff --git a/package/feeds/packages/libffi/Makefile b/package/feeds/packages/libffi/Makefile
+index 67148eb..6288f1f 100644
+--- a/package/feeds/packages/libffi/Makefile
++++ b/package/feeds/packages/libffi/Makefile
+@@ -77,8 +77,8 @@ define Build/InstallDev
+ 		$(PKG_INSTALL_DIR)/usr/include/*.h \
+ 		$(1)/usr/include/
+ 	$(CP) \
+-		$(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)-gnu/fficonfig.h \
+-		$(1)/usr/include/
++    	/home/runner/work/LynnOS/LynnOS/patch/libffi/fficonfig.h \
++    	$(1)/usr/include/
+ endef
+ 
+ define Package/libffi/install

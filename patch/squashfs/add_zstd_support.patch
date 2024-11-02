@@ -1,0 +1,23 @@
+--- a/include/image.mk
++++ b/include/image.mk
+@@ -88,5 +88,11 @@
+   endif
+   SQUASHFSCOMP := xz $(LZMA_XZ_OPTIONS) $(BCJ_FILTER)
+ endif
++ifeq ($(CONFIG_SQUASHFS_ZSTD),y)
++  SQUASHFSCOMP := zstd -Xcompression-level 8
++endif
++ifeq ($(CONFIG_SQUASHFS_LZ4),y)
++  SQUASHFSCOMP := lz4 -Xhc
++endif
+ 
+ JFFS2_BLOCKSIZE ?= 64k 128k
+
+--- a/tools/squashfs4/Makefile
++++ b/tools/squashfs4/Makefile
+@@ -27,3 +27,5 @@
+ 		XZ_SUPPORT=1 \
+ 		LZMA_XZ_SUPPORT=1 \
++		ZSTD_SUPPORT=1 \
++		LZ4_SUPPORT=1 \
+ 		XZ_EXTENDED_OPTIONS=1 \

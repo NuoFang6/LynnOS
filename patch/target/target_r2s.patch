@@ -1,0 +1,95 @@
+diff --git a/include/image.mk b/include/image.mk
+index fdd2ee9..86c39f0 100644
+--- a/include/image.mk
++++ b/include/image.mk
+@@ -89,6 +89,12 @@ ifeq ($(CONFIG_SQUASHFS_XZ),y)
+   endif
+   SQUASHFSCOMP := xz $(LZMA_XZ_OPTIONS) $(BCJ_FILTER)
+ endif
++ifeq ($(CONFIG_SQUASHFS_ZSTD),y)
++  SQUASHFSCOMP := zstd -Xcompression-level 8
++endif
++ifeq ($(CONFIG_SQUASHFS_LZ4),y)
++  SQUASHFSCOMP := lz4 -Xhc
++endif
+ 
+ JFFS2_BLOCKSIZE ?= 64k 128k
+ 
+diff --git a/include/target.mk b/include/target.mk
+index c8c0c53..35d1ce4 100644
+--- a/include/target.mk
++++ b/include/target.mk
+@@ -249,7 +249,7 @@ LINUX_RECONF_DIFF = $(SCRIPT_DIR)/kconfig.pl - '>' $(call __linux_confcmd,$(filt
+ ifeq ($(DUMP),1)
+   BuildTarget=$(BuildTargets/DumpCurrent)
+ 
+-  CPU_CFLAGS = -Os -pipe
++  CPU_CFLAGS = -O3 -pipe
+   ifneq ($(findstring mips,$(ARCH)),)
+     ifneq ($(findstring mips64,$(ARCH)),)
+       CPU_TYPE ?= mips64
+@@ -291,9 +291,9 @@ ifeq ($(DUMP),1)
+     CPU_CFLAGS_ultrasparc = -mcpu=ultrasparc
+   endif
+   ifeq ($(ARCH),aarch64)
+-    CPU_TYPE ?= generic
+-    CPU_CFLAGS_generic = -mcpu=generic
+-    CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
++    CPU_TYPE ?= cortex-a53
++    CPU_CFLAGS_generic = -march=armv8-a+crypto+crc -mtune=cortex-a53 -mcpu=cortex-a53+crypto+crc
++    CPU_CFLAGS_cortex-a53 = -march=armv8-a+crypto+crc -mtune=cortex-a53 -mcpu=cortex-a53+crypto+crc
+   endif
+   ifeq ($(ARCH),arc)
+     CPU_TYPE ?= arc700
+diff --git a/package/base-files/files/bin/config_generate b/package/base-files/files/bin/config_generate
+index f634f5b..6d5192f 100755
+--- a/package/base-files/files/bin/config_generate
++++ b/package/base-files/files/bin/config_generate
+@@ -162,7 +162,7 @@ generate_network() {
+ 		static)
+ 			local ipad
+ 			case "$1" in
+-				lan) ipad=${ipaddr:-"192.168.1.1"} ;;
++				lan) ipad=${ipaddr:-"192.168.2.1"} ;;
+ 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
+ 			esac
+ 
+diff --git a/target/linux/rockchip/armv8/base-files/etc/board.d/02_network b/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+index 16d2ac2..c33ee45 100644
+--- a/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
++++ b/target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+@@ -21,7 +21,7 @@ rockchip_setup_interfaces()
+ 	radxa,rockpi-e|\
+ 	xunlong,orangepi-r1-plus|\
+ 	xunlong,orangepi-r1-plus-lts)
+-		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
++		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
+ 		;;
+ 	armsom,sige3|\
+ 	friendlyarm,nanopi-r5c|\
+diff --git a/target/linux/rockchip/image/default.bootscript b/target/linux/rockchip/image/default.bootscript
+index 0a5c5b1..05de42d 100644
+--- a/target/linux/rockchip/image/default.bootscript
++++ b/target/linux/rockchip/image/default.bootscript
+@@ -10,7 +10,7 @@ elif test $stdout = 'serial@ff1a0000' ;
+ then serial_addr=',0xff1a0000';
+ fi;
+ 
+-setenv bootargs "coherent_pool=2M console=tty1 console=ttyS2,1500000 earlycon=uart8250,mmio32${serial_addr} root=PARTUUID=${uuid} rw rootwait";
++setenv bootargs "coherent_pool=2M console=tty1 console=ttyS2,1500000 earlycon=uart8250,mmio32${serial_addr} root=PARTUUID=${uuid} rw rootwait mitigations=off";
+ 
+ load ${devtype} ${devnum}:1 ${kernel_addr_r} kernel.img
+ 
+diff --git a/tools/squashfs4/Makefile b/tools/squashfs4/Makefile
+index 38c3e52..cfc5082 100644
+--- a/tools/squashfs4/Makefile
++++ b/tools/squashfs4/Makefile
+@@ -26,6 +26,8 @@ define Host/Compile
+ 	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR)/squashfs-tools \
+ 		XZ_SUPPORT=1 \
+ 		LZMA_XZ_SUPPORT=1 \
++		ZSTD_SUPPORT=1 \
++		LZ4_SUPPORT=1 \
+ 		XZ_EXTENDED_OPTIONS=1 \
+ 		EXTRA_CFLAGS="-I$(STAGING_DIR_HOST)/include" \
+ 		mksquashfs unsquashfs

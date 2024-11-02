@@ -1,0 +1,14 @@
+iptables -F
+#DNS
+#nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to 53
+#nft insert rule inet fw4 dstnat position 0 udp dport 53 counter redirect to 53
+#NTP
+nft insert rule inet fw4 dstnat position 0 tcp dport 123 counter redirect to 123
+nft insert rule inet fw4 dstnat position 0 udp dport 123 counter redirect to 123
+##nft insert rule inet fw4 accept_to_wan oifname "eth1" ip ttl set 64
+
+#nft add chain inet fw4 qos_out_postrouting { type filter hook postrouting priority -900\; policy accept\; }
+#nft add rule inet fw4 qos_out_postrouting oifname "eth1" udp dport 21000-24000 counter ip dscp set cs7 comment "mihoyoWan"
+#nft add rule inet fw4 qos_out_postrouting oifname { "eth0", "utun", "tailscale0" } udp sport 21000-24000 counter ip dscp set cs7 comment "mihoyoLan" 
+#nft add rule inet fw4 qos_out_postrouting oifname { "eth0", "utun", "tailscale0" } udp sport 53 counter ip dscp set ef comment "DNS"
+#nft add rule inet fw4 qos_out_postrouting oifname "tailscale0" tcp sport 22 ct state new,established counter ip dscp set ef comment "ssh"

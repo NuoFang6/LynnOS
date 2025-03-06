@@ -89,7 +89,7 @@ jobs:
       - name: 运行自定义脚本
         run: |
           cd $lynndir
-          bash ./scripts/10_${{ env.TARGET }}.sh
+          sudo -E bash ./scripts/10_${{ env.TARGET }}.sh
           mv -f ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
 
           cd $wrtdir

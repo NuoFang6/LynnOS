@@ -79,8 +79,5 @@ ls
 export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
 popd
-# 确保工作目录可写
-sudo chmod -R a+rw $wrtdir
 
-# 确保临时目录可写
-sudo chmod -R a+rw $TMPDIR
+sudo -E chown -R runner:runner /home/runner/work/LynnOS

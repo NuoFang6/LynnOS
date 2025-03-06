@@ -1,4 +1,5 @@
-echo "当前用户 (10_${{ env.TARGET }}.sh):"
+echo "当前用户 (10_R2S.sh):"
+ls -l $wrtdir
 whoami
 id
 

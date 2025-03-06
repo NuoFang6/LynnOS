@@ -81,8 +81,8 @@ export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
 popd
 
-# sudo -E chown -R runner:runner /home/runner/work/LynnOS
-
+sudo -E chown -R runner:runner /home/runner/work/LynnOS
+ls -l $wrtdir
 echo "当前用户 (00_env.sh):"
 whoami
 id

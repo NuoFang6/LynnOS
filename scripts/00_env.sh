@@ -18,7 +18,7 @@ sudo -E git config --global core.abbrev auto
 
 
 echo "修改系统配置"
-sudo rm -rf /etc/apt/sources.list.d/*
+# sudo rm -rf /etc/apt/sources.list.d/*
 sudo timedatectl set-timezone 'Asia/Shanghai'
 
 

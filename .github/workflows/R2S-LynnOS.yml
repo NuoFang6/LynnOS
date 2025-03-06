@@ -3,9 +3,9 @@ name: R2S-LynnOS
 on:
   # schedule:
   #   - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
-  push:
-    branches:
-      - "v3"
+  # push:
+  #   branches:
+  #     - "v3"
   #   paths:
   #     - "script/**"
   #     - ".github/workflows/**"
@@ -60,19 +60,19 @@ jobs:
             echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
           fi
 
-      - if: env.needBuild == 'true'
-        name: 准备储存空间
-        uses: easimon/maximize-build-space@master
-        with:
-          swap-size-mb: 1
-          temp-reserve-mb: 1024
-          root-reserve-mb: 5120
-          build-mount-path: "/home/runner/work/LynnOS"
-          remove-dotnet: "true"
-          remove-android: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-          remove-docker-images: "true"
+      # - if: env.needBuild == 'true'
+      #   name: 准备储存空间
+      #   uses: easimon/maximize-build-space@master
+      #   with:
+      #     swap-size-mb: 1
+      #     temp-reserve-mb: 1024
+      #     root-reserve-mb: 5120
+      #     build-mount-path: "/home/runner/work/LynnOS"
+      #     remove-dotnet: "true"
+      #     remove-android: "true"
+      #     remove-haskell: "true"
+      #     remove-codeql: "true"
+      #     remove-docker-images: "true"
       
       - uses: actions/checkout@v4
         with:

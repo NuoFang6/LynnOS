@@ -59,7 +59,7 @@ echo "安装编译依赖"
 { 
 sudo -E apt-fast update -y
 # sudo -E apt-fast upgrade -y
-sudo -E apt-fast dist-upgrade -y
+# sudo -E apt-fast dist-upgrade -y
 sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y

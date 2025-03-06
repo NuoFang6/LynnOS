@@ -85,7 +85,7 @@ jobs:
           echo "lynndir=\"$PWD\"">> $GITHUB_ENV
           popd
           echo $lynndir
-          sudo -E bash ./lynnos/scriptss/00_env.sh
+          sudo -E bash ./lynnos/scripts/00_env.sh
       #
       # WORKSPACE存在的文件：
       #   ├── lynnos/
@@ -95,7 +95,12 @@ jobs:
       - name: 运行自定义脚本
         run: |
 
-          bash 10_${{ env.TARGET }}.sh
+          pushd ${lynndir}
+          bash ./scripts/10_${{ env.TARGET }}.sh
+          cp -rf ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
+          popd
+
+          cd ${wrtdir}
           bash 20_create_acl_for_luci.sh -a
           wait
 

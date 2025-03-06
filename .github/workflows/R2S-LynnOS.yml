@@ -60,19 +60,19 @@ jobs:
             echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
           fi
 
-      # - if: env.needBuild == 'true'
-      #   name: 准备储存空间
-      #   uses: easimon/maximize-build-space@master
-      #   with:
-      #     swap-size-mb: 1
-      #     temp-reserve-mb: 1024
-      #     root-reserve-mb: 5120
-      #     build-mount-path: "/home/runner/work/LynnOS"
-      #     remove-dotnet: "true"
-      #     remove-android: "true"
-      #     remove-haskell: "true"
-      #     remove-codeql: "true"
-      #     remove-docker-images: "true"
+      - if: env.needBuild == 'true'
+        name: 准备储存空间
+        uses: easimon/maximize-build-space@master
+        with:
+          swap-size-mb: 1
+          temp-reserve-mb: 1024
+          root-reserve-mb: 5120
+          build-mount-path: "/home/runner/work/LynnOS"
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
       
       - uses: actions/checkout@v4
         with:
@@ -80,6 +80,8 @@ jobs:
 
       - name: 准备环境
         run: |
+          sudo chown -R runner:runner /home/runner/work/LynnOS
+          
           echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS 包含源代码
           ls
           export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV

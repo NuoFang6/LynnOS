@@ -169,3 +169,5 @@ cp -rf $lynndir/seed/R2S/seed.config ./.config
 #* 修改编译时配置
 # 强制使用 O3 级别的优化
 # sed -i 's/-Os/-O3/g' ./include/target.mk
+
+cd $GITHUB_WORKSPACE

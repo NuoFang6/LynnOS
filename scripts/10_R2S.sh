@@ -1,4 +1,7 @@
-#!/bin/bash
+echo "当前用户 (10_${{ env.TARGET }}.sh):"
+whoami
+id
+
 clone() {
   #* 参数1是分支名，参数2是仓库地址，参数3是目标目录
   branch_name=$1

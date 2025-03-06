@@ -59,18 +59,18 @@ echo "安装编译依赖"
 { 
 sudo -E apt-fast update -y
 # sudo -E apt-fast upgrade -y
-# sudo -E apt-fast dist-upgrade -y
+sudo -E apt-fast dist-upgrade -y
 sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
 } >/dev/null
 
 
-echo "安装 rust"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
-source $HOME/.cargo/env
-rustup -q default nightly
-rustup -q target add aarch64-unknown-linux-musl
+# echo "安装 rust"
+# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+# source $HOME/.cargo/env
+# rustup -q default nightly
+# rustup -q target add aarch64-unknown-linux-musl
 
 
 echo "克隆 immortalwrt"
@@ -82,3 +82,7 @@ echo "wrtdir: $wrtdir"
 popd
 
 # sudo -E chown -R runner:runner /home/runner/work/LynnOS
+
+echo "当前用户 (00_env.sh):"
+whoami
+id

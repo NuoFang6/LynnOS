@@ -49,6 +49,7 @@ jobs:
     steps:
       - name: 环境变量
         run: |
+          echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS
           if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
             echo "needBuild=true" >> $GITHUB_ENV
           else
@@ -60,47 +61,38 @@ jobs:
           fi
 
       - if: env.needBuild == 'true'
-        name: 最大化储存空间
-        uses: AdityaGarg8/remove-unwanted-software@master
+        name: 准备储存空间
+        uses: easimon/maximize-build-space@master
         with:
-          # swap-size-mb: 1
-          # temp-reserve-mb: 1024
-          # root-reserve-mb: 5120
-          # build-mount-path: "/home/runner/work/LynnOS" #todo 
+          swap-size-mb: 1
+          temp-reserve-mb: 1024
+          root-reserve-mb: 5120
+          build-mount-path: "/home/runner/work/LynnOS"
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          remove-large-packages: "true"
-          remove-cached-tools: "true"
-          remove-swapfile: "true"
-          verbose: "false"
+      
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: 准备环境
         run: |
-          pwd  # /home/runner/work/LynnOS
-          git clone -q --depth 1 --single-branch https://github.com/NuoFang6/LynnOS.git ./lynnos
-          pushd lynnos
+          echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS 包含源代码
+          ls
           echo "lynndir=\"$PWD\"">> $GITHUB_ENV
-          popd
-          echo $lynndir
-          sudo -E bash ./lynnos/scripts/00_env.sh
-      #
-      # WORKSPACE存在的文件：
-      #   ├── lynnos/
-      #   ├── immortalwrt/
-      #
+          echo "lynndir: ${lynndir}"
+          sudo -E bash ${lynndir}/scripts/00_env.sh
 
       - name: 运行自定义脚本
         run: |
-
-          pushd ${lynndir}
+          cd $lynndir
           bash ./scripts/10_${{ env.TARGET }}.sh
-          cp -rf ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
-          popd
+          mv -rf ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
 
-          cd ${wrtdir}
+          cd $wrtdir
           bash 20_create_acl_for_luci.sh -a
           wait
 
@@ -122,15 +114,10 @@ jobs:
           rm -rf ./2305packages
           rm -rf ./masterimmortalwrt
           rm -rf ./lede
-          tar -C ../immortalwrt -cf - . | zstd -10 -T0 -o /home/runner/work/LynnOS/immortalwrt-End.tar.zst
-          sudo df -h
 
-      #
-      # WORKSPACE存在的文件：
-      #   ├── LynnOS/
-      #   ├── immortalwrt/
-      #   ├── immortalwrt-End.tar.zst （ 需要上传！）
-      #
+          cd ${wrtdir}/../
+          tar -C ./immortalwrt -cf - . | zstd -10 -T0 -o ${wrtdir}/../immortalwrt-End.tar.zst
+          sudo df -h
 
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main
@@ -154,8 +141,9 @@ jobs:
 
         id: build
         continue-on-error: true
-        working-directory: ../immortalwrt
         run: |
+          cd $wrtdir
+
           rm -rf /home/runner/work/LynnOS/immortalwrt-End.tar.zst &
 
           echo "下载所需文件"
@@ -171,8 +159,9 @@ jobs:
 
       - name: 详细输出编译
         if: steps.build.outcome == 'failure'
-        working-directory: ../immortalwrt
         run: |
+          cd $wrtdir
+          
           if ["${{ inputs.ignoreError }}" = "true"]; then
             echo "开始详细输出编译（忽略错误）"
             IGNORE_ERRORS=1 make -i -j1 V=sc
@@ -183,13 +172,13 @@ jobs:
 
       - name: 编译完成，准备上传
         if: steps.build.outcome == 'success'
-        working-directory: ../immortalwrt/bin/targets/rockchip/armv8/
         run: |
-          #当前目录：../immortalwrt/bin/targets/rockchip/armv8/
+          cd ${wrtdir}/bin/targets/rockchip/armv8/
+
           tar -cf - ./packages --remove-files | zstd -10 -T0 -o ./packages.tar.zst
           cd .. 
 
-          #当前目录：../immortalwrt/bin/targets/rockchip/
+          #当前目录：${wrtdir}/bin/targets/rockchip/
           tar -cf - ./armv8 | zstd -10 -T0 -o ./output.tar.zst
           cp -rf ./output.tar.zst ./armv8
 

@@ -8,7 +8,7 @@ clone() {
 }
 
 cd $wrtdir
-echo "进入wrt根目录"
+echo "进入wrt根目录：$wrtdir"
 
 
 # echo "自定义feed源"

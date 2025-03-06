@@ -3,12 +3,12 @@ name: R2S-LynnOS
 on:
   # schedule:
   #   - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
-  # push:
-  #   branches:
-  #     - "v3"
-  #   paths:
-  #     - "script/**"
-  #     - ".github/workflows/**"
+  push:
+    branches:
+      - "v3"
+    paths:
+      - "script/**"
+      - ".github/workflows/**"
   workflow_dispatch:
     inputs:
       branch:
@@ -39,10 +39,10 @@ jobs:
     env:
       TARGET: R2S
       
-      # branch: "openwrt-24" # TODO
-      # CURRENT_TIME: "2024"
-      # needBuild: false
-
+      branch: "openwrt-24.10"
+      needBuild: false
+      
+      CURRENT_TIME: "2025"
       TERM: xterm
       DEBIAN_FRONTEND: noninteractive # 无交互
 
@@ -50,10 +50,9 @@ jobs:
       - name: 环境变量
         run: |
           echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS
+
           if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
             echo "needBuild=true" >> $GITHUB_ENV
-          else
-            echo "needBuild=false" >> $GITHUB_ENV
           fi
 
           if [ -n "${{ inputs.branch }}" ]; then
@@ -84,30 +83,8 @@ jobs:
           ls
           export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
           echo "lynndir: ${lynndir}"
-          sudo -E bash ${lynndir}/scripts/00_env.sh
-          sudo chown -R runner:runner /home/runner/work/LynnOS
 
-          
-          cd $lynndir
-
-          echo "安装 rust"
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
-          source $HOME/.cargo/env
-          rustup -q default nightly
-          rustup -q target add aarch64-unknown-linux-musl
-
-          echo "克隆 immortalwrt"
-          git clone -q -b ${branch} --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
-          pushd ${lynndir}/../immortalwrt
-          ls
-          export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
-          echo "wrtdir: $wrtdir"
-          popd
-
-          ls -l $wrtdir
-          echo "当前用户 (00_env.sh):"
-          whoami
-          id
+          bash ${lynndir}/scripts/00_env.sh  # 不应使用sudo
 
       - name: 运行自定义脚本
         run: |
@@ -127,10 +104,6 @@ jobs:
             make kernel_oldconfig -j$(($(nproc) + 1))
           fi
 
-          if [ "${{ inputs.ignoreError }}" = "true" ]; then
-            echo -e '\nCONFIG_TARGET_OPTIONS=y\nCONFIG_TARGET_OPTIMIZATION="-O0 -pipe -mcpu=generic"' >>./.config
-          fi
-
           echo "压缩最终提交配置"
           rm -rf ./2305packages
           rm -rf ./masterimmortalwrt
@@ -147,8 +120,8 @@ jobs:
           compression-level: 0
           path: /home/runner/work/LynnOS/immortalwrt-End.tar.zst
 
-      - name: 配置缓存
-        if: env.needBuild == 'true'
+      - if: env.needBuild == 'true'
+        name: 配置缓存
         uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: true
@@ -157,9 +130,8 @@ jobs:
           mixkey: "${{ env.TARGET }}"
           prefix: /home/runner/work/LynnOS/immortalwrt
 
-      - name: 编译 LynnOS
-        if: env.needBuild == 'true'
-
+      - if: env.needBuild == 'true'
+        name: 编译 LynnOS
         id: build
         continue-on-error: true
         run: |
@@ -170,29 +142,21 @@ jobs:
           echo "下载所需文件"
           make download -j16
 
-          if [ "${{ inputs.ignoreError }}" = "true" ]; then
-            echo "开始编译（忽略错误）"
-            IGNORE_ERRORS=1 make -i -j$(($(nproc) + 1))
-          else
-            echo "开始编译"
-            make -j$(($(nproc) + 1))
-          fi
+          echo "开始编译"
+          make -j$(($(nproc) + 1))
 
-      - name: 详细输出编译
-        if: steps.build.outcome == 'failure'
+
+      - if: steps.build.outcome == 'failure'
+        name: 详细输出编译
         run: |
           cd $wrtdir
           
-          if ["${{ inputs.ignoreError }}" = "true"]; then
-            echo "开始详细输出编译（忽略错误）"
-            IGNORE_ERRORS=1 make -i -j1 V=sc
-          else
-            echo "开始详细输出编译"
-            make -j1 V=sc
-          fi
+          echo "开始详细输出编译"
+          make -j1 V=sc
 
-      - name: 编译完成，准备上传
-        if: steps.build.outcome == 'success'
+
+      - if: steps.build.outcome == 'success'
+        name: 编译完成，准备上传
         run: |
           cd ${wrtdir}/bin/targets/rockchip/armv8/
 
@@ -208,15 +172,15 @@ jobs:
           df -h
 
       #
-      # WORKSPACE存在的文件：
+      # 存在的文件：
       #   ├── LynnOS/
       #   ├── immortalwrt/
       #   ├── immortalwrt/bin/targets/rockchip/armv8/packages.tar.zst （ 需要上传！）
       #   ├── immortalwrt/bin/targets/rockchip/armv8/output.tar.zst （ 需要上传！）
       #
 
-      - name: 上传至 artifact
-        if: steps.build.outcome == 'success'
+      - if: steps.build.outcome == 'success'
+        name: 上传至 artifact
         uses: actions/upload-artifact@main
         with:
           name: output.zip
@@ -224,8 +188,8 @@ jobs:
           path: |
             /home/runner/work/LynnOS/immortalwrt/bin/targets/rockchip/armv8/output.tar.zst
 
-      - name: 创建发行版
-        if: steps.build.outcome == 'success' && inputs.ignoreError == false
+      - if: steps.build.outcome == 'success'
+        name: 创建发行版
         continue-on-error: true
         uses: ncipollo/release-action@main
         with:

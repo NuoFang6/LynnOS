@@ -13,9 +13,9 @@ echo "TMPDIR: $TMPDIR"
 popd
 
 echo "配置 git"
-sudo -E git config --global user.name "github-actions[bot]"
-sudo -E git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-sudo -E git config --global core.abbrev auto
+git config --global user.name "github-actions[bot]"
+git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config --global core.abbrev auto
 
 
 echo "修改系统配置"
@@ -58,9 +58,29 @@ sudo -E cp -rf ./scripts/apt-fast.conf /etc
 echo "安装编译依赖"
 { 
 sudo -E apt-fast update -y
-# sudo -E apt-fast upgrade -y
+if [ "${needBuild}" = "true" ]; then
+  sudo -E apt-fast dist-upgrade -y
+  # sudo -E apt-fast upgrade -y
+fi
 sudo -E apt-fast dist-upgrade -y
 sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
 } >/dev/null
+
+
+sudo chown -R runner:runner /home/runner/work/LynnOS
+# 以下不能是sudo
+echo "安装 rust"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+source $HOME/.cargo/env
+rustup -q default nightly
+rustup -q target add aarch64-unknown-linux-musl
+
+echo "克隆 immortalwrt"
+git clone -q -b ${branch} --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
+pushd ${lynndir}/../immortalwrt
+ls
+export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
+echo "wrtdir: $wrtdir"
+popd

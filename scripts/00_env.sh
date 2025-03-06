@@ -3,77 +3,75 @@ DEPENDENCY="${CUSTOM_DEPENDENCIES} ack antlr3 asciidoc autoconf automake autopoi
 
 echo $GITHUB_ENV
 
-          echo "修改临时目录"
-          TMPDIR=${GITHUB_WORKSPACE}/tmp
-          mkdir -p $TMPDIR
-          echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
 
-          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
-            echo "needBuild=true" >> $GITHUB_ENV
-          else
-            echo "needBuild=false" >> $GITHUB_ENV
-          fi
-          if [ -n "${{ inputs.branch }}" ]; then
-            echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
-          fi
+echo "修改临时目录"
+TMPDIR=${GITHUB_WORKSPACE}/tmp
+mkdir -p $TMPDIR
+echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
 
-          echo "配置 git"
-          sudo -E git config --global user.name "github-actions[bot]"
-          sudo -E git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          sudo -E git config --global core.abbrev auto
 
-          echo "修改系统配置"
-          sudo rm -rf /etc/apt/sources.list.d/*
-          sudo timedatectl set-timezone 'Asia/Shanghai'
+echo "配置 git"
+sudo -E git config --global user.name "github-actions[bot]"
+sudo -E git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+sudo -E git config --global core.abbrev auto
 
-          echo "删除并禁用 snap"
-          {
-            set +e # 关闭自动退出
-            sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-            while [ "$sum" -ne 0 ]; do
-                for p in $(snap list | awk 'NR>=2{print $1}'); do
-                    sudo snap remove --purge "$p"
-                done
-                sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-            done
-            sudo systemctl stop snapd
-            sudo systemctl disable --now snapd.socket
-            for m in /snap/core/*; do
-              sudo umount $m
-            done
-            sudo apt autoremove --purge snapd -y
-            sudo rm -rf ~/snap
-            sudo rm -rf /snap
-            sudo rm -rf /var/snap
-            sudo rm -rf /var/lib/snapd
-            sudo rm -rf /var/cache/snapd
-            echo -e "\nPackage: snapd\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/nosnap.pref
-            echo -e "\nPackage: firefox\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/no-firefox.pref
-            set -e # 重新开启自动退出
-          } >/dev/null
 
-          echo "安装 apt-fast"
-          /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+echo "修改系统配置"
+sudo rm -rf /etc/apt/sources.list.d/*
+sudo timedatectl set-timezone 'Asia/Shanghai'
 
-          sudo -E cp -rf ./script/apt-fast.conf /etc
 
-          echo "安装编译依赖"
-          { 
-            sudo -E apt-fast update -y
-            sudo -E apt-fast dist-upgrade -y
-            sudo -E apt-fast install -y $DEPENDENCY
-            sudo -E apt-fast autoremove --purge -y
-            sudo -E apt-fast clean -y
-          } >/dev/null
+echo "删除并禁用 snap"
+{
+set +e # 关闭自动退出
+sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
+while [ "$sum" -ne 0 ]; do
+    for p in $(snap list | awk 'NR>=2{print $1}'); do
+        sudo snap remove --purge "$p"
+    done
+    sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
+done
+sudo systemctl stop snapd
+sudo systemctl disable --now snapd.socket
+for m in /snap/core/*; do
+  sudo umount $m
+done
+sudo apt autoremove --purge snapd -y
+sudo rm -rf ~/snap
+sudo rm -rf /snap
+sudo rm -rf /var/snap
+sudo rm -rf /var/lib/snapd
+sudo rm -rf /var/cache/snapd
+echo -e "\nPackage: snapd\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/nosnap.pref
+echo -e "\nPackage: firefox\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/no-firefox.pref
+set -e # 重新开启自动退出
+} >/dev/null
 
-          echo "安装 rust"
-          curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -q -y
-          source $HOME/.cargo/env
-          rustup -q default nightly
-          rustup -q target add aarch64-unknown-linux-musl
 
-          echo "克隆 immortalwrt"
-          git clone -q -b "${{ env.branch }}" --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ./immortalwrt
-          ls
-          cd ./immortalwrt
-          echo "wrt=\"$PWD\"">> $GITHUB_ENV
+echo "安装 apt-fast"
+/bin/bash -c "$(curl -sL https://git.io/vokNn)"
+sudo -E cp -rf ./scripts/apt-fast.conf /etc
+
+
+echo "安装编译依赖"
+{ 
+sudo -E apt-fast update -y
+sudo -E apt-fast dist-upgrade -y
+sudo -E apt-fast install -y $DEPENDENCY
+sudo -E apt-fast autoremove --purge -y
+sudo -E apt-fast clean -y
+} >/dev/null
+
+
+echo "安装 rust"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+source $HOME/.cargo/env
+rustup -q default nightly
+rustup -q target add aarch64-unknown-linux-musl
+
+
+echo "克隆 immortalwrt"
+git clone -q -b "${{ env.branch }}" --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ./immortalwrt
+ls
+cd ./immortalwrt
+echo "wrtdir=\"$PWD\"">> $GITHUB_ENV

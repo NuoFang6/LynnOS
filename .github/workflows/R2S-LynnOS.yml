@@ -47,9 +47,21 @@ jobs:
       DEBIAN_FRONTEND: noninteractive # 无交互
 
     steps:
-      - name: 最大化储存空间
+      - name: 环境变量
+        run: |
+          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
+            echo "needBuild=true" >> $GITHUB_ENV
+          else
+            echo "needBuild=false" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ inputs.branch }}" ]; then
+            echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV
+          fi
+
+      - if: env.needBuild == 'true'
+        name: 最大化储存空间
         uses: AdityaGarg8/remove-unwanted-software@master
-        if: inputs.build == true || github.event.schedule
         with:
           # swap-size-mb: 1
           # temp-reserve-mb: 1024
@@ -67,9 +79,13 @@ jobs:
 
       - name: 准备环境
         run: |
-          pwd
+          pwd  # /home/runner/work/LynnOS
           git clone -q --depth 1 --single-branch https://github.com/NuoFang6/LynnOS.git ./lynnos
-          sudo -E bash ./lynnos/scripts/00_env.sh
+          pushd lynnos
+          echo "lynndir=\"$PWD\"">> $GITHUB_ENV
+          popd
+          echo $lynndir
+          sudo -E bash ./lynnos/scriptss/00_env.sh
       #
       # WORKSPACE存在的文件：
       #   ├── lynnos/
@@ -91,8 +107,8 @@ jobs:
             make kernel_oldconfig -j$(($(nproc) + 1))
           fi
 
-          echo "添加强制配置"
-          echo -e "\nCONFIG_MOLD=y\nCONFIG_USE_MOLD=y" >>./.config
+          # echo "添加强制配置"
+          # echo -e "\nCONFIG_MOLD=y\nCONFIG_USE_MOLD=y" >>./.config
           if [ "${{ inputs.ignoreError }}" = "true" ]; then
             echo -e '\nCONFIG_TARGET_OPTIONS=y\nCONFIG_TARGET_OPTIMIZATION="-O0 -pipe -mcpu=generic"' >>./.config
           fi

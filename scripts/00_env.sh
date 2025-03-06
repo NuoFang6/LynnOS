@@ -58,7 +58,8 @@ sudo -E cp -rf ./scripts/apt-fast.conf /etc
 echo "安装编译依赖"
 { 
 sudo -E apt-fast update -y
-sudo -E apt-fast dist-upgrade -y
+# sudo -E apt-fast upgrade -y
+# sudo -E apt-fast dist-upgrade -y
 sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
@@ -80,4 +81,4 @@ export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
 popd
 
-sudo -E chown -R runner:runner /home/runner/work/LynnOS
+# sudo -E chown -R runner:runner /home/runner/work/LynnOS

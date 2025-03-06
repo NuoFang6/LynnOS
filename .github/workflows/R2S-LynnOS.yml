@@ -79,14 +79,35 @@ jobs:
           fetch-depth: 1
 
       - name: 准备环境
-        run: |
-          sudo chown -R runner:runner /home/runner/work/LynnOS
-          
+        run: |          
           echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS 包含源代码
           ls
           export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
           echo "lynndir: ${lynndir}"
           sudo -E bash ${lynndir}/scripts/00_env.sh
+          sudo chown -R runner:runner /home/runner/work/LynnOS
+
+          
+          cd $lynndir
+
+          echo "安装 rust"
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+          source $HOME/.cargo/env
+          rustup -q default nightly
+          rustup -q target add aarch64-unknown-linux-musl
+
+          echo "克隆 immortalwrt"
+          git clone -q -b ${branch} --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
+          pushd ${lynndir}/../immortalwrt
+          ls
+          export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
+          echo "wrtdir: $wrtdir"
+          popd
+
+          ls -l $wrtdir
+          echo "当前用户 (00_env.sh):"
+          whoami
+          id
 
       - name: 运行自定义脚本
         run: |

@@ -64,24 +64,3 @@ sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
 } >/dev/null
-
-
-# echo "安装 rust"
-# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
-# source $HOME/.cargo/env
-# rustup -q default nightly
-# rustup -q target add aarch64-unknown-linux-musl
-
-
-echo "克隆 immortalwrt"
-git clone -q -b ${branch} --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
-pushd ${lynndir}/../immortalwrt
-ls
-export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
-echo "wrtdir: $wrtdir"
-popd
-
-ls -l $wrtdir
-echo "当前用户 (00_env.sh):"
-whoami
-id

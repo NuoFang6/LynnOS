@@ -50,7 +50,7 @@ set -e # 重新开启自动退出
 
 
 echo "安装 apt-fast"
-sudo mv -rf ./scripts/ubuntu.sources /etc/apt/sources.list.d/ # 替换源
+sudo mv -f ./scripts/ubuntu.sources /etc/apt/sources.list.d/ # 替换源
 /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 sudo -E cp -rf ./scripts/apt-fast.conf /etc
 

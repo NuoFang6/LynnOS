@@ -75,7 +75,7 @@ sed -i 's,no-mips16,no-mips16 no-lto,g' feeds/packages/libs/libsodium/Makefile
 
 echo "功能增强Patch"
 #* 来源 YAOF https://github.com/QiuSimons/YAOF
-mv -rf ./YAOF/PATCH ../
+mv -f ./YAOF/PATCH ../
 ### 必要的 Patches ###
 # TCP optimizations
 cp -rf ../PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/backport-6.6/

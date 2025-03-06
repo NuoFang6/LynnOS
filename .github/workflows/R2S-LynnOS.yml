@@ -90,7 +90,7 @@ jobs:
         run: |
           cd $lynndir
           bash ./scripts/10_${{ env.TARGET }}.sh
-          mv -rf ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
+          mv -f ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
 
           cd $wrtdir
           bash 20_create_acl_for_luci.sh -a

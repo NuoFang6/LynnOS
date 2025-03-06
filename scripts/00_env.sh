@@ -79,3 +79,8 @@ ls
 export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
 popd
+# 确保工作目录可写
+sudo chmod -R a+w $wrtdir
+
+# 确保临时目录可写
+sudo chmod -R a+w $TMPDIR

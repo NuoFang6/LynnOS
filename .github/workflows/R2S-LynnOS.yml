@@ -82,7 +82,7 @@ jobs:
         run: |
           echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS 包含源代码
           ls
-          export lynndir="$PWD" && echo "lynndir=\"$PWD\"">> $GITHUB_ENV
+          export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
           echo "lynndir: ${lynndir}"
           sudo -E bash ${lynndir}/scripts/00_env.sh
 

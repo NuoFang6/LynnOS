@@ -2,6 +2,7 @@ CUSTOM_DEPENDENCIES="liblz4-dev libffi-dev"
 DEPENDENCY="${CUSTOM_DEPENDENCIES} ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd"
 
 cd $lynndir
+echo "进入项目根目录：$lynndir"
 
 echo "修改临时目录"
 TMPDIR=${lynndir}/../tmp
@@ -18,7 +19,6 @@ sudo -E git config --global core.abbrev auto
 
 
 echo "修改系统配置"
-# sudo rm -rf /etc/apt/sources.list.d/*
 sudo timedatectl set-timezone 'Asia/Shanghai'
 
 
@@ -50,6 +50,7 @@ set -e # 重新开启自动退出
 
 
 echo "安装 apt-fast"
+sudo mv -rf ./scripts/ubuntu.sources /etc/apt/sources.list.d/ # 替换源
 /bin/bash -c "$(curl -sL https://git.io/vokNn)"
 sudo -E cp -rf ./scripts/apt-fast.conf /etc
 
@@ -72,7 +73,7 @@ rustup -q target add aarch64-unknown-linux-musl
 
 
 echo "克隆 immortalwrt"
-git clone -q -b "${{ env.branch }}" --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
+git clone -q -b ${branch} --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
 pushd ${lynndir}/../immortalwrt
 ls
 export wrtdir="$PWD" && echo "wrtdir=\"$PWD\"">> $GITHUB_ENV

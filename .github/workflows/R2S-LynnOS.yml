@@ -104,8 +104,6 @@ jobs:
             make kernel_oldconfig -j$(($(nproc) + 1))
           fi
 
-          # echo "添加强制配置"
-          # echo -e "\nCONFIG_MOLD=y\nCONFIG_USE_MOLD=y" >>./.config
           if [ "${{ inputs.ignoreError }}" = "true" ]; then
             echo -e '\nCONFIG_TARGET_OPTIONS=y\nCONFIG_TARGET_OPTIMIZATION="-O0 -pipe -mcpu=generic"' >>./.config
           fi

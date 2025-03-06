@@ -7,7 +7,7 @@ echo "修改临时目录"
 TMPDIR=${lynndir}/../tmp
 mkdir -p $TMPDIR
 pushd $TMPDIR
-echo "TMPDIR=\"$PWD\"" >> $GITHUB_ENV
+export TMPDIR="$PWD" && echo "TMPDIR=\"$PWD\"" >> $GITHUB_ENV
 echo "TMPDIR: $TMPDIR"
 popd
 
@@ -75,6 +75,6 @@ echo "克隆 immortalwrt"
 git clone -q -b "${{ env.branch }}" --depth 1 --single-branch https://github.com/immortalwrt/immortalwrt.git ${lynndir}/../immortalwrt
 pushd ${lynndir}/../immortalwrt
 ls
-echo "wrtdir=\"$PWD\"">> $GITHUB_ENV
+export wrtdir="$PWD" && echo "wrtdir=\"$PWD\"">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
 popd

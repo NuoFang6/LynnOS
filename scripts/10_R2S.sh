@@ -1,6 +1,5 @@
-echo "当前用户 (10_R2S.sh):"
+echo "权限状态："
 ls -l $wrtdir
-whoami
 id
 
 clone() {
@@ -35,19 +34,16 @@ echo "替换包"
 ./scripts/feeds uninstall -f luci-app-openclash 2>&1 | grep -i "WARNING"
 clone dev https://github.com/vernesong/OpenClash.git ./package/luci-app-openclash &
 
-
 echo "获取额外的软件包"
-clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
-clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
-
-# ./package
 clone master https://github.com/qwq233/UA4F.git ./package/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./package/MihomoTProxy &
 # cp -rf ./masterImmortalWrt/package/emortal/cpufreq ./package/emortal/
 # cp -rf ./2305packages/lang/ruby ./package/
 # rm -rf ./package/utils/util-linux && cp -rf ./masterImmortalWrt/package/utils/util-linux ./package/utils/
 
-# Patchs
+echo "下载其他仓库"
+clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
+clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
 clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
 clone master https://github.com/coolsnowwolf/lede.git ../lede &
 wait # 等待后台全部完成
@@ -109,7 +105,7 @@ cp -rf ../PATCH/kernel/wg/* ./target/linux/generic/hack-6.6/
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # OTHERS
-cp -rf ../PATCH/kernel/others/* ./target/linux/generic/pending-6.6/
+# cp -rf ../PATCH/kernel/others/* ./target/linux/generic/pending-6.6/ #* 999-net-net-fix-data-races-around-sk--sk_forward_alloc.patch 无法应用
 ### Fullcone-NAT 部分 ###
 # bcmfullcone
 cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-6.6/
@@ -220,3 +216,10 @@ sed -i 's,-SNAPSHOT,,g' include/version.mk
 sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
 sed -i '/CONFIG_BUILDBOT/d' include/feeds.mk
 sed -i 's/;)\s*\\/; \\/' include/feeds.mk
+
+
+echo "清理未使用的文件"
+rm -rf ./2305packages
+rm -rf ./masterimmortalwrt
+rm -rf ./YAOF
+rm -rf ../lede

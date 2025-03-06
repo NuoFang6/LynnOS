@@ -62,7 +62,6 @@ if [ "${needBuild}" = "true" ]; then
   sudo -E apt-fast dist-upgrade -y
   # sudo -E apt-fast upgrade -y
 fi
-sudo -E apt-fast dist-upgrade -y
 sudo -E apt-fast install -y $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y

@@ -3,12 +3,12 @@ name: R2S-LynnOS
 on:
   # schedule:
   #   - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
-  push:
-    branches:
-      - "v3"
-    paths:
-      - "script/**"
-      - ".github/workflows/**"
+  # push:
+  #   branches:
+  #     - "v3"
+  #   paths:
+  #     - "script/**"
+  #     - ".github/workflows/**"
   workflow_dispatch:
     inputs:
       branch:
@@ -37,11 +37,12 @@ jobs:
     runs-on: "ubuntu-24.04"
 
     env:
-      TARGET: R2S
+      TARGET: R2S  # TODO 多设备支持
       
       branch: "openwrt-24.10"
       needBuild: false
       
+      wrtdir: "/home/runner/work/LynnOS/immortalwrt"
       CURRENT_TIME: "2025"
       TERM: xterm
       DEBIAN_FRONTEND: noninteractive # 无交互
@@ -73,13 +74,14 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
       
-      - uses: actions/checkout@v4
+      - name: 检出代码
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: 准备环境
         run: |          
-          echo "当前目录：$PWD" # 预期 /home/runner/work/LynnOS/LynnOS 包含源代码
+          echo "当前目录：$PWD"   # 预期 /home/runner/work/LynnOS/LynnOS 且包含源代码
           ls
           export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
           echo "lynndir: ${lynndir}"
@@ -90,13 +92,13 @@ jobs:
         run: |
           cd $lynndir
           bash ./scripts/10_${{ env.TARGET }}.sh
+          
           mv -f ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
-
           cd $wrtdir
           bash 20_create_acl_for_luci.sh -a
           wait
 
-          echo "合并配置"
+          echo "生成完整配置"
           make defconfig -j$(($(nproc) + 1))
 
           if [ "${{ inputs.buildKernelMenu }}" = "true" ]; then
@@ -105,12 +107,8 @@ jobs:
           fi
 
           echo "压缩最终提交配置"
-          rm -rf ./2305packages
-          rm -rf ./masterimmortalwrt
-          rm -rf ./lede
-
-          cd ${wrtdir}/../
-          tar -C ./immortalwrt -cf - . | zstd -10 -T0 -o ${wrtdir}/../immortalwrt-End.tar.zst
+          ls
+          tar -cf - . | zstd -10 -T0 -o ../immortalwrt-End.tar.zst
           sudo df -h
 
       - name: 上传最终提交配置
@@ -128,7 +126,7 @@ jobs:
           toolchain: true
           skip: true
           mixkey: "${{ env.TARGET }}"
-          prefix: /home/runner/work/LynnOS/immortalwrt
+          prefix: "${{ env.wrtdir }}"
 
       - if: env.needBuild == 'true'
         name: 编译 LynnOS

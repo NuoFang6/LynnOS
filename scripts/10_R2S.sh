@@ -107,8 +107,8 @@ echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/fil
 # OTHERS
 # cp -rf ../PATCH/kernel/others/* ./target/linux/generic/pending-6.6/ #* 999-net-net-fix-data-races-around-sk--sk_forward_alloc.patch 无法应用
 ### Fullcone-NAT 部分 ###
-# bcmfullcone
-cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-6.6/
+# # bcmfullcone
+# cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-6.6/ #* 无法应用
 # set nf_conntrack_expect_max for fullcone
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
@@ -116,6 +116,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 mkdir -p package/network/config/firewall4/patches
 cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
 rm -rf ./package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch #* 无法应用
+rm -rf ./package/network/config/firewall4/patches/999-02-firewall4-add-bcm-fullconenat-support.patch #* 无法应用
 mkdir -p package/libs/libnftnl/patches
 cp -f ../PATCH/pkgs/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
 sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile

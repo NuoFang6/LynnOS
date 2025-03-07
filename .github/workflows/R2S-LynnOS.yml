@@ -65,8 +65,8 @@ jobs:
         uses: easimon/maximize-build-space@master
         with:
           swap-size-mb: 1
-          temp-reserve-mb: 1024
-          root-reserve-mb: 5120
+          temp-reserve-mb: 512
+          root-reserve-mb: 4608
           build-mount-path: "/home/runner/work/LynnOS"
           remove-dotnet: "true"
           remove-android: "true"

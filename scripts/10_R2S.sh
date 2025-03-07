@@ -115,6 +115,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 # FW4
 mkdir -p package/network/config/firewall4/patches
 cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
+rm -rf ./package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch #* 无法应用
 mkdir -p package/libs/libnftnl/patches
 cp -f ../PATCH/pkgs/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
 sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile

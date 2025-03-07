@@ -9,6 +9,9 @@ TMPDIR=${lynndir}/../tmp
 mkdir -p $TMPDIR
 pushd $TMPDIR
 export TMPDIR="$PWD" && echo "TMPDIR=$PWD" >> $GITHUB_ENV
+export TEMP="$PWD" && echo "TEMP=$PWD" >> $GITHUB_ENV
+export TEMPDIR="$PWD" && echo "TEMPDIR=$PWD" >> $GITHUB_ENV
+export TMP="$PWD" && echo "TMP=$PWD" >> $GITHUB_ENV
 echo "TMPDIR: $TMPDIR"
 popd
 

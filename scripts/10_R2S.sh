@@ -46,6 +46,8 @@ clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
 clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
 clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
 clone master https://github.com/coolsnowwolf/lede.git ../lede &
+clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
+clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
 wait # 等待后台全部完成
 
 
@@ -178,6 +180,17 @@ cp -rf ../PATCH/pkgs/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-s
 # # fstool
 # wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1 #* 无法应用
 #
+# Docker 容器
+rm -rf ./feeds/luci/applications/luci-app-dockerman
+cp -rf ../dockerman/applications/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
+sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
+pushd feeds/packages
+wget -qO- https://github.com/openwrt/packages/commit/e2e5ee69.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/pull/20054.patch | patch -p1
+popd
+sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
+rm -rf ./feeds/luci/collections/luci-lib-docker
+cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
 # IPv6 兼容助手
 patch -p1 <../PATCH/pkgs/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
@@ -225,3 +238,5 @@ rm -rf ./2305packages
 rm -rf ./masterimmortalwrt
 rm -rf ./YAOF
 rm -rf ../lede
+rm -rf ../dockerman
+rm -rf ../docker_lib

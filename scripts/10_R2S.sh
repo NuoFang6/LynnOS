@@ -46,8 +46,8 @@ clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
 clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
 clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
 clone master https://github.com/coolsnowwolf/lede.git ../lede &
-clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
-clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
+# clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
+# clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
 wait # 等待后台全部完成
 
 
@@ -106,28 +106,30 @@ CONFIG_LRNG_SELFTEST=y
 cp -rf ../PATCH/kernel/wg/* ./target/linux/generic/hack-6.6/
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
-# OTHERS
-# cp -rf ../PATCH/kernel/others/* ./target/linux/generic/pending-6.6/ #* 999-net-net-fix-data-races-around-sk--sk_forward_alloc.patch 无法应用
-### Fullcone-NAT 部分 ###
-# # bcmfullcone
-# cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-6.6/ #* 无法应用
-# set nf_conntrack_expect_max for fullcone
-wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
-echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
+#* 999-net-net-fix-data-races-around-sk--sk_forward_alloc.patch 无法应用
+#bcmfullcone #* 无法应用
+
 # FW4
 mkdir -p package/network/config/firewall4/patches
 cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
 rm -rf ./package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch #* 无法应用
-rm -rf ./package/network/config/firewall4/patches/999-02-firewall4-add-bcm-fullconenat-support.patch #* 无法应用
+rm -rf ./package/network/config/firewall4/patches/999-02-firewall4-add-bcm-fullconenat-support.patch #* bcmfullcone
+
 mkdir -p package/libs/libnftnl/patches
 cp -f ../PATCH/pkgs/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
+rm -rf ./package/libs/libnftnl/patches/002-libnftnl-add-brcm-fullcone-support.patch #* bcmfullcone
+
 sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
+
 mkdir -p package/network/utils/nftables/patches
 cp -f ../PATCH/pkgs/firewall/nftables/*.patch ./package/network/utils/nftables/patches/
+rm -rf ./package/network/utils/nftables/patches/003-nftables-add-brcm-fullconenat-support.patch #* bcmfullcone
+
 # Patch LuCI 以增添 FullCone 开关
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0001-luci-app-firewall-add-nft-fullcone-and-bcm-fullcone-.patch
-popd
+# pushd feeds/luci
+# patch -p1 <../../../PATCH/pkgs/firewall/luci/0001-luci-app-firewall-add-nft-fullcone-and-bcm-fullcone-.patch #* bcmfullcone
+# popd
+
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
 cp -rf ../PATCH/kernel/sfe/* ./target/linux/generic/hack-6.6/
@@ -140,9 +142,9 @@ popd
 # custom nft command
 patch -p1 < ../PATCH/pkgs/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
 # Patch LuCI 以增添 NAT6 开关
-pushd feeds/luci
+# pushd feeds/luci
 patch -p1 <../../../PATCH/pkgs/firewall/luci/0003-luci-app-firewall-add-ipv6-nat-option.patch
-popd
+# popd
 # Patch LuCI 以支持自定义 nft 规则
 pushd feeds/luci
 patch -p1 <../../../PATCH/pkgs/firewall/luci/0004-luci-add-firewall-add-custom-nft-rule-support.patch
@@ -151,15 +153,15 @@ popd
 pushd feeds/luci
 patch -p1 <../../../PATCH/pkgs/firewall/luci/0005-luci-app-firewall-add-natflow-offload-support.patch
 popd
-### fullcone6 ###
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0007-luci-app-firewall-add-fullcone6-option-for-nftables-.patch
-popd
+# ### fullcone6 ###
+# pushd feeds/luci
+# patch -p1 <../../../PATCH/pkgs/firewall/luci/0007-luci-app-firewall-add-fullcone6-option-for-nftables-.patch #* brcmfullcone
+# popd
+
 ### Other Kernel Hack 部分 ###
 # make olddefconfig
 wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
-# igc-fix
-cp -rf ../lede/target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch ./target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch
+
 # btf
 cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
 #
@@ -176,21 +178,9 @@ popd
 mkdir -p feeds/packages/utils/cgroupfs-mount/patches
 cp -rf ../PATCH/pkgs/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 cp -rf ../PATCH/pkgs/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
+#* docker systemd support
 cp -rf ../PATCH/pkgs/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-# # fstool
-# wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1 #* 无法应用
-#
-# Docker 容器
-rm -rf ./feeds/luci/applications/luci-app-dockerman
-cp -rf ../dockerman/applications/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
-sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
-pushd feeds/packages
-wget -qO- https://github.com/openwrt/packages/commit/e2e5ee69.patch | patch -p1
-wget -qO- https://github.com/openwrt/packages/pull/20054.patch | patch -p1
-popd
-sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
-rm -rf ./feeds/luci/collections/luci-lib-docker
-cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
+
 # IPv6 兼容助手
 patch -p1 <../PATCH/pkgs/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
@@ -208,6 +198,25 @@ wget https://github.com/openwrt/odhcp6c/pull/90.patch -O package/network/ipv6/od
 wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
 jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+
+
+
+
+#* 来自openwrt-lite
+# docker
+# [ "$DEV_BUILD" = "y" ] && docker_branch=main || docker_branch=openwrt-23.05
+docker_branch=main
+github=github.com
+rm -rf feeds/{luci/applications/luci-app-dockerman,packages/utils/docker-compose}
+mv ../master/extd-23.05/docker-compose feeds/packages/utils/docker-compose
+rm -rf feeds/packages/utils/{docker,dockerd,containerd,runc,docker-compose}
+git clone https://$github/pmkol/packages_utils_docker feeds/packages/utils/docker -b $docker_branch --depth 1
+git clone https://$github/pmkol/packages_utils_dockerd feeds/packages/utils/dockerd -b $docker_branch --depth 1
+git clone https://$github/pmkol/packages_utils_containerd feeds/packages/utils/containerd -b $docker_branch --depth 1
+git clone https://$github/pmkol/packages_utils_runc feeds/packages/utils/runc -b $docker_branch --depth 1
+sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
+curl -s https://raw.githubusercontent.com/pmkol/openwrt-lite/main/openwrt/patch/luci/0006-luci-mod-system-mounts-add-docker-directory-mount-po.patch | patch -p1
+
 
 
 # 自定义 Patch
@@ -238,5 +247,5 @@ rm -rf ./2305packages
 rm -rf ./masterimmortalwrt
 rm -rf ./YAOF
 rm -rf ../lede
-rm -rf ../dockerman
-rm -rf ../docker_lib
+# rm -rf ../dockerman
+# rm -rf ../docker_lib

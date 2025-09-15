@@ -90,3 +90,7 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 # 缺少依赖的包
 # uneedpkg="$uneedpkg luci-app-qbittorrent qBittorrent-Enhanced-Edition bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2 pdns mpd netwhere libtorrent-rasterbar kea i2pd hyperscan freetdm domoticz dnsdist pdns-recursor schroot trojan trojan-plus luci-app-passwall libmpc freeswitch-mod-bcg729 snort3 openappid"
 # ./scripts/feeds uninstall -f $uneedpkg 2>&1 | grep -i "WARNING"
+
+
+echo "应用配置"
+cp -rf ${lynndir}/seed/R2S/seed.config .config

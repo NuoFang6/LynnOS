@@ -13,7 +13,7 @@ on:
     inputs:
       branch:
         description: "分支"
-        default: "openwrt-24.10"
+        default: "master"
         type: string
         required: true
       build:
@@ -21,27 +21,15 @@ on:
         default: true
         type: boolean
         required: true
-      buildKernelMenu:
-        description: "编译内核配置菜单、检查内核配置完整性"
-        default: false
-        type: boolean
-        required: true
-      # ignoreError:
-      #   description: "忽略编译错误"
-      #   default: false
-      #   type: boolean
-      #   required: true
 
 jobs:
   Build:
     runs-on: "ubuntu-24.04"
 
     env:
-      TARGET: R2S  # TODO 多设备支持
-      
+      TARGET: R2S
       branch: "openwrt-24.10"
       needBuild: false
-      
       wrtdir: "/home/runner/work/LynnOS/immortalwrt"
       CURRENT_TIME: "2025"
       TERM: xterm
@@ -83,19 +71,31 @@ jobs:
         run: |          
           echo "当前目录：$PWD"   # 预期 /home/runner/work/LynnOS/LynnOS 且包含源代码
           ls
-          export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
-          echo "lynndir: ${lynndir}"
+          clone() {
+            # 参数1: 分支名  参数2: 仓库地址  参数3: 目标目录
+            if [ $# -lt 3 ]; then
+              echo "用法: clone <branch> <repo_url> <target_dir>" >&2
+              return 1
+            fi
+            local branch_name="$1" repo_url="$2" target_dir="$3"
+            git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
+          }
+          export -f clone
 
-          bash ${lynndir}/scripts/00_env.sh  # 不应使用sudo
+          bash ./scripts/00_env.sh  # 不应使用sudo
 
       - name: 运行自定义脚本
         run: |
-          cd $lynndir
-          bash ./scripts/10_${{ env.TARGET }}.sh
-          
-          mv -f ./scripts/20_create_acl_for_luci.sh ${wrtdir}/
           cd $wrtdir
-          bash 20_create_acl_for_luci.sh -a
+          echo "进入wrt根目录：$wrtdir"
+          bash ${lynndir}/scripts/10_${{ env.TARGET }}.sh
+
+          mv -rf ${lynndir}/scripts/tools/* ${wrtdir}/
+          bash remove_upx.sh
+          bash convert_translation.sh
+          bash create_acl_for_luci.sh
+          sudo -E chmod -R 755 ./fix_permissions.sh
+          bash ./fix_permissions.sh
           wait
 
           echo "生成完整配置"
@@ -108,7 +108,7 @@ jobs:
 
           echo "压缩最终提交配置"
           ls
-          tar -cf - . | zstd -10 -T0 -o ../immortalwrt-End.tar.zst
+          tar -cf - . | zstd -16 -T0 -o ../immortalwrt-End.tar.zst
           sudo df -h
 
       - name: 上传最终提交配置
@@ -158,11 +158,11 @@ jobs:
         run: |
           cd ${wrtdir}/bin/targets/rockchip/armv8/
 
-          tar -cf - ./packages --remove-files | zstd -10 -T0 -o ./packages.tar.zst
+          tar -cf - ./packages --remove-files | zstd -16 -T0 -o ./packages.tar.zst
           cd .. 
 
           #当前目录：${wrtdir}/bin/targets/rockchip/
-          tar -cf - ./armv8 | zstd -10 -T0 -o ./output.tar.zst
+          tar -cf - ./armv8 | zstd -16 -T0 -o ./output.tar.zst
           cp -rf ./output.tar.zst ./armv8
 
           echo "CURRENT_TIME=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV

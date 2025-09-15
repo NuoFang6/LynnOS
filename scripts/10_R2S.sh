@@ -1,251 +1,92 @@
 echo "权限状态："
-ls -l $wrtdir
+ls -l
 id
 
-clone() {
-  #* 参数1是分支名，参数2是仓库地址，参数3是目标目录
-  branch_name=$1
-  repo_url=$2
-  target_dir=$3
-  git clone -q -b $branch_name --depth 1 --single-branch --no-tags $repo_url $target_dir # 克隆仓库到目标目录，并指定分支名和深度为1
-}
-
-cd $wrtdir
-echo "进入wrt根目录：$wrtdir"
-
-
 # echo "自定义feed源"
-# cp -rf ${lynndir}/scripts/feeds.conf.default ./feeds.conf.default
+echo "src-link add ./package/add/" >> "feeds.conf.default"
 
+echo "覆盖或添加包"
+clone dev https://github.com/vernesong/OpenClash.git ./package/add/luci-app-openclash &
+clone master https://github.com/qwq233/UA4F.git ./package/add/ua4f &
+clone main https://github.com/morytyann/OpenWrt-mihomo.git ./package/add/MihomoTProxy &
+wait
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -i "WARNING"
 ./scripts/feeds install -a 2>&1 | grep -i "WARNING"
 
-
-# echo "移除问题软件包"
-# 缺少依赖的包
-# uneedpkg="$uneedpkg luci-app-qbittorrent qBittorrent-Enhanced-Edition bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2 pdns mpd netwhere libtorrent-rasterbar kea i2pd hyperscan freetdm domoticz dnsdist pdns-recursor schroot trojan trojan-plus luci-app-passwall libmpc freeswitch-mod-bcg729 snort3 openappid"
-#
-# ./scripts/feeds uninstall -f $uneedpkg 2>&1 | grep -i "WARNING"
-
-
-echo "替换包"
-./scripts/feeds uninstall -f luci-app-openclash 2>&1 | grep -i "WARNING"
-clone dev https://github.com/vernesong/OpenClash.git ./package/luci-app-openclash &
-
-echo "获取额外的软件包"
-clone master https://github.com/qwq233/UA4F.git ./package/ua4f &
-clone main https://github.com/morytyann/OpenWrt-mihomo.git ./package/MihomoTProxy &
-# cp -rf ./masterImmortalWrt/package/emortal/cpufreq ./package/emortal/
-# cp -rf ./2305packages/lang/ruby ./package/
-# rm -rf ./package/utils/util-linux && cp -rf ./masterImmortalWrt/package/utils/util-linux ./package/utils/
-
 echo "下载其他仓库"
-clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
-clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
-clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
-clone master https://github.com/coolsnowwolf/lede.git ../lede &
+# clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
+# clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
+# clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
+# clone master https://github.com/coolsnowwolf/lede.git ../lede &
 # clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
 # clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
-wait # 等待后台全部完成
+# wait # 等待后台全部完成
 
 
 
-echo "预配置文件"
-cp -rf ${lynndir}/files ./
-chmod +x ./files/etc/init.d/youhua
-#
-cp -rf ${lynndir}/seed/R2S/seed.config ./.config
-# cp -rf ${lynndir}/seed/R2S/config-6.6 ./target/linux/rockchip/armv8/
-
-
-
-#* Patchs
-echo "修复编译问题"
-cp -rf ${lynndir}/patch/attr/200-basename.patch ./feeds/packages/utils/attr/patches/
-cp -rf ${lynndir}/patch/samba4/099-fix-librpc-missing-config-h.patch ./feeds/packages/net/samba4/patches/
-#
-patch -p1 <${lynndir}/patch/qt6/qt6base_disable_lto.patch
-#
-patch -p1 <${lynndir}/patch/libffi/libffi.patch
-# openssl disable LTO
-sed -i 's,no-mips16 gc-sections,no-mips16 gc-sections no-lto,g' package/libs/openssl/Makefile
-# libsodium
-sed -i 's,no-mips16,no-mips16 no-lto,g' feeds/packages/libs/libsodium/Makefile
-
-
-echo "功能增强Patch"
-#* 来源 YAOF https://github.com/QiuSimons/YAOF
-mv -f ./YAOF/PATCH ../
-### 必要的 Patches ###
-# TCP optimizations
-cp -rf ../PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/backport-6.6/
-cp -rf ../PATCH/kernel/6.8_Boost_TCP_Performance_For_Many_Concurrent_Connections-bp_but_put_in_hack/* ./target/linux/generic/hack-6.6/
-cp -rf ../PATCH/kernel/6.8_Better_data_locality_in_networking_fast_paths-bp_but_put_in_hack/* ./target/linux/generic/hack-6.6/
-# UDP optimizations
-cp -rf ../PATCH/kernel/6.7_FQ_packet_scheduling/* ./target/linux/generic/backport-6.6/
-# Patch arm64 型号名称
-cp -rf ../PATCH/kernel/arm/* ./target/linux/generic/hack-6.6/
-# BBRv3
-cp -rf ../PATCH/kernel/bbr3/* ./target/linux/generic/backport-6.6/
-# LRNG
-cp -rf ../PATCH/kernel/lrng/* ./target/linux/generic/hack-6.6/
-echo '
-# CONFIG_RANDOM_DEFAULT_IMPL is not set
-CONFIG_LRNG=y
-CONFIG_LRNG_DEV_IF=y
-# CONFIG_LRNG_IRQ is not set
-CONFIG_LRNG_JENT=y
-CONFIG_LRNG_CPU=y
-# CONFIG_LRNG_SCHED is not set
-CONFIG_LRNG_SELFTEST=y
-# CONFIG_LRNG_SELFTEST_PANIC is not set
-' >>./target/linux/generic/config-6.6
-# wg
-cp -rf ../PATCH/kernel/wg/* ./target/linux/generic/hack-6.6/
+# 功能增强Patch
+echo "BBRv3"
+cp -rf ${lynndir}/patch/bbrv3/linux/* ./target/linux/generic/hack-${linux_version}/
+cp -rf ${lynndir}/patch/bbrv3/iproute2/* ./package/network/utils/iproute2/patches/
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
-#* 999-net-net-fix-data-races-around-sk--sk_forward_alloc.patch 无法应用
-#bcmfullcone #* 无法应用
 
-# FW4
-mkdir -p package/network/config/firewall4/patches
-cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
-rm -rf ./package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch #* 无法应用
-rm -rf ./package/network/config/firewall4/patches/999-02-firewall4-add-bcm-fullconenat-support.patch #* bcmfullcone
-
-mkdir -p package/libs/libnftnl/patches
-cp -f ../PATCH/pkgs/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
-rm -rf ./package/libs/libnftnl/patches/002-libnftnl-add-brcm-fullcone-support.patch #* bcmfullcone
-
-sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
-
-mkdir -p package/network/utils/nftables/patches
-cp -f ../PATCH/pkgs/firewall/nftables/*.patch ./package/network/utils/nftables/patches/
-rm -rf ./package/network/utils/nftables/patches/003-nftables-add-brcm-fullconenat-support.patch #* bcmfullcone
-
-# Patch LuCI 以增添 FullCone 开关
-# pushd feeds/luci
-# patch -p1 <../../../PATCH/pkgs/firewall/luci/0001-luci-app-firewall-add-nft-fullcone-and-bcm-fullcone-.patch #* bcmfullcone
-# popd
-
-### Shortcut-FE 部分 ###
-# Patch Kernel 以支持 Shortcut-FE
-cp -rf ../PATCH/kernel/sfe/* ./target/linux/generic/hack-6.6/
-cp -rf ../lede/target/linux/generic/pending-6.6/613-netfilter_optional_tcp_window_check.patch ./target/linux/generic/pending-6.6/613-netfilter_optional_tcp_window_check.patch
-# Patch LuCI 以增添 Shortcut-FE 开关
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0002-luci-app-firewall-add-shortcut-fe-option.patch
-popd
-### NAT6 部分 ###
-# custom nft command
-patch -p1 < ../PATCH/pkgs/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
-# Patch LuCI 以增添 NAT6 开关
-# pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0003-luci-app-firewall-add-ipv6-nat-option.patch
-# popd
 # Patch LuCI 以支持自定义 nft 规则
+echo "FW4"
+patch -p1 < ${lynndir}/patch/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
+cp -f ${lynndir}/patch/fw4/100-fw4-add-custom-nft-command-support.patch ./package/network/config/firewall4/patches/
 pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0004-luci-add-firewall-add-custom-nft-rule-support.patch
+patch -p1 <${lynndir}/patch/fw4/luci/0004-luci-add-firewall-add-custom-nft-rule-support.patch
 popd
-### natflow 部分 ###
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0005-luci-app-firewall-add-natflow-offload-support.patch
-popd
-# ### fullcone6 ###
-# pushd feeds/luci
-# patch -p1 <../../../PATCH/pkgs/firewall/luci/0007-luci-app-firewall-add-fullcone6-option-for-nftables-.patch #* brcmfullcone
-# popd
 
-### Other Kernel Hack 部分 ###
-# make olddefconfig
-wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
+# 超频补丁
+echo "超频"
+cp -f ${lynndir}/patch/target/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/armv8/patches-${linux_version}/
 
-# btf
-cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
-#
-cp -rf ../PATCH/kernel/rockchip/* ./target/linux/rockchip/patches-6.6/
-wget https://github.com/immortalwrt/immortalwrt/raw/refs/tags/v23.05.4/target/linux/rockchip/patches-5.15/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch -O target/linux/rockchip/patches-6.6/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch
-#
-# Disable Mitigations
-sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
-#
-# mount cgroupv2
-pushd feeds/packages
-patch -p1 <../../../PATCH/pkgs/cgroupfs-mount/0001-fix-cgroupfs-mount.patch
-popd
-mkdir -p feeds/packages/utils/cgroupfs-mount/patches
-cp -rf ../PATCH/pkgs/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-cp -rf ../PATCH/pkgs/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-#* docker systemd support
-cp -rf ../PATCH/pkgs/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-
-# IPv6 兼容助手
-patch -p1 <../PATCH/pkgs/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
-# ODHCPD
-mkdir -p package/network/services/odhcpd/patches
-cp -f ../PATCH/pkgs/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
-mkdir -p package/network/ipv6/odhcp6c/patches
-wget https://github.com/openwrt/odhcp6c/pull/75.patch -O package/network/ipv6/odhcp6c/patches/75.patch
-wget https://github.com/openwrt/odhcp6c/pull/80.patch -O package/network/ipv6/odhcp6c/patches/80.patch
-wget https://github.com/openwrt/odhcp6c/pull/82.patch -O package/network/ipv6/odhcp6c/patches/82.patch
-wget https://github.com/openwrt/odhcp6c/pull/83.patch -O package/network/ipv6/odhcp6c/patches/83.patch
-wget https://github.com/openwrt/odhcp6c/pull/84.patch -O package/network/ipv6/odhcp6c/patches/84.patch
-wget https://github.com/openwrt/odhcp6c/pull/90.patch -O package/network/ipv6/odhcp6c/patches/90.patch
-#
 #Vermagic # 内核模块兼容
-wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
+echo "Vermagic"
+# wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
+wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json
 jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
 
 
-
-#* 来自openwrt-lite
-# docker
-# [ "$DEV_BUILD" = "y" ] && docker_branch=main || docker_branch=openwrt-23.05
-docker_branch=main
-github=github.com
-rm -rf feeds/{luci/applications/luci-app-dockerman,packages/utils/docker-compose}
-mv ../master/extd-23.05/docker-compose feeds/packages/utils/docker-compose
-rm -rf feeds/packages/utils/{docker,dockerd,containerd,runc,docker-compose}
-git clone https://$github/pmkol/packages_utils_docker feeds/packages/utils/docker -b $docker_branch --depth 1
-git clone https://$github/pmkol/packages_utils_dockerd feeds/packages/utils/dockerd -b $docker_branch --depth 1
-git clone https://$github/pmkol/packages_utils_containerd feeds/packages/utils/containerd -b $docker_branch --depth 1
-git clone https://$github/pmkol/packages_utils_runc feeds/packages/utils/runc -b $docker_branch --depth 1
-sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
-curl -s https://raw.githubusercontent.com/pmkol/openwrt-lite/main/openwrt/patch/luci/0006-luci-mod-system-mounts-add-docker-directory-mount-po.patch | patch -p1
-
-
-
 # 自定义 Patch
-# patch -p1 <$lynndir/patch/target/target_r2s.patch
-# patch -p1 <$lynndir/patch/squashfs/add_zstd_support.patch
+echo "SquashFS 支持 Zstd 和 LZ4"
+patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
+CONFIG_CONTENT='
+CONFIG_SQUASHFS_XZ=n
+CONFIG_SQUASHFS_ZSTD=y
+CONFIG_ZSTD_DECOMPRESS=y
+'
+# 查找所有与内核相关的配置文件并将这些配置项追加到文件末尾
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+
 
 echo "修改源码"
-# 修改默认ip
-sed -i 's/192.168.1.1/192.168.2.1/g' ./package/base-files/files/bin/config_generate
+# 强制使用 O2 级别的优化
+sed -i 's/-Os/-O2/g' ./include/target.mk
 # 交换 LAN/WAN 口
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-# 强制使用 O3 级别的优化
-sed -i 's/-Os/-O3/g' ./include/target.mk
 # 使用专属优化
 sed -i 's,CPU_TYPE ?= generic,CPU_TYPE ?= cortex-a53,g' include/target.mk
-sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mtune=cortex-a53 -mcpu=cortex-a53+crypto+crc,g' include/target.mk
-sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53 -mcpu=cortex-a53+crypto+crc,g' include/target.mk
-# 移除 SNAPSHOT 标签
-sed -i 's,-SNAPSHOT,,g' include/version.mk
-sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
-sed -i '/CONFIG_BUILDBOT/d' include/feeds.mk
-sed -i 's/;)\s*\\/; \\/' include/feeds.mk
+sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' include/target.mk
+sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' include/target.mk
 
 
-echo "清理未使用的文件"
-rm -rf ./2305packages
-rm -rf ./masterimmortalwrt
-rm -rf ./YAOF
-rm -rf ../lede
+# echo "清理未使用的文件"
+# rm -rf ./2305packages
+# rm -rf ./masterimmortalwrt
+# rm -rf ./YAOF
+# rm -rf ../lede
 # rm -rf ../dockerman
 # rm -rf ../docker_lib
+
+# echo "移除问题软件包"
+# 缺少依赖的包
+# uneedpkg="$uneedpkg luci-app-qbittorrent qBittorrent-Enhanced-Edition bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2 pdns mpd netwhere libtorrent-rasterbar kea i2pd hyperscan freetdm domoticz dnsdist pdns-recursor schroot trojan trojan-plus luci-app-passwall libmpc freeswitch-mod-bcg729 snort3 openappid"
+# ./scripts/feeds uninstall -f $uneedpkg 2>&1 | grep -i "WARNING"

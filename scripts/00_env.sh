@@ -66,6 +66,6 @@ pushd ${lynndir}/../immortalwrt
 ls
 export wrtdir="$PWD" && echo "wrtdir=$PWD">> $GITHUB_ENV
 echo "wrtdir: $wrtdir"
-export linux_version=$(ls target/linux/rockchip/ | grep '^patches-' | sed 's/patches-//')
+export linux_version=$(ls target/linux/rockchip/ | grep '^patches-' | sed 's/patches-//') && echo "linux_version=$linux_version" >> $GITHUB_ENV
 echo "linux_version: $linux_version"
 popd

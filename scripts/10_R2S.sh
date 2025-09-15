@@ -24,7 +24,7 @@ wait
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -i "WARNING"
-./scripts/feeds install -a 2>&1 | grep -i "WARNING"
+./scripts/feeds install -a -f 2>&1 | grep -i "WARNING"
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
@@ -49,7 +49,7 @@ echo "FW4"
 patch -p1 < ${lynndir}/patch/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
 cp -f ${lynndir}/patch/fw4/100-fw4-add-custom-nft-command-support.patch ./package/network/config/firewall4/patches/
 pushd feeds/luci
-patch -p1 <${lynndir}/patch/fw4/luci/0004-luci-add-firewall-add-custom-nft-rule-support.patch
+patch -p1 <${lynndir}/patch/fw4/0004-luci-add-firewall-add-custom-nft-rule-support.patch
 popd
 
 # 超频补丁
@@ -61,6 +61,7 @@ echo "Vermagic"
 # wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
 wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json
 jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
+cat .vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
 
@@ -96,11 +97,6 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 # rm -rf ../lede
 # rm -rf ../dockerman
 # rm -rf ../docker_lib
-
-# echo "移除问题软件包"
-# 缺少依赖的包
-# uneedpkg="$uneedpkg luci-app-qbittorrent qBittorrent-Enhanced-Edition bcm27xx-eeprom boost efibootmgr freeswitch mc micropython-lib owut python-gmpy2 pdns mpd netwhere libtorrent-rasterbar kea i2pd hyperscan freetdm domoticz dnsdist pdns-recursor schroot trojan trojan-plus luci-app-passwall libmpc freeswitch-mod-bcg729 snort3 openappid"
-# ./scripts/feeds uninstall -f $uneedpkg 2>&1 | grep -i "WARNING"
 
 
 echo "应用配置"

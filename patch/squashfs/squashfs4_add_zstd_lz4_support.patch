@@ -1,8 +1,8 @@
 diff --git a/include/image.mk b/include/image.mk
-index 9a4dff2167..c90e7b3441
+index 048e750..767dec0 100644
 --- a/include/image.mk
 +++ b/include/image.mk
-@@ -94,6 +94,12 @@ ifeq ($(CONFIG_SQUASHFS_XZ),y)
+@@ -96,6 +96,12 @@ ifeq ($(CONFIG_SQUASHFS_XZ),y)
    endif
    SQUASHFSCOMP := xz $(LZMA_XZ_OPTIONS) $(BCJ_FILTER)
  endif
@@ -16,10 +16,10 @@ index 9a4dff2167..c90e7b3441
  JFFS2_BLOCKSIZE ?= 64k 128k
  
 diff --git a/tools/Makefile b/tools/Makefile
-index b16c5d9c5b..9fb097bb17
+index 752a561..c4911b6 100644
 --- a/tools/Makefile
 +++ b/tools/Makefile
-@@ -128,7 +128,7 @@ $(curdir)/pkgconf/compile := $(curdir)/meson/compile
+@@ -134,7 +134,7 @@ $(curdir)/pkgconf/compile := $(curdir)/meson/compile
  $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
  $(curdir)/sdcc/compile := $(curdir)/bison/compile
  $(curdir)/squashfs3-lzma/compile := $(curdir)/lzma-old/compile
@@ -29,34 +29,18 @@ index b16c5d9c5b..9fb097bb17
  $(curdir)/yafut/compile := $(curdir)/cmake/compile
  
 diff --git a/tools/squashfs4/Makefile b/tools/squashfs4/Makefile
-index 38c3e5233f..b79c445806
+index 94679bd..ac90e79 100644
 --- a/tools/squashfs4/Makefile
 +++ b/tools/squashfs4/Makefile
-@@ -8,14 +8,12 @@ include $(TOPDIR)/rules.mk
- 
- PKG_NAME:=squashfs4
- PKG_CPE_ID:=cpe:/a:phillip_lougher:squashfs
--PKG_VERSION:=4.6.1
--PKG_RELEASE=3
-+PKG_VERSION:=master
-+PKG_RELEASE=1
- 
- PKG_SOURCE_PROTO:=git
- PKG_SOURCE_URL:=https://github.com/plougher/squashfs-tools
--PKG_SOURCE_DATE:=2023-03-26
--PKG_SOURCE_VERSION:=d8cb82d9840330f9344ec37b992595b5d7b44184
--PKG_MIRROR_HASH:=e84026de1ab187f3f76d1b781a29259d818f887e1651225f850a62d6f90b1b9e
-+PKG_SOURCE_VERSION:=90ab3786829b0a9a9cd5d7a7357eeda8e7309374
- 
- HOST_BUILD_PARALLEL:=1
- 
-@@ -27,6 +25,9 @@ define Host/Compile
+@@ -24,9 +24,9 @@ include $(INCLUDE_DIR)/host-build.mk
+ define Host/Compile
+ 	+$(HOST_MAKE_VARS) \
+ 	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR)/squashfs-tools \
+-		LZ4_SUPPORT=0 \
++		LZ4_SUPPORT=1 \
+ 		LZO_SUPPORT=0 \
+-		ZSTD_SUPPORT=0 \
++		ZSTD_SUPPORT=1 \
+ 		GZIP_SUPPORT=1 \
  		XZ_SUPPORT=1 \
  		LZMA_XZ_SUPPORT=1 \
- 		XZ_EXTENDED_OPTIONS=1 \
-+		ZSTD_SUPPORT=1 \
-+		LZ4_SUPPORT=1 \
-+		LZO_SUPPORT=0 \
- 		EXTRA_CFLAGS="-I$(STAGING_DIR_HOST)/include" \
- 		mksquashfs unsquashfs
- endef

@@ -114,5 +114,13 @@ ls -la .
 
 echo "应用配置"
 cp -f ${lynndir}/seed/R2S/seed.config .config
+echo "应用内核配置"
+CONFIG_CONTENT='
+CONFIG_CPU_IDLE_GOV_MENU=n
+CONFIG_CPU_IDLE_GOV_TEO=y
+'
+# 查找所有与内核相关的配置文件并将这些配置项追加到文件末尾
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+
 
 echo "结束"

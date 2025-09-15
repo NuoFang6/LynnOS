@@ -1,3 +1,5 @@
+set -x
+
 clone() {
   # 参数1: 分支名  参数2: 仓库地址  参数3: 目标目录
   if [ $# -lt 3 ]; then
@@ -106,5 +108,3 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 
 echo "应用配置"
 cp -rf ${lynndir}/seed/R2S/seed.config .config
-
-exit 0

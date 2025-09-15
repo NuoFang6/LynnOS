@@ -96,22 +96,6 @@ sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' include/t
 sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' include/target.mk
 
 
-# echo "清理未使用的文件"
-# rm -rf ./2305packages
-# rm -rf ./masterimmortalwrt
-# rm -rf ./YAOF
-# rm -rf ../lede
-# rm -rf ../dockerman
-# rm -rf ../docker_lib
-
-
-# 诊断：显示环境、文件和权限，捕获 cp 的 stderr/stdout
-echo "PWD: $(pwd)"
-echo "USER: $(id -u -n) UID: $(id -u)"
-echo "LS repo top:"
-ls -la .
-
-
 echo "应用配置"
 cp -f ${lynndir}/seed/R2S/seed.config .config
 echo "应用内核配置"

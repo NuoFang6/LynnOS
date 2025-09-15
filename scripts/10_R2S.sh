@@ -1,3 +1,14 @@
+clone() {
+  # 参数1: 分支名  参数2: 仓库地址  参数3: 目标目录
+  if [ $# -lt 3 ]; then
+    echo "用法: clone <branch> <repo_url> <target_dir>" >&2
+    return 1
+  fi
+  local branch_name="$1" repo_url="$2" target_dir="$3"
+  git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
+}
+
+
 echo "权限状态："
 ls -l
 id

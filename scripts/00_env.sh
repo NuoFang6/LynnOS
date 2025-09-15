@@ -1,3 +1,14 @@
+clone() {
+  # 参数1: 分支名  参数2: 仓库地址  参数3: 目标目录
+  if [ $# -lt 3 ]; then
+    echo "用法: clone <branch> <repo_url> <target_dir>" >&2
+    return 1
+  fi
+  local branch_name="$1" repo_url="$2" target_dir="$3"
+  git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
+}
+sudo chown -R runner:runner /home/runner/work/LynnOS
+
 export lynndir="$PWD" && echo "lynndir=$PWD">> $GITHUB_ENV
 echo "lynndir: ${lynndir}"
 
@@ -20,54 +31,16 @@ git config --global user.name "github-actions[bot]"
 git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 git config --global core.abbrev auto
 
-
 echo "修改系统配置"
 sudo timedatectl set-timezone 'Asia/Shanghai'
 
-
-echo "删除并禁用 snap"
-{
-set +e # 关闭自动退出
-sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-while [ "$sum" -ne 0 ]; do
-    for p in $(snap list | awk 'NR>=2{print $1}'); do
-        sudo snap remove --purge "$p"
-    done
-    sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-done
-sudo systemctl stop snapd
-sudo systemctl disable --now snapd.socket
-for m in /snap/core/*; do
-  sudo umount $m
-done
-sudo apt autoremove --purge snapd -y
-sudo rm -rf ~/snap
-sudo rm -rf /snap
-sudo rm -rf /var/snap
-sudo rm -rf /var/lib/snapd
-sudo rm -rf /var/cache/snapd
-echo -e "\nPackage: snapd\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/nosnap.pref
-echo -e "\nPackage: firefox\nPin: release a=*\nPin-Priority: -10" | sudo tee /etc/apt/preferences.d/no-firefox.pref
-set -e # 重新开启自动退出
-} >/dev/null
-
-
 echo "安装 apt-fast"
+sudo -E apt-get -qq update
 /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-sudo -E cp -rf ./scripts/apt-fast.conf /etc
-
-
 echo "安装编译依赖"
-{ 
-sudo -E apt-fast update -y
-if [ "${needBuild}" = "true" ]; then
-  sudo -E apt-fast dist-upgrade -y
-  # sudo -E apt-fast upgrade -y
-fi
-sudo -E apt-fast install -y $DEPENDENCY
+sudo -E apt-fast install -y -qq $DEPENDENCY
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
-} >/dev/null
 # 使用liunx推荐的llvm
 LLVM_VER="21.1.1"
 LLVM_DIR="llvm-${LLVM_VER}-x86_64"
@@ -80,7 +53,6 @@ llvm-strip -V
 rm -rf ${LLVM_FILE} ${LLVM_DIR}
 
 
-sudo chown -R runner:runner /home/runner/work/LynnOS
 # 以下不能是sudo
 echo "安装 rust"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y

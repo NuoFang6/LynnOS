@@ -129,6 +129,7 @@ jobs:
         name: 编译 LynnOS
         id: build
         continue-on-error: true
+        shell: bash
         run: |
           echo "进入wrt根目录：${wrtdir}"
           cd ${wrtdir}
@@ -140,8 +141,24 @@ jobs:
           make download -j16
 
           echo "开始编译"
-          make -j$(($(nproc) + 1))
-
+          (
+            make -j$(($(nproc) + 1)) 2>&1 | tee build.log &
+            MAKEPID=$!
+            trap "kill -2 $MAKEPID 2>/dev/null" INT
+            while IFS= read -r line; do
+              echo "$line"
+              if [[ "$line" == *"ERROR:"* ]]; then
+                echo "检测到ERROR:，尝试发送Ctrl+C终止make"
+                kill -2 $MAKEPID 2>/dev/null
+                # 等待一会儿让 make 有机会清理
+                sleep 10
+                # 如果还没退出则强制 kill
+                kill $MAKEPID 2>/dev/null
+                exit 1
+              fi
+            done < <(tail -f build.log)
+          )
+          
       - if: steps.build.outcome == 'failure'
         name: 详细输出编译
         run: |

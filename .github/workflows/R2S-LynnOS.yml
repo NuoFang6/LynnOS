@@ -79,7 +79,7 @@ jobs:
           echo "进入wrt根目录：$wrtdir"
           bash ${lynndir}/scripts/10_${{ env.TARGET }}.sh
 
-          mv -rf ${lynndir}/scripts/tools/* ${wrtdir}/
+          mv -f ${lynndir}/scripts/tools/* ${wrtdir}/
           bash remove_upx.sh
           bash convert_translation.sh
           bash create_acl_for_luci.sh

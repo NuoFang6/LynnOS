@@ -29,6 +29,7 @@ popd
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -i "WARNING"
 ./scripts/feeds install -a 2>&1 | grep -i "WARNING"
+echo "强制覆盖"
 ./scripts/feeds install -f luci-app-openclash 2>&1 | grep -i "WARNING"
 
 echo "下载其他仓库"

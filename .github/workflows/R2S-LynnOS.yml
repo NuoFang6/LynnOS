@@ -47,7 +47,7 @@ jobs:
           echo "当前目录：${PWD}" # 预期 /home/runner/work/LynnOS/LynnOS
 
           echo "设置 workdir"
-          export workdir="${PWD}/.." && echo "workdir=${workdir}">> $GITHUB_ENV
+          export workdir="$(dirname "${PWD}")" && echo "workdir=${workdir}">> $GITHUB_ENV
           echo "workdir: ${workdir}"
 
           if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then

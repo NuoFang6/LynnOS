@@ -60,7 +60,7 @@ rustup -q default nightly
 rustup -q target add aarch64-unknown-linux-musl
 
 echo "克隆 immortalwrt"
-export wrtdir="${workdir}/immortalwrt" && echo "wrtdir=${workdir}/immortalwrt">> $GITHUB_ENV
+export wrtdir="${workdir}/immortalwrt" && echo "wrtdir=${wrtdir}">> $GITHUB_ENV
 echo "wrtdir: ${wrtdir}"
 clone ${branch} https://github.com/immortalwrt/immortalwrt.git ${wrtdir}
 pushd ${wrtdir}

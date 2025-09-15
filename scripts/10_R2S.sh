@@ -14,13 +14,17 @@ ls -l
 id
 
 # echo "自定义feed源"
+echo "src-link new ./package/new/" >> "feeds.conf.default"
 echo "src-link add ./package/add/" >> "feeds.conf.default"
 
 echo "覆盖或添加包"
-clone dev https://github.com/vernesong/OpenClash.git ./package/add/luci-app-openclash &
-clone master https://github.com/qwq233/UA4F.git ./package/add/ua4f &
-clone main https://github.com/morytyann/OpenWrt-mihomo.git ./package/add/MihomoTProxy &
+pushd package
+clone master https://github.com/QiuSimons/OpenWrt-Add.git ./new &
+clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
+clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
+clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
 wait
+popd
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -i "WARNING"
@@ -54,7 +58,7 @@ popd
 
 # 超频补丁
 echo "超频"
-cp -f ${lynndir}/patch/target/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/armv8/patches-${linux_version}/
+cp -f ${lynndir}/patch/target/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
 
 #Vermagic # 内核模块兼容
 echo "Vermagic"

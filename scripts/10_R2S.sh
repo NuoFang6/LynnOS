@@ -103,5 +103,34 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 # rm -rf ../dockerman
 # rm -rf ../docker_lib
 
-echo "应用配置"
-cp -f ${lynndir}/seed/R2S/seed.config .config
+
+# 诊断：显示环境、文件和权限，捕获 cp 的 stderr/stdout
+echo "PWD: $(pwd)"
+echo "USER: $(id -u -n) UID: $(id -u)"
+echo "LS repo top:"
+ls -la .
+
+echo "检查源文件"
+ls -la "/home/runner/work/LynnOS/LynnOS/seed/R2S/seed.config" || echo "源文件不存在或不可访问"
+
+echo "检查目标 .config（如果存在）"
+ls -la .config || echo ".config 不存在或不可访问"
+
+echo "尝试复制并保留详细输出"
+cp -v "/home/runner/work/LynnOS/LynnOS/seed/R2S/seed.config" .config 2>&1 || {
+  rc=$?
+  echo "cp failed, exit=$rc"
+  echo "--- 目录列出 ---"
+  ls -la
+  echo "--- stat 源 ---"
+  stat "/home/runner/work/LynnOS/LynnOS/seed/R2S/seed.config" 2>/dev/null || true
+  echo "--- stat 目标 ---"
+  stat .config 2>/dev/null || true
+  echo "--- df ---"
+  df -h .
+  exit $rc
+}
+echo "cp succeeded"
+
+# echo "应用配置"
+# cp -f ${lynndir}/seed/R2S/seed.config .config

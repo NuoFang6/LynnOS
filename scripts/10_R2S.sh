@@ -41,9 +41,6 @@ echo "下载其他仓库"
 # wait # 等待后台全部完成
 
 
-echo "应用配置"
-ls ${lynndir}/seed/R2S/
-cp -f ${lynndir}/seed/R2S/seed.config .config
 
 # 功能增强Patch
 echo "BBRv3"
@@ -106,3 +103,5 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 # rm -rf ../dockerman
 # rm -rf ../docker_lib
 
+echo "应用配置"
+cp -f ${lynndir}/seed/R2S/seed.config .config

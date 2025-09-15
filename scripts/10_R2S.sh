@@ -15,11 +15,11 @@ id
 
 # echo "自定义feed源"
 echo "src-link new ./package/new/" >> "feeds.conf.default"
-echo "src-link add ./package/add/" >> "feeds.conf.default"
+# echo "src-link add ./package/add/" >> "feeds.conf.default"
 
 echo "覆盖或添加包"
 pushd package
-clone master https://github.com/QiuSimons/OpenWrt-Add.git ./new &
+# clone master https://github.com/QiuSimons/OpenWrt-Add.git ./new &
 clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
 clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
@@ -28,7 +28,8 @@ popd
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -i "WARNING"
-./scripts/feeds install -a -f 2>&1 | grep -i "WARNING"
+./scripts/feeds install -a 2>&1 | grep -i "WARNING"
+./scripts/feeds install -f luci-app-openclash 2>&1 | grep -i "WARNING"
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
@@ -105,3 +106,5 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 
 echo "应用配置"
 cp -rf ${lynndir}/seed/R2S/seed.config .config
+
+exit 0

@@ -110,5 +110,7 @@ CONFIG_FRAME_WARN=2048
 # 追加到指定的内核配置文件
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
+echo "修复无法编译"
+sed -i.bak 's#\$(PKG_BUILD_DIR)/\$(GNU_TARGET_NAME)\*/fficonfig\.h \\#$(firstword $(wildcard $(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)*/fficonfig.h)) \\#g' ./feeds/base/feeds/packages/libffi/Makefile
 
 echo "结束"

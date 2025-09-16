@@ -131,64 +131,7 @@ jobs:
           make download -j16
 
           echo "开始编译"
-          (
-            make -j$(($(nproc) + 1)) 2>&1 | tee build.log &
-            MAKEPID=$!
-            
-            # 改进信号处理
-            cleanup() {
-              echo "收到终止信号，清理make进程..."
-              kill -2 $MAKEPID 2>/dev/null
-              for i in {1..15}; do
-                if ! ps -p $MAKEPID > /dev/null 2>&1; then
-                  break
-                fi
-                sleep 1
-              done
-              if ps -p $MAKEPID > /dev/null 2>&1; then
-                kill -9 $MAKEPID 2>/dev/null
-              fi
-              # 清理临时文件
-              rm -f /tmp/new_log.txt
-              exit 1
-            }
-            
-            trap cleanup INT TERM
-            
-            # 改进错误检测和日志显示
-            LAST_LOG_LINE=0
-            while ps -p $MAKEPID > /dev/null 2>&1; do
-              if [ -f build.log ]; then
-                CURRENT_LOG_LINE=$(wc -l < build.log)
-                if [ $CURRENT_LOG_LINE -gt $LAST_LOG_LINE ]; then
-                  tail -n +$((LAST_LOG_LINE + 1)) build.log | tee /tmp/new_log.txt
-                  # 扩展错误检测模式
-                  if grep -q "ERROR:" /tmp/new_log.txt; then
-                    echo "检测到编译错误，终止构建进程"
-                    cleanup
-                  fi
-                  grep -v "^$" /tmp/new_log.txt | tail -n 5
-                  LAST_LOG_LINE=$CURRENT_LOG_LINE
-                fi
-              fi
-              sleep 5
-            done
-            
-            # 检查make退出状态
-            wait $MAKEPID
-            EXIT_CODE=$?
-            if [ $EXIT_CODE -ne 0 ]; then
-              echo "Make进程异常退出，错误码: $EXIT_CODE"
-              echo "最后20行构建日志："
-              tail -n 20 build.log || echo "无法读取构建日志"
-              exit $EXIT_CODE
-            fi
-            
-            echo "编译完成"
-            # 清理临时文件
-            rm -f /tmp/new_log.txt
-          )
-
+          make -j$(($(nproc) + 1)) -S
           
       - if: steps.build.outcome == 'failure'
         name: 详细输出编译

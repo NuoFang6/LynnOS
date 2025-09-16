@@ -64,6 +64,7 @@ export wrtdir="${workdir}/immortalwrt" && echo "wrtdir=${wrtdir}">> $GITHUB_ENV
 echo "wrtdir: ${wrtdir}"
 clone ${branch} https://github.com/immortalwrt/immortalwrt.git ${wrtdir}
 pushd ${wrtdir}
+git config core.fileMode false # 忽略权限变更
 export linux_version=$(ls target/linux/rockchip/ | grep '^patches-' | sed 's/patches-//') && echo "linux_version=${linux_version}" >> $GITHUB_ENV
 echo "linux_version: ${linux_version}"
 popd

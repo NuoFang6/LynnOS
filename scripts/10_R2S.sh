@@ -80,8 +80,8 @@ CONFIG_SQUASHFS_XZ=n
 CONFIG_SQUASHFS_ZSTD=y
 CONFIG_ZSTD_DECOMPRESS=y
 '
-# 查找所有与内核相关的配置文件并将这些配置项追加到文件末尾
-find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+# 追加到指定的内核配置文件
+echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 
 echo "修改源码"
@@ -98,13 +98,17 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 
 echo "应用配置"
 cp -f ${lynndir}/seed/R2S/seed.config .config
+echo "去除不必要的过滤"
+sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
 echo "应用内核配置"
 CONFIG_CONTENT='
 CONFIG_CPU_IDLE_GOV_MENU=n
 CONFIG_CPU_IDLE_GOV_TEO=y
+
+CONFIG_FRAME_WARN=2048
 '
-# 查找所有与内核相关的配置文件并将这些配置项追加到文件末尾
-find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+# 追加到指定的内核配置文件
+echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 
 echo "结束"

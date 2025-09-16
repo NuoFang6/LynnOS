@@ -21,11 +21,6 @@ on:
         default: true
         type: boolean
         required: true
-      buildKernelMenu:
-        description: "编译内核配置菜单"
-        default: false
-        type: boolean
-        required: true
 
 jobs:
   Build:
@@ -99,13 +94,8 @@ jobs:
           echo "生成完整配置"
           make defconfig -j$(($(nproc) + 1))
 
-          if [ "${{ inputs.buildKernelMenu }}" = "true" ]; then
-            echo "编译内核配置菜单"
-            make kernel_oldconfig -j$(($(nproc) + 1))
-          fi
-
           echo "压缩最终提交配置"
-          cd ${workdir} && tar -cf immortalwrt-End.tar ${wrtdir}
+          cd ${workdir} && tar -cf immortalwrt-End.tar -C "$(dirname "${wrtdir}")" "$(basename "${wrtdir}")"
           sudo df -h
 
       - name: 上传最终提交配置

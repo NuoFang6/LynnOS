@@ -23,6 +23,11 @@ pushd package
 clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
 clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
+clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
+clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
+clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
+clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
+clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 wait
 popd
 
@@ -103,6 +108,11 @@ echo "去除不必要的过滤"
 sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
 echo "应用内核配置"
 CONFIG_CONTENT='
+CONFIG_DEFAULT_BBR=y
+# CONFIG_DEFAULT_CUBIC is not set
+CONFIG_DEFAULT_TCP_CONG="bbr"
+CONFIG_TCP_CONG_BBR=y
+
 CONFIG_CPU_IDLE_GOV_MENU=n
 CONFIG_CPU_IDLE_GOV_TEO=y
 
@@ -130,6 +140,6 @@ CONFIG_FRAME_WARN=2048
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 echo "修复无法编译"
-sed -i.bak 's#\$(PKG_BUILD_DIR)/\$(GNU_TARGET_NAME)\*/fficonfig\.h \\#$(firstword $(wildcard $(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)*/fficonfig.h)) \\#g' ./feeds/base/feeds/packages/libffi/Makefile
+sed -i -E -e 's/^PKG_VERSION:=.*$/PKG_VERSION:=3.5.2/' -e 's/^PKG_HASH:=.*$/PKG_HASH:=f3a3082a23b37c293a4fcd1053147b371f2ff91fa7ea1b2a52e335676bac82dc/' ./feeds/base/feeds/packages/libffi/Makefile
 
 echo "结束"

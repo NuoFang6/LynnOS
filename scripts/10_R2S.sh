@@ -162,7 +162,7 @@ CONFIG_FRAME_WARN=2048
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 echo "修复无法编译"
-patch -p0 < ${lynndir}/patch/libffi/Makefile.patch
+cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./feeds/base/emortal/default-settings/Makefile
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./package/emortal/default-settings/Makefile

@@ -162,7 +162,7 @@ CONFIG_FRAME_WARN=2048
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 echo "修复无法编译"
-patch -p1 < ${lynndir}/patch/libffi/Makefile.patch
+patch -p0 < ${lynndir}/patch/libffi/Makefile.patch
 
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./feeds/base/emortal/default-settings/Makefile
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./package/emortal/default-settings/Makefile

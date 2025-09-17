@@ -130,6 +130,8 @@ jobs:
           echo "下载所需文件"
           make download -j16
 
+          make package/feeds/packages/libffi/compile V=s -j$(($(nproc) + 1))
+
           echo "开始编译"
           make -j$(($(nproc) + 1)) -S
           

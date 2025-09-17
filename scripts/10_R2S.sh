@@ -162,7 +162,8 @@ CONFIG_FRAME_WARN=2048
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
 echo "修复无法编译"
-sed -i -E -e 's/^PKG_VERSION:=.*$/PKG_VERSION:=3.5.2/' -e 's/^PKG_HASH:=.*$/PKG_HASH:=f3a3082a23b37c293a4fcd1053147b371f2ff91fa7ea1b2a52e335676bac82dc/' ./feeds/base/feeds/packages/libffi/Makefile
+cp -rf ${upstreampkg}/libs/libffi/Makefile ./feeds/packages/libs/libffi/Makefile
+
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./feeds/base/emortal/default-settings/Makefile
 sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./package/emortal/default-settings/Makefile
 echo "结束"

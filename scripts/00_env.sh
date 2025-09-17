@@ -69,4 +69,10 @@ export linux_version=$(ls target/linux/rockchip/ | grep '^patches-' | sed 's/pat
 echo "linux_version: ${linux_version}"
 popd
 
+echo "克隆 openwrt packages"
+export upstreampkg="${workdir}/upstream/packages" && echo "upstreampkg=${upstreampkg}">> $GITHUB_ENV
+echo "upstreampkg: ${upstreampkg}"
+clone master https://github.com/openwrt/packages.git ${upstreampkg}
+
+
 echo "结束"

@@ -107,11 +107,12 @@ jobs:
 
       - if: env.needBuild == 'true'
         name: 配置缓存
-        uses: HiGarfield/cachewrtbuild@main
+        uses: NuoFang6/cachewrtbuild@main
         with:
           ccache: true
           toolchain: true
           skip: true
+          force-cache: true
           mixkey: "${{ env.TARGET }}"
           prefix: "${{ env.wrtdir }}"
 

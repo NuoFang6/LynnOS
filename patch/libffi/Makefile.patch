@@ -1,0 +1,14 @@
+--- a/package/feeds/packages/libffi/Makefile	2025-09-17 13:05:46.819778697 +0800
++++ b/package/feeds/packages/libffi/Makefile	2025-09-17 13:44:48.084802236 +0800
+@@ -75,8 +75,10 @@
+ 	$(CP) \
+ 		$(PKG_INSTALL_DIR)/usr/include/*.h \
+ 		$(1)/usr/include/
++
++	cd $(firstword $(wildcard $(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)*)) && ./config.status fficonfig.h
+ 	$(CP) \
+-		$(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)*/fficonfig.h \
++		$(firstword $(wildcard $(PKG_BUILD_DIR)/$(GNU_TARGET_NAME)*))/fficonfig.h \
+ 		$(1)/usr/include/
+ endef
+ 

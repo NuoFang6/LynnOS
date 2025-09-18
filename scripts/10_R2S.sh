@@ -165,6 +165,4 @@ echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
 
-sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./feeds/base/emortal/default-settings/Makefile
-sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./package/emortal/default-settings/Makefile
 echo "结束"

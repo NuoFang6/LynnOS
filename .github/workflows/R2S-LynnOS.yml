@@ -87,6 +87,8 @@ jobs:
           mv -f ${lynndir}/scripts/tools/* ${wrtdir}/
           echo "remove_upx.sh" && bash remove_upx.sh
           echo "convert_translation.sh" && bash convert_translation.sh
+          sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./feeds/base/emortal/default-settings/Makefile
+          sed -i 's/\bluci-i18n-base-zh_Hans\b/luci-i18n-base-zh-cn/g' ./package/emortal/default-settings/Makefile
           echo "create_acl_for_luci.sh" && bash create_acl_for_luci.sh -a
           echo "fix_permissions.sh" && bash ./fix_permissions.sh > /dev/null
           wait

@@ -1,0 +1,12 @@
+--- package/feeds/packages/uwsgi/Makefile	2025-09-18 09:50:34.702425305 +0800
++++ package/feeds/packages/uwsgi/Makefile	2025-09-18 09:50:26.034778373 +0800
+@@ -106,6 +106,9 @@
+ 	CPP=$(TARGET_CROSS)cpp \
+ 	LINUX_UNAME_VERSION=$(LINUX_UNAME_VERSION)
+ 
++// 添加抑制 incompatible pointer 类型警告并不当作错误
++TARGET_CFLAGS += -Wno-incompatible-pointer-types -Wno-error=incompatible-pointer-types
++
+ MAKE_FLAGS+= PROFILE=openwrt
+ 
+ define Build/Compile

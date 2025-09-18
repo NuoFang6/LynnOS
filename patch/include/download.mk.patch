@@ -1,0 +1,17 @@
+--- include/download.mk	2025-09-16 13:14:01.000000000 +0800
++++ include/download.mk	2025-09-18 20:19:35.156061643 +0800
+@@ -159,9 +159,11 @@
+ 		( $(3) ) \
+ 		$(if $(filter-out x,$(MIRROR_HASH)), && ( \
+ 			file_hash="$$$$($(MKHASH) sha256 "$(DL_DIR)/$(FILE)")"; \
+-			[ "$$$$file_hash" = "$(MIRROR_HASH)" ] || { \
+-				echo "Hash mismatch for file $(FILE): expected $(MIRROR_HASH), got $$$$file_hash"; \
+-				false; \
++			[ "$(MIRROR_HASH)" = "skip" ] || { \
++				[ "$$$$file_hash" = "$(MIRROR_HASH)" ] || { \
++					echo "Hash mismatch for file $(FILE): expected $(MIRROR_HASH), got $$$$file_hash"; \
++					false; \
++				}; \
+ 			}; \
+ 		)),
+ 	$(3)) \

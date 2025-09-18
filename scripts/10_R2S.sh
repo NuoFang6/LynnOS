@@ -28,6 +28,7 @@ clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openli
 clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
+clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
 wait
 popd
 

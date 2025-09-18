@@ -183,4 +183,4 @@ jobs:
       - uses: igorjs/gh-actions-clean-workflow@v6
         with:
           runs_older_than: 0
-          runs_to_keep: 5
+          runs_to_keep: 15

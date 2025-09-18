@@ -1,0 +1,11 @@
+--- package/feeds/packages/btrfs-progs/Makefile	2025-09-16 13:14:04.000000000 +0800
++++ package/feeds/packages/btrfs-progs/Makefile	2025-09-18 19:51:48.241569119 +0800
+@@ -21,7 +21,7 @@
+ PKG_INSTALL:=1
+ PKG_BUILD_PARALLEL:=1
+ PKG_BUILD_DEPENDS:=acl
+-PKG_BUILD_FLAGS:=gc-sections
++PKG_BUILD_FLAGS:=gc-sections no-mold
+ 
+ include $(INCLUDE_DIR)/package.mk
+ 

@@ -164,5 +164,6 @@ echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_ve
 echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
+patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
 
 echo "结束"

@@ -27,7 +27,7 @@ jobs:
     runs-on: "ubuntu-24.04"
 
     env:
-      TARGET: R2S
+      board: R2S
       branch: "master"
       needBuild: false
       wrtdir: "null"
@@ -81,7 +81,7 @@ jobs:
           cd ${wrtdir}
 
           echo "运行目标平台脚本"
-          bash ${lynndir}/scripts/10_${{ env.TARGET }}.sh
+          bash ${lynndir}/scripts/10_${{ env.board }}.sh
           
           echo "运行官方脚本"
           mv -f ${lynndir}/scripts/tools/* ${wrtdir}/
@@ -111,7 +111,7 @@ jobs:
           ccache: true
           toolchain: true
           skip: true
-          mixkey: "${{ env.TARGET }}"
+          mixkey: "${{ env.board }}"
           prefix: "${{ env.wrtdir }}"
 
       - if: env.needBuild == 'true'
@@ -163,13 +163,13 @@ jobs:
         continue-on-error: true
         uses: ncipollo/release-action@main
         with:
-          name: LynnOS-${{ env.TARGET }}-${{ env.CURRENT_TIME }}
+          name: LynnOS-${{ env.board }}-${{ env.CURRENT_TIME }}
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: false
           commit: main
-          tag: "${{ env.TARGET }}-${{ env.CURRENT_TIME }}"
-          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.TARGET }}"
+          tag: "${{ env.board }}-${{ env.CURRENT_TIME }}"
+          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.board }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "${{ env.wrtdir }}/bin/targets/rockchip/armv8/*"
 

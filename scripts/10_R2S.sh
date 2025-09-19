@@ -168,7 +168,7 @@ patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
 # patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
 patch -p0 < ${lynndir}/patch/include/download.mk.patch
-patch -p0 < ${lynndir}/patch/docker/Makefile.patch
+# patch -p0 < ${lynndir}/patch/docker/Makefile.patch
 
 echo "修改 r8152 驱动为最新"
 sed -i \

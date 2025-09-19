@@ -23,6 +23,7 @@ pushd package
 clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
 # clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
+clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
 clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
 clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
 clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
@@ -96,6 +97,7 @@ sed -i 's,-mcpu=cortex-a53,-march=armv8-a+crypto+crc -mtune=cortex-a53,g' includ
 
 echo "应用配置"
 cp -f ${lynndir}/seed/R2S/seed.config .config
+
 echo "去除不必要的过滤"
 sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
 echo "应用内核配置"
@@ -181,5 +183,11 @@ PKG_MIRROR_HASH:=skip' \
   -e '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' \
   -e '/^PKG_HASH:=/d' \
   ./package/kernel/r8152/Makefile
+
+echo "防止意外修改"
+echo "
+CONFIG_DOCKER_CGROUP_OPTIONS=n
+CONFIG_PACKAGE_cgroupfs-mount=n
+" >> .config
 
 echo "结束"

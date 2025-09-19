@@ -105,15 +105,8 @@ jobs:
           if [ "${{ inputs.buildtoolchain }}" = "true" ]; then
             echo "构建本地 toolchain"
             make toolchain/compile CONFIG_MAKE_TOOLCHAIN=y -j$(( $(nproc) + 1 )) || true
-
-            latest_toolchain="$(find "${wrtdir}/bin" -type f -name "*-toolchain-*.tar.zst" -printf "%T@ %p\n" 2>/dev/null | sort -nr | head -n1 | cut -d' ' -f2-)"
-            if [ -n "${latest_toolchain}" ] && [ -f "${latest_toolchain}" ]; then
-              echo "TOOLCHAIN_ARTIFACT=${latest_toolchain}" >> "$GITHUB_ENV"
-              echo "CURRENT_TIME=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_ENV"
-              echo "找到 toolchain: ${latest_toolchain}"
-            else
-              echo "未找到 toolchain 产物" >&2
-            fi
+            ls ${wrtdir}/bin/targets/rockchip/armv8/
+            echo "CURRENT_TIME=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_ENV"
           fi
 
           if [ "${{ inputs.usetoolchain }}" = "true" ]; then
@@ -131,11 +124,19 @@ jobs:
               tmpfile="$(mktemp -t toolchain.XXXXXX.tar.zst)"
               curl -fL --retry 3 --retry-delay 2 -H "$AUTH_HEADER" -o "$tmpfile" "$toolchain_url"
 
-              echo "toolchain 解压到: $TOOLCHAIN_TARGET_DIR"
-              TOOLCHAIN_TARGET_DIR="${wrtdir}/external-toolchain"
-              mkdir -p "$TOOLCHAIN_TARGET_DIR"
-              tar -I zstd -xf "$tmpfile" -C "$TOOLCHAIN_TARGET_DIR" --strip-components=1
+              # 解压到临时目录，找到内部的 toolchain-* 目录并重命名为 extoolchain
+              TMP_EXTRACT_DIR="$(mktemp -d)"
+              tar -I zstd -xf "$tmpfile" -C "$TMP_EXTRACT_DIR"
+              inner_dir="$(find "$TMP_EXTRACT_DIR" -maxdepth 2 -type d -name 'toolchain-*' | head -n1)"
+              if [ -n "$inner_dir" ]; then
+                TARGET_DIR="${wrtdir}/extoolchain"
+                rm -rf "$TARGET_DIR"
+                mkdir -p "$(dirname "$TARGET_DIR")"
+                mv "$inner_dir" "$TARGET_DIR"
+                echo "已提取并重命名为: $TARGET_DIR"
+              fi
               
+              # TODO
               echo "添加配置到 .config"
               echo "
               CONFIG_TOOLCHAINOPTS=n
@@ -191,7 +192,7 @@ jobs:
           tag: "toolchain"
           body: "${{ env.CURRENT_TIME }} 自动发布 toolchain"
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "${{ env.TOOLCHAIN_ARTIFACT }}"
+          artifacts: "${{ env.wrtdir }}/bin/targets/rockchip/armv8/immortalwrt-toolchain-*.tar.zst"
 
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main

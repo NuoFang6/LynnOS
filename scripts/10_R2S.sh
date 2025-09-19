@@ -169,8 +169,21 @@ cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefi
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
 # patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
-# patch -p0 < ${lynndir}/patch/include/download.mk.patch
 # patch -p0 < ${lynndir}/patch/docker/Makefile.patch
+
+# patch -p0 < ${lynndir}/patch/include/download.mk.patch
+# echo "修改 r8152 驱动为最新"
+# sed -i \
+#   -e 's/^PKG_VERSION:=.*/PKG_VERSION:=main-latest/' \
+#   -e '/^PKG_SOURCE:=/c\
+# PKG_SOURCE_PROTO:=git\
+# PKG_SOURCE_URL:=https://github.com/wget/realtek-r8152-linux.git\
+# PKG_SOURCE_VERSION:=master\
+# PKG_MIRROR_HASH:=skip' \
+#   -e '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' \
+#   -e '/^PKG_HASH:=/d' \
+#   ./package/kernel/r8152/Makefile
+
 
 echo "防止意外修改"
 echo "

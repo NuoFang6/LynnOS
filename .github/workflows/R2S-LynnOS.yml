@@ -21,6 +21,16 @@ on:
         default: true
         type: boolean
         required: true
+      buildtoolchain:
+        description: "更新打包工具链"
+        default: false
+        type: boolean
+        required: false
+      usetoolchain:
+        description: "使用预编译工具链"
+        default: true
+        type: boolean
+        required: false
 
 jobs:
   Build:
@@ -33,6 +43,7 @@ jobs:
       wrtdir: "null"
       workdir: "null"
       CURRENT_TIME: "null"
+      TOOLCHAIN_ARTIFACT: "null"
       TERM: xterm
       DEBIAN_FRONTEND: noninteractive # 无交互
 
@@ -90,12 +101,97 @@ jobs:
           echo "fix_permissions.sh" && bash ./fix_permissions.sh > /dev/null
           wait
 
+          # 更新或使用工具链
+          if [ "${{ inputs.buildtoolchain }}" = "true" ]; then
+            echo "构建本地 toolchain"
+            make toolchain/compile CONFIG_MAKE_TOOLCHAIN=y -j$(( $(nproc) + 1 )) || true
+
+            latest_toolchain="$(find "${wrtdir}/bin" -type f -name "*-toolchain-*.tar.zst" -printf "%T@ %p\n" 2>/dev/null | sort -nr | head -n1 | cut -d' ' -f2-)"
+            if [ -n "${latest_toolchain}" ] && [ -f "${latest_toolchain}" ]; then
+              echo "TOOLCHAIN_ARTIFACT=${latest_toolchain}" >> "$GITHUB_ENV"
+              echo "CURRENT_TIME=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_ENV"
+              echo "找到 toolchain: ${latest_toolchain}"
+            else
+              echo "未找到 toolchain 产物" >&2
+            fi
+          fi
+
+          if [ "${{ inputs.usetoolchain }}" = "true" ]; then
+            echo "尝试从 releases 下载预编译 toolchain（tag: toolchain）"
+            API_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/toolchain"
+            AUTH_HEADER="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+
+            # 解析获取第一个匹配的下载链接
+            toolchain_url="$(curl -fsSL -H "$AUTH_HEADER" "$API_URL" \
+              | grep -oE '"browser_download_url":[[:space:]]*"[^"]*toolchain[^"]*\.tar\.zst"' \
+              | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
+
+            if [ -n "$toolchain_url" ]; then
+              echo "找到 toolchain: $toolchain_url"
+              tmpfile="$(mktemp -t toolchain.XXXXXX.tar.zst)"
+              curl -fL --retry 3 --retry-delay 2 -H "$AUTH_HEADER" -o "$tmpfile" "$toolchain_url"
+
+              echo "toolchain 解压到: $TOOLCHAIN_TARGET_DIR"
+              TOOLCHAIN_TARGET_DIR="${wrtdir}/external-toolchain"
+              mkdir -p "$TOOLCHAIN_TARGET_DIR"
+              tar -I zstd -xf "$tmpfile" -C "$TOOLCHAIN_TARGET_DIR" --strip-components=1
+              
+              echo "添加配置到 .config"
+              echo "
+              CONFIG_TOOLCHAINOPTS=n
+              CONFIG_EXTERNAL_GCC_VERSION=""
+              CONFIG_EXTERNAL_TOOLCHAIN=y
+              CONFIG_EXTERNAL_TOOLCHAIN_LIBC_USE_MUSL=y
+              CONFIG_GCC_VERSION=""
+              CONFIG_LIBATOMIC_FILE_SPEC="./lib/libatomic.so.*"
+              CONFIG_LIBATOMIC_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_LIBC_FILE_SPEC="./lib/ld{*.so*,-linux*.so.*} ./lib/lib{anl,c,cidn,crypt,dl,m,nsl,nss_dns,nss_files,resolv,util}{-*.so,.so.*,.so}"
+              CONFIG_LIBC_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_LIBGCC_FILE_SPEC="./lib/libgcc_s.so.*"
+              CONFIG_LIBGCC_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_LIBPTHREAD_FILE_SPEC="./lib/libpthread{-*.so,.so.*}"
+              CONFIG_LIBPTHREAD_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_LIBRT_FILE_SPEC="./lib/librt{-*.so,.so.*}"
+              CONFIG_LIBRT_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_LIBSTDCPP_FILE_SPEC="./lib/libstdc++.so.*"
+              CONFIG_LIBSTDCPP_ROOT_DIR="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_TARGET_NAME="aarch64-unknown-linux-gnu"
+              CONFIG_TOOLCHAIN_BIN_PATH="./usr/bin ./bin"
+              CONFIG_TOOLCHAIN_INC_PATH="./usr/include ./include/fortify ./include"
+              CONFIG_TOOLCHAIN_LIBC="musl"
+              CONFIG_TOOLCHAIN_LIB_PATH="./usr/lib ./lib"
+              CONFIG_TOOLCHAIN_PREFIX="aarch64-unknown-linux-gnu"
+              CONFIG_TOOLCHAIN_ROOT="/opt/cross/aarch64-unknown-linux-gnu"
+              CONFIG_USE_EXTERNAL_LIBC=y
+              " >> "${wrtdir}/.config"
+
+              echo "预编译 toolchain 配置完成"
+              rm -f "$tmpfile"
+            else
+              echo "未找到预编译工具链，跳过下载"
+            fi
+          fi
+
           echo "生成完整配置"
           make defconfig -j$(($(nproc) + 1))
 
           echo "压缩最终提交配置"
           cd ${workdir} && tar -cf immortalwrt-End.tar -C "$(dirname "${wrtdir}")" "$(basename "${wrtdir}")"
           sudo df -h
+
+      - if: inputs.buildtoolchain && env.TOOLCHAIN_ARTIFACT
+        name: 上传 toolchain
+        continue-on-error: true
+        uses: ncipollo/release-action@main
+        with:
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: false
+          commit: main
+          tag: "toolchain"
+          body: "${{ env.CURRENT_TIME }} 自动发布 toolchain"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "${{ env.TOOLCHAIN_ARTIFACT }}"
 
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main

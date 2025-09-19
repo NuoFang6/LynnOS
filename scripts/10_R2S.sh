@@ -21,7 +21,7 @@ echo "覆盖或添加包"
 pushd package
 # clone master https://github.com/QiuSimons/OpenWrt-Add.git ./new &
 clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
-clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
+# clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
 clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
 clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
@@ -165,7 +165,7 @@ echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_ve
 echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
-patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
+# patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
 patch -p0 < ${lynndir}/patch/include/download.mk.patch
 patch -p0 < ${lynndir}/patch/docker/Makefile.patch

@@ -98,7 +98,7 @@ jobs:
 
           if [ "${{ inputs.fastbuild }}" = "true" ]; then
             echo "配置为快速构建"
-            sed -i 's/-O2/-O0/g' ./include/target.mk
+            sed -i 's/-O2/-Og/g' ./include/target.mk
             echo "
           CONFIG_USE_LTO=n
           CONFIG_USE_GC_SECTIONS=n

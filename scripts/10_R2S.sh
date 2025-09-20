@@ -169,11 +169,12 @@ CONFIG_F2FS_FS_LZO=n
 CONFIG_F2FS_FS_ZSTD=y
 CONFIG_NET_DSA_KS8995=n
 CONFIG_PKCS8_PRIVATE_KEY_PARSER=n
-CONFIG_SQUASHFS_XZ=n
 CONFIG_ZSTD_COMPRESS=y
 # 以下可能不会出现在target
 CONFIG_ZSTD_DECOMPRESS=y
 CONFIG_FRAME_WARN=2048
+CONFIG_SQUASHFS_FILE_DIRECT=y
+CONFIG_SQUASHFS_FILE_CACHE=n
 '
 # 追加到指定的内核配置文件
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null

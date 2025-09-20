@@ -34,10 +34,10 @@ wait
 popd
 
 echo "更新 Feeds"
-./scripts/feeds update -a 2>&1 | grep -i "WARNING"
-./scripts/feeds install -a 2>&1 | grep -i "WARNING"
+./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
+./scripts/feeds install -a 2>&1 | grep -iE "WARNING|ERROR"
 echo "强制覆盖"
-./scripts/feeds install -f luci-app-openclash 2>&1 | grep -i "WARNING"
+./scripts/feeds install -f luci-app-openclash 2>&1 | grep -iE "WARNING|ERROR"
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
@@ -189,6 +189,7 @@ echo "防止意外修改"
 echo "
 CONFIG_DOCKER_CGROUP_OPTIONS=n
 CONFIG_PACKAGE_cgroupfs-mount=n
+CONFIG_USE_LTO=y
 " >> .config
 
 echo "结束"

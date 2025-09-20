@@ -112,20 +112,6 @@ jobs:
           cd ${workdir} && tar -cf immortalwrt-End.tar -C "$(dirname "${wrtdir}")" "$(basename "${wrtdir}")"
           sudo df -h
 
-      - if: inputs.buildtoolchain && env.TOOLCHAIN_ARTIFACT
-        name: 上传 toolchain
-        continue-on-error: true
-        uses: ncipollo/release-action@main
-        with:
-          allowUpdates: true
-          replacesArtifacts: true
-          artifactErrorsFailBuild: false
-          commit: main
-          tag: "toolchain"
-          body: "${{ env.CURRENT_TIME }} 自动发布 toolchain"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "${{ env.wrtdir }}/bin/targets/rockchip/armv8/immortalwrt-toolchain-*.tar.zst"
-
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main
         with:

@@ -91,7 +91,6 @@ jobs:
           
           echo "运行官方脚本"
           mv -f ${lynndir}/scripts/tools/* ${wrtdir}/
-          echo "remove_upx.sh" && bash remove_upx.sh
           echo "create_acl_for_luci.sh" && bash create_acl_for_luci.sh -a
           echo "fix_permissions.sh" && bash ./fix_permissions.sh > /dev/null
           wait

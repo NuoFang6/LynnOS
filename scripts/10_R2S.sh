@@ -19,9 +19,7 @@ echo "src-link new ./package/new/" >> "feeds.conf.default"
 
 echo "覆盖或添加包"
 pushd package
-# clone master https://github.com/QiuSimons/OpenWrt-Add.git ./new &
 clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
-# clone master https://github.com/qwq233/UA4F.git ./add/ua4f &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
 clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
 clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
@@ -30,8 +28,12 @@ clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-ne
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
+clone master https://github.com/QiuSimons/OpenWrt-Add.git ${WORKDIR}/OpenWrt-Add &
 wait
 popd
+cp -rf ${WORKDIR}/OpenWrt-Add/addition-trans-zh ./package/add/
+
+
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
@@ -84,8 +86,8 @@ echo "SquashFS 支持 Zstd 和 LZ4"
 patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
 
 echo "修改源码"
-# 强制使用 O2 级别的优化
-sed -i 's/-Os/-O2/g' ./include/target.mk
+# 强制使用 O3 级别的优化
+sed -i 's/-Os/-O3/g' ./include/target.mk
 # 交换 LAN/WAN 口
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
@@ -167,23 +169,7 @@ echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_ve
 echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
-# patch -p0 < ${lynndir}/patch/ua4f/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
-# patch -p0 < ${lynndir}/patch/docker/Makefile.patch
-
-# patch -p0 < ${lynndir}/patch/include/download.mk.patch
-# echo "修改 r8152 驱动为最新"
-# sed -i \
-#   -e 's/^PKG_VERSION:=.*/PKG_VERSION:=main-latest/' \
-#   -e '/^PKG_SOURCE:=/c\
-# PKG_SOURCE_PROTO:=git\
-# PKG_SOURCE_URL:=https://github.com/wget/realtek-r8152-linux.git\
-# PKG_SOURCE_VERSION:=master\
-# PKG_MIRROR_HASH:=skip' \
-#   -e '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' \
-#   -e '/^PKG_HASH:=/d' \
-#   ./package/kernel/r8152/Makefile
-
 
 echo "防止意外修改"
 echo "

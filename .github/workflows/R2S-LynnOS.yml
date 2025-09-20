@@ -100,9 +100,9 @@ jobs:
             echo "配置为快速构建"
             sed -i 's/-O2/-O0/g' ./include/target.mk
             echo "
-            CONFIG_USE_LTO=n
-            CONFIG_USE_GC_SECTIONS=n
-            " >> .config
+          CONFIG_USE_LTO=n
+          CONFIG_USE_GC_SECTIONS=n
+          " >> .config
           fi
 
           echo "生成完整配置"

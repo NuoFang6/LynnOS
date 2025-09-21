@@ -127,7 +127,7 @@ jobs:
         name: 配置缓存
         uses: stupidloud/cachewrtbuild@main
         with:
-          ccache: true
+          # ccache: true
           toolchain: true
           skip: true
           mixkey: "${{ env.board }}"

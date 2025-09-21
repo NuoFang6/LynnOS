@@ -387,7 +387,7 @@ cat ${sbwml}/openwrt/patch/kernel-6.12/net/953-net-patch-linux-kernel-to-support
 echo "使用clang编译内核，开启LTO"
 echo '
 # Kernel - CLANG LTO
-CONFIG_KERNEL_CC="ccache clang"
+CONFIG_KERNEL_CC="clang"
 CONFIG_EXTRA_OPTIMIZATION=""
 CONFIG_PACKAGE_kselftests-bpf=n
 ' >> .config

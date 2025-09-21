@@ -33,10 +33,6 @@ wait
 popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 
-echo "utils/cgroupfs-mount"
-cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
-
-
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
 ./scripts/feeds install -a 2>&1 | grep -iE "WARNING|ERROR"
@@ -52,7 +48,9 @@ echo "下载其他仓库"
 # clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
 # wait # 等待后台全部完成
 
-
+echo "utils/cgroupfs-mount"
+mkdir -p feeds/packages/utils/
+cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
 
 # 功能增强Patch
 echo "BBRv3"

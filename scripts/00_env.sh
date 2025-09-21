@@ -74,5 +74,12 @@ export upstreampkg="${workdir}/upstream/packages" && echo "upstreampkg=${upstrea
 echo "upstreampkg: ${upstreampkg}"
 clone master https://github.com/openwrt/packages.git ${upstreampkg}
 
+echo "子模块"
+export sbwml="${lynndir}/sbwml" && echo "sbwml=${sbwml}">> $GITHUB_ENV
+echo "sbwml: ${sbwml}"
+
+echo "其它来源"
+export ext="${lynndir}/ext" && echo "ext=${ext}">> $GITHUB_ENV
+echo "ext: ${ext}"
 
 echo "结束"

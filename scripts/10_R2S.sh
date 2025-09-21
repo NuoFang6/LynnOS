@@ -390,4 +390,16 @@ CONFIG_EXTRA_OPTIMIZATION=""
 CONFIG_PACKAGE_kselftests-bpf=n
 ' >> .config
 
+echo "
+# Kernel - LRNG
+CONFIG_KERNEL_LRNG=y
+CONFIG_PACKAGE_urandom-seed=n
+CONFIG_PACKAGE_urngd=n
+" >> .config
+
+echo "
+CONFIG_PACKAGE_dpdk-tools=y
+CONFIG_PACKAGE_numactl=y
+" >> .config
+
 echo "结束"

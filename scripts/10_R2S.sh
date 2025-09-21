@@ -37,6 +37,12 @@ popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 rm -f ./staging_dir/host/.prereq-build
 
+echo "更新 Feeds"
+./scripts/feeds update -a
+./scripts/feeds install -a
+echo "强制覆盖"
+./scripts/feeds install -f luci-app-openclash
+
 echo "utils/cgroupfs-mount"
 mkdir -p feeds/packages/utils/
 cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
@@ -44,12 +50,8 @@ cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
 echo "tcp-brutal"
 clone main https://github.com/sbwml/package_kernel_tcp-brutal ./package/kernel/tcp-brutal
 
-
-echo "更新 Feeds"
 ./scripts/feeds update -a
-./scripts/feeds install -a
-echo "强制覆盖"
-./scripts/feeds install -f luci-app-openclash
+./scripts/feeds install -f cgroupfs-mount
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &

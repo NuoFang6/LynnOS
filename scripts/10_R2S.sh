@@ -5,7 +5,7 @@ clone() {
     return 1
   fi
   local branch_name="$1" repo_url="$2" target_dir="$3"
-  git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
+  git clone -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
 }
 
 
@@ -23,20 +23,20 @@ src-link add ./package/add/
 
 echo "覆盖或添加包"
 pushd package
-clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
-clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
-clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
-clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
-clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
-clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
-clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
-clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
-clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
-clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
-
+clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash
+clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy
+clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo
+clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome
+clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2
+clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest
+clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice
+clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
+clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
+clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add
 wait
 popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
+rm -f ./staging_dir/host/.prereq-build
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
@@ -266,7 +266,7 @@ cp -rf ${sbwml}/openwrt/patch/dpdk/dpdk package/new/
 cp -rf ${sbwml}/openwrt/patch/dpdk/numactl package/new/
 
 echo "Shortcut Forwarding Engine"
-cp -rf ${ext}/shortcut-fe package/new/
+cp -rf ${extpkg}/shortcut-fe package/new/
 
 echo "Patch FireWall 4"
 # sed -i 's|$(PROJECT_GIT)/project|https://github.com/openwrt|g' package/network/config/firewall4/Makefile

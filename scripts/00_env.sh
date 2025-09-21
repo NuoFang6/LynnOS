@@ -79,7 +79,7 @@ export sbwml="${lynndir}/sbwml" && echo "sbwml=${sbwml}">> $GITHUB_ENV
 echo "sbwml: ${sbwml}"
 
 echo "其它来源"
-export ext="${lynndir}/ext" && echo "ext=${ext}">> $GITHUB_ENV
-echo "ext: ${ext}"
+export extpkg="${lynndir}/extpkg" && echo "extpkg=${extpkg}">> $GITHUB_ENV
+echo "extpkg: ${extpkg}"
 
 echo "结束"

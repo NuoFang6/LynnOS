@@ -83,7 +83,10 @@ jobs:
           bash ./scripts/00_env.sh  # 不应使用sudo。${tmpdir}、${wrtdir}、${lynndir}、${linux_version} 会被设置
 
       - name: 运行自定义脚本
+        id: prepare
+        continue-on-error: true
         run: |
+          set +e
           echo "进入wrt根目录：${wrtdir}"
           cd ${wrtdir}
 
@@ -111,6 +114,7 @@ jobs:
           echo "压缩最终提交配置"
           cd ${workdir} && tar -cf immortalwrt-End.tar -C "$(dirname "${wrtdir}")" "$(basename "${wrtdir}")"
           sudo df -h
+          set -e
 
       - name: 上传最终提交配置
         uses: actions/upload-artifact@main
@@ -119,7 +123,7 @@ jobs:
           compression-level: 6
           path: "${{ env.workdir }}/immortalwrt-End.tar"
 
-      - if: env.needBuild == 'true'
+      - if: env.needBuild == 'true' && steps.prepare.outcome == 'success'
         name: 配置缓存
         uses: stupidloud/cachewrtbuild@main
         with:
@@ -129,7 +133,7 @@ jobs:
           mixkey: "${{ env.board }}"
           prefix: "${{ env.wrtdir }}"
 
-      - if: env.needBuild == 'true'
+      - if: env.needBuild == 'true' && steps.prepare.outcome == 'success'
         name: 编译 LynnOS
         id: build
         continue-on-error: true
@@ -140,6 +144,16 @@ jobs:
 
           echo "删除打包文件"
           rm -rf ${workdir}/immortalwrt-End.tar &
+
+          echo "缓存的工具链"
+          TOOLCHAIN_URL="https://github.com/sbwml/openwrt_caches/releases/download/openwrt-24.10/"
+          curl -L ${TOOLCHAIN_URL}/toolchain_musl_aarch64_cortex-a53_gcc-15.tar.zst -o toolchain.tar.zst --progress-bar
+          echo "Process Toolchain ..."
+          tar -I "zstd" -xf toolchain.tar.zst
+          rm -f toolchain.tar.zst
+          mkdir bin
+          find ./staging_dir/ -name '*' -exec touch {} \; >/dev/null 2>&1
+          find ./tmp/ -name '*' -exec touch {} \; >/dev/null 2>&1
 
           echo "下载所需文件"
           make download -j16

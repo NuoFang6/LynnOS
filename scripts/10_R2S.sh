@@ -28,21 +28,10 @@ clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-ne
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
+clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
 wait
 popd
-
-# clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
-# cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
-
-echo "缓存的工具链"
-TOOLCHAIN_URL="https://github.com/sbwml/openwrt_caches/releases/download/openwrt-24.10/"
-curl -L ${TOOLCHAIN_URL}/toolchain_musl_aarch64_cortex-a53_gcc-15.tar.zst -o toolchain.tar.zst --progress-bar
-echo "Process Toolchain ..."
-tar -I "zstd" -xf toolchain.tar.zst
-rm -f toolchain.tar.zst
-mkdir bin
-find ./staging_dir/ -name '*' -exec touch {} \; >/dev/null 2>&1
-find ./tmp/ -name '*' -exec touch {} \; >/dev/null 2>&1
+cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
@@ -363,10 +352,10 @@ cp -rf ${sbwml}/openwrt/files/etc/sysctl.d/15-vm-swappiness.conf files/etc/sysct
 cp -rf ${sbwml}/openwrt/files/etc/sysctl.d/16-udp-buffer-size.conf files/etc/sysctl.d/16-udp-buffer-size.conf
 
 echo "NTP"
-sed -i 's/0.openwrt.pool.ntp.org/ntp1.aliyun.com/g' package/base-files/files/bin/config_generate
-sed -i 's/1.openwrt.pool.ntp.org/ntp2.aliyun.com/g' package/base-files/files/bin/config_generate
-sed -i 's/2.openwrt.pool.ntp.org/time1.cloud.tencent.com/g' package/base-files/files/bin/config_generate
-sed -i 's/3.openwrt.pool.ntp.org/time2.cloud.tencent.com/g' package/base-files/files/bin/config_generate
+sed -i 's/0.openwrt.pool.ntp.org/ntp.tencent.com/g' package/base-files/files/bin/config_generate
+sed -i 's/1.openwrt.pool.ntp.org/ntp.aliyun.com/g' package/base-files/files/bin/config_generate
+sed -i 's/2.openwrt.pool.ntp.org/ntp.ntsc.ac.cn/g' package/base-files/files/bin/config_generate
+sed -i 's/3.openwrt.pool.ntp.org/ntp1.nim.ac.cn/g' package/base-files/files/bin/config_generate
 
 echo "LRNG"
 pushd target/linux/generic/hack-6.12

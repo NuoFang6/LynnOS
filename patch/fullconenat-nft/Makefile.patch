@@ -1,0 +1,15 @@
+diff --git a/package/network/utils/fullconenat-nft/Makefile b/package/network/utils/fullconenat-nft/Makefile
+index 0c648b9..7cc8f2d 100644
+--- a/package/network/utils/fullconenat-nft/Makefile
++++ b/package/network/utils/fullconenat-nft/Makefile
+@@ -44,7 +44,9 @@ define KernelPackage/nft-fullcone/Description
+ endef
+ 
+ define Build/Compile
+-	+$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)/src" modules
++	+$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)/src" \
++		EXTRA_CFLAGS="-Wno-error" \
++		modules
+ endef
+ 
+ $(eval $(call KernelPackage,nft-fullcone))

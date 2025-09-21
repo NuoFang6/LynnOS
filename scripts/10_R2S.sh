@@ -32,9 +32,7 @@ clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-ne
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
-clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add
 popd
-cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 rm -f ./staging_dir/host/.prereq-build
 
 echo "更新 Feeds"
@@ -47,11 +45,15 @@ echo "utils/cgroupfs-mount"
 mkdir -p feeds/packages/utils/
 cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
 
+echo "降级 rust"
+rm -rf feeds/packages/lang/rust
+cp -rf ${upstreampkg}/lang/rust ./feeds/packages/lang/
+
 echo "tcp-brutal"
 clone main https://github.com/sbwml/package_kernel_tcp-brutal ./package/kernel/tcp-brutal
 
 ./scripts/feeds update -a
-./scripts/feeds install -f cgroupfs-mount
+./scripts/feeds install -f cgroupfs-mount rust numactl libnuma
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
@@ -241,12 +243,6 @@ CONFIG_LRNG_SWITCH_DRNG=n
 CONFIG_LRNG_SWITCH_HASH=n
 CONFIG_LRNG_TESTING_MENU=n
 CONFIG_RANDOM_DEFAULT_IMPL=y
-CONFIG_HAS_LTO_CLANG=y
-CONFIG_LTO=y
-CONFIG_LTO_CLANG=y
-CONFIG_LTO_CLANG_FULL=y
-CONFIG_LTO_CLANG_THIN=n
-CONFIG_LTO_NONE=n
 CONFIG_ZSTD_DECOMPRESS=y
 CONFIG_FRAME_WARN=2048
 CONFIG_SQUASHFS_FILE_DIRECT=y
@@ -259,6 +255,8 @@ echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
+patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
+patch -p0 < ${lynndir}/patch/irqbalance/Makefile.patch
 
 echo "防止意外修改"
 echo "
@@ -311,25 +309,26 @@ echo "Patch FireWall 4"
 mkdir -p package/network/config/firewall4/patches
 echo "fix ct status dnat"
 cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/990-unconditionally-allow-ct-status-dnat.patch package/network/config/firewall4/patches/
-echo "fullcone"
-cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/999-01-firewall4-add-fullcone-support.patch package/network/config/firewall4/patches/
-echo "bcm fullcone"
-cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/999-02-firewall4-add-bcm-fullconenat-support.patch package/network/config/firewall4/patches/
-echo "kernel version"
-cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/002-fix-fw4.uc-adept-kernel-version-type-of-x.x.patch package/network/config/firewall4/patches/
+# echo "fullcone"
+# cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/999-01-firewall4-add-fullcone-support.patch package/network/config/firewall4/patches/ # 不需要
+# echo "bcm fullcone"
+# cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/999-02-firewall4-add-bcm-fullconenat-support.patch package/network/config/firewall4/patches/ # 差异过大
+# echo "kernel version"
+# cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/002-fix-fw4.uc-adept-kernel-version-type-of-x.x.patch package/network/config/firewall4/patches/ # 不需要
 echo "fix flow offload"
 cp -rf ${sbwml}/openwrt/patch/firewall4/firewall4_patches/001-fix-fw4-flow-offload.patch package/network/config/firewall4/patches/
 echo "add custom nft command support"
 patch -p1 < ${sbwml}/openwrt/patch/firewall4/100-openwrt-firewall4-add-custom-nft-command-support.patch
 echo "libnftnl"
 mkdir -p package/libs/libnftnl/patches
-cp -rf ${sbwml}/openwrt/patch/firewall4/libnftnl/0001-libnftnl-add-fullcone-expression-support.patch package/libs/libnftnl/patches/
+# cp -rf ${sbwml}/openwrt/patch/firewall4/libnftnl/0001-libnftnl-add-fullcone-expression-support.patch package/libs/libnftnl/patches/ # 源已内置
 cp -rf ${sbwml}/openwrt/patch/firewall4/libnftnl/0002-libnftnl-add-brcm-fullcone-support.patch package/libs/libnftnl/patches/
 echo "nftables"
 mkdir -p package/network/utils/nftables/patches
 cp -rf ${sbwml}/openwrt/patch/firewall4/nftables/0001-nftables-add-fullcone-expression-support.patch package/network/utils/nftables/patches/
 cp -rf ${sbwml}/openwrt/patch/firewall4/nftables/0002-nftables-add-brcm-fullconenat-support.patch package/network/utils/nftables/patches/
-cp -rf ${sbwml}/openwrt/patch/firewall4/nftables/0003-drop-rej-file.patch package/network/utils/nftables/patches/
+# cp -rf ${sbwml}/openwrt/patch/firewall4/nftables/0003-drop-rej-file.patch package/network/utils/nftables/patches/ # 无法应用
+rm -f package/network/utils/nftables/patches/002-nftables-add-fullcone-expression-support.patch # 防止冲突
 
 echo "natflow"
 clone main https://github.com/sbwml/package_new_natflow package/new/natflow
@@ -422,14 +421,17 @@ echo "shortcut-fe"
 cat ${sbwml}/openwrt/patch/kernel-6.12/net/601-netfilter-export-udp_get_timeouts-function.patch > target/linux/generic/hack-6.12/601-netfilter-export-udp_get_timeouts-function.patch
 cat ${sbwml}/openwrt/patch/kernel-6.12/net/953-net-patch-linux-kernel-to-support-shortcut-fe.patch > target/linux/generic/hack-6.12/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 
+# irqbalance: disable build with numa
+cat ${sbwml}/openwrt/patch/irqbalance/011-meson-numa.patch > feeds/packages/utils/irqbalance/patches/011-meson-numa.patch
+sed -i '/-Dcapng=disabled/i\\t-Dnuma=disabled \\' feeds/packages/utils/irqbalance/Makefile
 
-echo "使用clang编译内核，开启LTO"
-echo '
-# Kernel - CLANG LTO
-CONFIG_KERNEL_CC="clang"
-CONFIG_EXTRA_OPTIMIZATION=""
-CONFIG_PACKAGE_kselftests-bpf=n
-' >> .config
+# echo "使用clang编译内核，开启LTO"
+# echo '
+# # Kernel - CLANG LTO
+# CONFIG_KERNEL_CC="clang"
+# CONFIG_EXTRA_OPTIMIZATION=""
+# CONFIG_PACKAGE_kselftests-bpf=n
+# ' >> .config
 
 echo "
 # Kernel - LRNG

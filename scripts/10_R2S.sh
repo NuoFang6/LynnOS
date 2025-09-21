@@ -28,10 +28,11 @@ clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-ne
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
-clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
 wait
 popd
-cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
+
+# clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
+# cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 
 echo "缓存的工具链"
 TOOLCHAIN_URL="https://github.com/sbwml/openwrt_caches/releases/download/openwrt-24.10/"

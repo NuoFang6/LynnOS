@@ -145,16 +145,6 @@ jobs:
           echo "删除打包文件"
           rm -rf ${workdir}/immortalwrt-End.tar &
 
-          echo "缓存的工具链"
-          TOOLCHAIN_URL="https://github.com/sbwml/openwrt_caches/releases/download/openwrt-24.10/"
-          curl -L ${TOOLCHAIN_URL}/toolchain_musl_aarch64_cortex-a53_gcc-15.tar.zst -o toolchain.tar.zst --progress-bar
-          echo "Process Toolchain ..."
-          tar -I "zstd" -xf toolchain.tar.zst
-          rm -f toolchain.tar.zst
-          mkdir bin
-          find ./staging_dir/ -name '*' -exec touch {} \; >/dev/null 2>&1
-          find ./tmp/ -name '*' -exec touch {} \; >/dev/null 2>&1
-
           echo "下载所需文件"
           make download -j16
 

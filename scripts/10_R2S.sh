@@ -37,6 +37,10 @@ popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 rm -f ./staging_dir/host/.prereq-build
 
+echo "utils/cgroupfs-mount"
+mkdir -p feeds/packages/utils/
+cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
+
 echo "更新 Feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -51,10 +55,6 @@ echo "下载其他仓库"
 # clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
 # clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
 # wait # 等待后台全部完成
-
-echo "utils/cgroupfs-mount"
-mkdir -p feeds/packages/utils/
-cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
 
 # 功能增强Patch
 echo "BBRv3"

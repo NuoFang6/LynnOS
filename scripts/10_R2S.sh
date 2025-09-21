@@ -14,8 +14,12 @@ ls -l
 id
 
 # echo "自定义feed源"
-echo "src-link new ./package/new/" >> "feeds.conf.default"
-# echo "src-link add ./package/add/" >> "feeds.conf.default"
+echo "
+src-link new ./package/new/
+" >> "feeds.conf.default"
+echo "
+src-link add ./package/add/
+" >> "feeds.conf.default"
 
 echo "覆盖或添加包"
 pushd package
@@ -29,6 +33,7 @@ clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
 clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add &
+
 wait
 popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/

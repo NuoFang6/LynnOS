@@ -33,6 +33,16 @@ wait
 popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 
+echo "缓存的工具链"
+TOOLCHAIN_URL="https://github.com/sbwml/openwrt_caches/releases/download/openwrt-24.10/"
+curl -L ${TOOLCHAIN_URL}/toolchain_musl_aarch64_cortex-a53_gcc-15.tar.zst -o toolchain.tar.zst --progress-bar
+echo "Process Toolchain ..."
+tar -I "zstd" -xf toolchain.tar.zst
+rm -f toolchain.tar.zst
+mkdir bin
+find ./staging_dir/ -name '*' -exec touch {} \; >/dev/null 2>&1
+find ./tmp/ -name '*' -exec touch {} \; >/dev/null 2>&1
+
 echo "更新 Feeds"
 ./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
 ./scripts/feeds install -a 2>&1 | grep -iE "WARNING|ERROR"

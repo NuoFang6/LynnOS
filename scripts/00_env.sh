@@ -72,7 +72,7 @@ popd
 echo "克隆 openwrt packages"
 export upstreampkg="${workdir}/upstream/packages" && echo "upstreampkg=${upstreampkg}">> $GITHUB_ENV
 echo "upstreampkg: ${upstreampkg}"
-clone master https://github.com/openwrt/packages.git ${upstreampkg}
+clone openwrt-24.10 https://github.com/openwrt/packages.git ${upstreampkg}
 
 echo "子模块"
 export sbwml="${lynndir}/sbwml" && echo "sbwml=${sbwml}">> $GITHUB_ENV

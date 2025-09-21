@@ -33,16 +33,15 @@ clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
 clone master https://github.com/QiuSimons/OpenWrt-Add.git ${workdir}/OpenWrt-Add
-wait
 popd
 cp -rf ${workdir}/OpenWrt-Add/addition-trans-zh ./package/add/
 rm -f ./staging_dir/host/.prereq-build
 
 echo "更新 Feeds"
-./scripts/feeds update -a 2>&1 | grep -iE "WARNING|ERROR"
-./scripts/feeds install -a 2>&1 | grep -iE "WARNING|ERROR"
+./scripts/feeds update -a
+./scripts/feeds install -a
 echo "强制覆盖"
-./scripts/feeds install -f luci-app-openclash 2>&1 | grep -iE "WARNING|ERROR"
+./scripts/feeds install -f luci-app-openclash
 
 echo "下载其他仓库"
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &

@@ -1,0 +1,3 @@
+[submodule "sbwml"]
+	path = sbwml
+	url = https://github.com/sbwml/r4s_build_script.git

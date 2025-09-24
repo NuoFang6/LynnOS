@@ -251,8 +251,8 @@ CONFIG_SQUASHFS_FILE_CACHE=n
 # 追加到指定的内核配置文件
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
-echo "启用硬件随机数设备, crypto 硬件加速将被占用"
-sed -i 's/^\(+\s*status = "\)disabled\(";\)$/\1okay\2/' target/linux/rockchip/patches-${linux_version}/*-arm64-dts-rockchip-rk3328-add-rng-node.patch
+# echo "启用硬件随机数设备, crypto 硬件加速将被占用" # 用不得，RK3328的随机性就是一坨，加了反而污染
+# sed -i 's/^\(+\s*status = "\)disabled\(";\)$/\1okay\2/' target/linux/rockchip/patches-${linux_version}/*-arm64-dts-rockchip-rk3328-add-rng-node.patch
 
 echo "修复无法编译"
 cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题

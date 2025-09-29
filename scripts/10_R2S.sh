@@ -23,15 +23,16 @@ src-link add ./package/add/
 
 echo "覆盖或添加包"
 pushd package
-clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash
+# clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy
-clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo
+# clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo
 clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome
 clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2
 clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest
 clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
+clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier
 popd
 rm -f ./staging_dir/host/.prereq-build
 
@@ -259,6 +260,7 @@ cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefi
 patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
 patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
 patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
+patch -p0 < ${lynndir}/patch/rust/Makefile.patch
 
 echo "防止意外修改"
 echo "

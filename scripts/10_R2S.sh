@@ -274,9 +274,9 @@ echo "以下来源于 sbwml"
 
 echo "通用补丁"
 patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0001-tools-add-upx-tools.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0002-rootfs-add-upx-compression-support.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0003-rootfs-add-r-w-permissions-for-UCI-configuration-fil.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0004-rootfs-Add-support-for-local-kmod-installation-sourc.patch
+# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0002-rootfs-add-upx-compression-support.patch
+# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0003-rootfs-add-r-w-permissions-for-UCI-configuration-fil.patch
+# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0004-rootfs-Add-support-for-local-kmod-installation-sourc.patch
 # patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0005-kernel-Add-support-for-llvm-clang-compiler.patch
 patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0006-build-kernel-add-out-of-tree-kernel-config.patch
 patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0007-include-kernel-add-miss-config-for-linux-6.11.patch
@@ -297,8 +297,8 @@ sed -i 's/+uhttpd +uhttpd-mod-ubus /+luci-nginx /g' feeds/packages/net/wg-instal
 sed -i '/uhttpd-mod-ubus/d' feeds/luci/collections/luci-light/Makefile
 sed -i 's/+luci-nginx \\$/+luci-nginx/' feeds/luci/collections/luci-light/Makefile
 
-echo "libubox"
-sed -i '/TARGET_CFLAGS/ s/$/ -Os/' package/libs/libubox/Makefile
+# echo "libubox"
+# sed -i '/TARGET_CFLAGS/ s/$/ -Os/' package/libs/libubox/Makefile
 
 echo "DPDK & NUMACTL"
 mkdir -p package/new

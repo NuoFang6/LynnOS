@@ -1,204 +1,59 @@
 name: R2S-LynnOS
 
 on:
-  # schedule:
-  #   - cron: 00 17 * * 5 # 星期六早上 1:00 (UTC+8)
-  # push:
-  #   branches:
-  #     - "v3"
-  #   paths:
-  #     - "script/**"
-  #     - ".github/workflows/**"
   workflow_dispatch:
     inputs:
-      branch:
-        description: "分支"
-        default: "master"
-        type: string
-        required: true
       build:
         description: "进行编译"
         default: true
         type: boolean
         required: true
-      fastbuild:
-        description: "快速编译"
-        default: false
-        type: boolean
-        required: false
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   Build:
     runs-on: "ubuntu-24.04"
 
-    env:
-      board: R2S
-      branch: "master"
-      needBuild: false
-      wrtdir: "null"
-      workdir: "null"
-      CURRENT_TIME: "null"
-      TOOLCHAIN_ARTIFACT: "null"
-      TERM: xterm
-      DEBIAN_FRONTEND: noninteractive # 无交互
-
     steps:
-      - name: 环境变量
-        run: |
-          echo "当前目录：${PWD}" # 预期 /home/runner/work/LynnOS/LynnOS
-          echo "设置 workdir"
-          export workdir="$(dirname "${PWD}")" && echo "workdir=${workdir}" | tee -a $GITHUB_ENV
+      # - name: Maximize build space
+      #   uses: AdityaGarg8/remove-unwanted-software@v5
+      #   with:
+      #     remove-dotnet: "true"
+      #     remove-android: "true"
+      #     remove-haskell: "true"
+      #     remove-codeql: "true"
+      #     remove-docker-images: "true"
+      #     remove-large-packages: "true"
+      #     remove-cached-tools: "true"
+      #     remove-swapfile: "true"
 
-          if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
-            echo "needBuild=true" >> $GITHUB_ENV
-          fi
-          if [ -n "${{ inputs.branch }}" ]; then
-            echo "branch=${{ inputs.branch }}" >> $GITHUB_ENV  # ${branch} 被设置
-          fi
+      - run: |
+          df -h
+          sudo mkdir /mnt/ciwork && sudo chown -R runner:runner /mnt/ciwork
+          docker pull cachyos/cachyos-v3
+          docker run -d --name cachyos --user $(id -u):$(id -g) -v /mnt/ciwork:/ciwork -w /ciwork cachyos/cachyos-v3 tail -f /dev/null
+
+          function de() { docker exec cachyos bash -c "$1"; }
+          function der() { docker exec -u root cachyos bash -c "$1"; }
+
+          # de 和 der 是在Arch容器内执行命令的别名
+          der pacman -Syu --noconfirm
+          der pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils bison \
+            bzip2 ccache clang cmake cpio curl dtc eclipse-ecj fastjar flex gawk gettext \
+            gcc-multilib git gnutls gperf haveged help2man intltool lib32-gcc-libs lib32-glibc \
+            libelf glib2 gmp libtool libmpc mpfr ncurses python python-pip python-ply \
+            python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
+            subversion swig texinfo uglify-js upx unzip vim wget xmlto xxd zlib zstd 7zip \
+            paru
+          de paru --noconfirm -S ack antlr3
+
+          de <<EOF
+          git clone ${{ github.repositoryUrl }} /ciwork/LynnOS
+          cd /ciwork/LynnOS && git checkout ${{ github.sha }}
+          echo "Starting build..."
+          EOF
+
           
-      - if: env.needBuild == 'true'
-        name: 准备储存空间
-        uses: easimon/maximize-build-space@master
-        with:
-          swap-size-mb: 1
-          temp-reserve-mb: 512
-          root-reserve-mb: 4608
-          build-mount-path: "${{ env.workdir }}"
-          remove-dotnet: "true"
-          remove-android: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-          remove-docker-images: "true"
-      
-      - name: 检出代码
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          submodules: recursive
-
-      - name: 准备环境
-        run: |          
-          bash ./scripts/00_env.sh  # 不应使用sudo。${tmpdir}、${wrtdir}、${lynndir}、${linux_version} 会被设置
-
-      - name: 运行自定义脚本
-        id: prepare
-        continue-on-error: true
-        run: |
-          set +e
-          echo "进入wrt根目录：${wrtdir}"
-          cd ${wrtdir}
-
-          echo "运行目标平台脚本"
-          bash ${lynndir}/scripts/10_${{ env.board }}.sh
-          
-          echo "运行官方脚本"
-          mv -f ${lynndir}/scripts/tools/* ${wrtdir}/
-          echo "create_acl_for_luci.sh" && bash create_acl_for_luci.sh -a
-          echo "fix_permissions.sh" && bash ./fix_permissions.sh > /dev/null
-          wait
-
-          if [ "${{ inputs.fastbuild }}" = "true" ]; then
-            echo "配置为快速构建"
-            sed -i 's/-O2/-Og/g' ./include/target.mk
-            echo "
-          CONFIG_USE_LTO=n
-          CONFIG_USE_GC_SECTIONS=n
-          " >> .config
-          fi
-
-          echo "生成完整配置"
-          make defconfig -j$(($(nproc) + 1))
-
-          echo "压缩最终提交配置"
-          cd ${workdir} && tar -cf immortalwrt-End.tar -C "$(dirname "${wrtdir}")" "$(basename "${wrtdir}")"
-          sudo df -h
-          set -e
-
-      - name: 上传最终提交配置
-        uses: actions/upload-artifact@main
-        with:
-          name: immortalwrt-End.tar
-          compression-level: 6
-          path: "${{ env.workdir }}/immortalwrt-End.tar"
-
-      - if: env.needBuild == 'true' && steps.prepare.outcome == 'success'
-        name: 配置缓存
-        uses: stupidloud/cachewrtbuild@main
-        with:
-          # ccache: true
-          toolchain: true
-          skip: true
-          mixkey: "${{ env.board }}"
-          prefix: "${{ env.wrtdir }}"
-
-      - if: env.needBuild == 'true' && steps.prepare.outcome == 'success'
-        name: 编译 LynnOS
-        id: build
-        continue-on-error: true
-        shell: bash
-        run: |
-          echo "进入wrt根目录：${wrtdir}"
-          cd ${wrtdir}
-
-          echo "删除打包文件"
-          rm -rf ${workdir}/immortalwrt-End.tar &
-
-          echo "下载所需文件"
-          make download -j16
-
-          echo "开始编译"
-          make -j$(($(nproc) + 1))
-          
-      - if: steps.build.outcome == 'failure'
-        name: 详细输出编译
-        run: |
-          echo "进入wrt根目录：${wrtdir}"
-          cd ${wrtdir}
-          
-          echo "开始详细输出编译"
-          make package/feeds/packages/python-setuptools/clean -j$(($(nproc) + 1))
-          make -j1 V=sc
-
-      - if: steps.build.outcome == 'success'
-        name: 编译完成，准备上传
-        run: |
-          echo "进入产物目录"
-          cd ${wrtdir}/bin/targets/rockchip/armv8/
-
-          echo "压缩产物 packages"
-          tar -cf - ./packages --remove-files | zstd -16 -T0 -o ./packages.tar.zst
-          echo "${wrtdir}/bin/targets/rockchip/armv8/packages.tar.zst"
-
-          echo "压缩产物文件夹"
-          tar -cf - . | zstd -16 -T0 -o ../output.tar.zst && mv -f ../output.tar.zst ./
-          echo "${wrtdir}/bin/targets/rockchip/armv8/output.tar.zst"
-
-          echo "CURRENT_TIME=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
-          sudo df -h
-
-      - if: steps.build.outcome == 'success'
-        name: 创建发行版
-        continue-on-error: true
-        uses: ncipollo/release-action@main
-        with:
-          name: LynnOS-${{ env.board }}-${{ env.CURRENT_TIME }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifactErrorsFailBuild: false
-          commit: main
-          tag: "${{ env.board }}-${{ env.CURRENT_TIME }}"
-          body: "${{ env.CURRENT_TIME }} 自动发布 LynnOS-${{ env.board }}"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "${{ env.wrtdir }}/bin/targets/rockchip/armv8/*"
-
-  Clean:
-    if: ${{ always() }}
-    needs: Build
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - uses: igorjs/gh-actions-clean-workflow@v6
-        with:
-          runs_older_than: 0
-          runs_to_keep: 15

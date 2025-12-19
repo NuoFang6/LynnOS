@@ -5,7 +5,7 @@ clone() {
     return 1
   fi
   local branch_name="$1" repo_url="$2" target_dir="$3"
-  git clone -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
+  git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
 }
 
 

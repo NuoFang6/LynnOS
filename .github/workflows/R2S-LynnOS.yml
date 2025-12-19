@@ -46,10 +46,8 @@ jobs:
       - name: 环境变量
         run: |
           echo "当前目录：${PWD}" # 预期 /home/runner/work/LynnOS/LynnOS
-
           echo "设置 workdir"
-          export workdir="$(dirname "${PWD}")" && echo "workdir=${workdir}">> $GITHUB_ENV
-          echo "workdir: ${workdir}"
+          export workdir="$(dirname "${PWD}")" && echo "workdir=${workdir}" | tee -a $GITHUB_ENV
 
           if [ "${{ inputs.build }}" = "true" ] || [ "${{ github.event.schedule }}" ]; then
             echo "needBuild=true" >> $GITHUB_ENV

@@ -7,23 +7,39 @@ clone() {
   local branch_name="$1" repo_url="$2" target_dir="$3"
   git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
 }
+set_env() {
+  local key="$1"
+  local val="$2"
+
+  # 1. 在当前 Step 生效 (只取第一行，防止 export 失败)
+  # 如果确定只有一行，直接 export 即可
+  export "$key"="$val"
+
+  # 2. 写入 $GITHUB_ENV (使用 GitHub 推荐的 EOF 语法，完美支持多行或特殊字符)
+  {
+    echo "${key}<<EOF"
+    echo "$val"
+    echo "EOF"
+  } >> "$GITHUB_ENV"
+
+  echo "✅ Env set: $key"
+}
+
 
 echo "修改权限"
 ls
 sudo chown -R runner:runner ${workdir}
 
 echo "设置 lynndir"
-export lynndir="${PWD}" && echo "lynndir=${PWD}">> $GITHUB_ENV
-echo "lynndir: ${lynndir}"
+set_env "lynndir" "${PWD}"
 
 echo "设置临时目录"
-export tmpdir=${workdir}/tmp && mkdir -p ${tmpdir}
-echo "tmpdir=${tmpdir}" >> $GITHUB_ENV
-export TMPDIR="${tmpdir}" && echo "TMPDIR=${tmpdir}" >> $GITHUB_ENV
-export TEMP="${tmpdir}" && echo "TEMP=${tmpdir}" >> $GITHUB_ENV
-export TEMPDIR="${tmpdir}" && echo "TEMPDIR=${tmpdir}" >> $GITHUB_ENV
-export TMP="${tmpdir}" && echo "TMP=${tmpdir}" >> $GITHUB_ENV
-echo "tmpdir: ${tmpdir}"
+mkdir -p "${workdir}/tmp"
+set_env "tmpdir" "${workdir}/tmp"
+set_env "TMPDIR" "${tmpdir}"
+set_env "TEMP" "${tmpdir}"
+set_env "TEMPDIR" "${tmpdir}"
+set_env "TMP" "${tmpdir}"
 
 echo "配置 git"
 git config --global user.name "github-actions[bot]"
@@ -43,43 +59,54 @@ sudo -E apt-fast install -y -qq $DEPENDENCY
 echo "清理 apt 缓存"
 sudo -E apt-fast autoremove --purge -y
 sudo -E apt-fast clean -y
+
+
 echo "安装 linux 推荐的 llvm"
-LLVM_VER="21.1.1"
-LLVM_DIR="llvm-${LLVM_VER}-x86_64"
-LLVM_FILE="${LLVM_DIR}.tar.xz"
-wget -q https://mirrors.edge.kernel.org/pub/tools/llvm/files/${LLVM_FILE} && \
+LLVM_BASE_URL="https://mirrors.edge.kernel.org/pub/tools/llvm/files/"
+LLVM_FILE=$(curl -s "${LLVM_BASE_URL}" | grep -o 'llvm-[0-9.]\+-x86_64\.tar\.xz' | sort -uV | tail -n 1)
+LLVM_DIR="${LLVM_FILE%.tar.xz}"
+LLVM_FILE_URL="${LLVM_BASE_URL}${LLVM_FILE}"
+if [ -z "$LLVM_FILE_URL" ]; then
+    echo "错误：无法自动获取最新版本的 LLVM"
+    exit 1
+fi
+wget -q ${LLVM_FILE_URL} && \
 tar -xf ${LLVM_FILE} && \
 sudo -E cp -rf ${LLVM_DIR}/bin/* /usr/local/bin/ && \
 sudo -E cp -rf ${LLVM_DIR}/lib/* /usr/local/lib/ && \
 llvm-strip -V
 rm -rf ${LLVM_FILE} ${LLVM_DIR}
+
 echo "安装 rust"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
 source $HOME/.cargo/env
 rustup -q default nightly
 rustup -q target add aarch64-unknown-linux-musl
 
+echo "子模块"
+set_env "sbwml" "${workdir}/sbwml"
+
 echo "克隆 immortalwrt"
-export wrtdir="${workdir}/immortalwrt" && echo "wrtdir=${wrtdir}">> $GITHUB_ENV
-echo "wrtdir: ${wrtdir}"
+set_env "wrtdir" "${workdir}/immortalwrt"
 clone ${branch} https://github.com/immortalwrt/immortalwrt.git ${wrtdir}
 pushd ${wrtdir}
 git config core.fileMode false # 忽略权限变更
-export linux_version=$(ls target/linux/rockchip/ | grep '^patches-' | sed 's/patches-//') && echo "linux_version=${linux_version}" >> $GITHUB_ENV
-echo "linux_version: ${linux_version}"
 popd
 
+echo "对比 linux 版本号"
+linux_ver_immortal=$(sed -n 's/^KERNEL_PATCHVER:=//p' ${wrtdir}/target/linux/rockchip/Makefile)
+linux_ver_sbwml=$(ls -d ${sbwml}/openwrt/patch/kernel-* | sed 's/.*kernel-//')
+if [ "${linux_ver_immortal}" != "${linux_ver_sbwml}" ]; then
+  echo "警告："
+  echo "immortalwrt 的内核版本 (${linux_ver_immortal}) 与"
+  echo "sbwml 的内核版本 (${linux_ver_sbwml}) 不匹配"
+fi
+
 echo "克隆 openwrt packages"
-export upstreampkg="${workdir}/upstream/packages" && echo "upstreampkg=${upstreampkg}">> $GITHUB_ENV
-echo "upstreampkg: ${upstreampkg}"
+set_env "upstreampkg" "${workdir}/upstream/packages"
 clone openwrt-24.10 https://github.com/openwrt/packages.git ${upstreampkg}
 
-echo "子模块"
-export sbwml="${lynndir}/sbwml" && echo "sbwml=${sbwml}">> $GITHUB_ENV
-echo "sbwml: ${sbwml}"
-
 echo "其它来源"
-export extpkg="${lynndir}/extpkg" && echo "extpkg=${extpkg}">> $GITHUB_ENV
-echo "extpkg: ${extpkg}"
+set_env "extpkg" "${lynndir}/extpkg"
 
 echo "结束"

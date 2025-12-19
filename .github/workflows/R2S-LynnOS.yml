@@ -41,7 +41,7 @@ jobs:
 
           # de 和 der 是在Arch容器内执行命令的别名
           echo "Updating package database..."
-          der pacman -Sy --noconfirm
+          der pacman -Syyu --noconfirm
           echo "Installing required packages..."
           der pacman -Syu --needed --noconfirm base-devel asciidoc autoconf automake binutils bison \
             bzip2 ccache clang cmake cpio curl dtc eclipse-ecj fastjar flex gawk gettext \
@@ -52,7 +52,7 @@ jobs:
             paru
           de paru --noconfirm -S ack antlr3
           echo "All required packages installed."
-          
+
           de <<EOF
           git clone ${{ github.repositoryUrl }} /ciwork/LynnOS
           cd /ciwork/LynnOS && git checkout ${{ github.sha }}
@@ -60,3 +60,6 @@ jobs:
           EOF
 
           
+      - if: ${{ failure() }}
+        name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3

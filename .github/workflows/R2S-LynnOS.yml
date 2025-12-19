@@ -34,14 +34,13 @@ jobs:
           df -h
           sudo mkdir /mnt/ciwork && sudo chown -R runner:runner /mnt/ciwork
           docker pull cachyos/cachyos-v3
-          docker run -d --name cachyos --user $(id -u):$(id -g) -v /mnt/ciwork:/ciwork -w /ciwork cachyos/cachyos-v3 tail -f /dev/null
+          docker run -d --name cachyos -v /mnt/ciwork:/ciwork -w /ciwork cachyos/cachyos-v3 tail -f /dev/null
 
-          function de() { docker exec cachyos bash -c "$1"; }
-          function der() { docker exec -u root cachyos bash -c "$1"; }
-
+          function de() { docker exec -u runner cachyos bash -c "$@"; }
+          function dec() { docker exec cachyos "$@"; }
+          function der() { docker exec -u root cachyos bash -c "$@"; }
           # de 和 der 是在Arch容器内执行命令的别名
-          echo "Updating package database..."
-          der pacman -Syyu --noconfirm
+
           echo "Installing required packages..."
           der pacman -Syu --needed --noconfirm base-devel asciidoc autoconf automake binutils bison \
             bzip2 ccache clang cmake cpio curl dtc eclipse-ecj fastjar flex gawk gettext \
@@ -49,7 +48,9 @@ jobs:
             libelf glib2 gmp libtool libmpc mpfr ncurses python python-pip python-ply \
             python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
             subversion swig texinfo uglify-js upx unzip vim wget xmlto xxd zlib zstd 7zip \
-            paru
+            paru sudo
+          der useradd -m -G wheel runner
+          der echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel
           de paru --noconfirm -S ack antlr3
           echo "All required packages installed."
 

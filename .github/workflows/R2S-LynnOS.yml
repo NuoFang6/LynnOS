@@ -8,6 +8,11 @@ on:
         default: true
         type: boolean
         required: true
+      fastbuild:
+        description: "跳过编译时优化"
+        default: false
+        type: boolean
+        required: false
 
 defaults:
   run:
@@ -16,6 +21,9 @@ defaults:
 jobs:
   Build:
     runs-on: "ubuntu-24.04"
+
+    env:
+      DEBIAN_FRONTEND: noninteractive # 无交互
 
     steps:
       # - name: Maximize build space
@@ -55,7 +63,7 @@ jobs:
           echo "All required packages installed."
 
           de "
-          git clone ${{ github.repositoryUrl }} /ciwork/LynnOS
+          sudo git clone ${{ github.repositoryUrl }} /ciwork/LynnOS
           cd /ciwork/LynnOS && git checkout ${{ github.sha }}
           echo 'Starting build...'
           "

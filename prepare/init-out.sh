@@ -6,7 +6,7 @@ mkdir -p $bin_host
 # p: 打印日志
 cat <<'EOF' > $bin_host/p
 #!/bin/bash
-echo "   >> $*"
+echo "    >> $*"
 EOF
 # d: 以 runner 身份在容器内执行命令并打印日志
 cat <<'EOF' > $bin_host/d
@@ -97,6 +97,7 @@ dr "chmod 666 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
 dr "echo 'export workdir=\"${workdir}\"' >> ${workdir}/ci_env"
 dr "echo 'export lynndir=\"${lynndir}\"' >> ${workdir}/ci_env"
+dr "echo 'export immortalwrt_branch=\"${immortalwrt_branch}\"' >> ${workdir}/ci_env"
 
 
 

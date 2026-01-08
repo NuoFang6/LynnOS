@@ -58,7 +58,7 @@ jobs:
       - name: 接收环境变量
         run: |
           d '
-            set_env immortalwrt_branch "${immortalwrt_branch}"
+            set_env immortalwrt_branch "${{ env.immortalwrt_branch }}"
             set_env fastbuild "${{ github.event.inputs.fastbuild }}"
           '
 

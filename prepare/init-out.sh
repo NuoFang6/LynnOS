@@ -94,8 +94,9 @@ p "初始化容器环境文件"
 dr "touch ${workdir}/ci_env"
 dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
-dr "echo 'export workdir=\"${workdir}\"' >> ${workdir}/ci_env"
-dr "echo 'export lynndir=\"${lynndir}\"' >> ${workdir}/ci_env"
+dr '. set_env workdir "${workdir}"'
+dr '. set_env workdir_out "${workdir_out}"'
+dr '. set_env lynndir "${lynndir}"'
 
 
 
@@ -138,3 +139,5 @@ p "复制仓库到容器内 ${lynndir}"
 cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
 
 p "外部脚本结束"
+
+p cat ${workdir}/ci_env

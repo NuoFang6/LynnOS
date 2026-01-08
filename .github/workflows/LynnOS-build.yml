@@ -34,17 +34,18 @@ jobs:
       immortalwrt_branch: "master" # TODO: 以后改成输入参数
 
     steps:
-      # - name: 准备可用空间
-      #   uses: AdityaGarg8/remove-unwanted-software@v5
-      #   with:
-      #     remove-dotnet: "true"
-      #     remove-android: "true"
-      #     remove-haskell: "true"
-      #     remove-codeql: "true"
-      #     remove-docker-images: "true"
-      #     remove-large-packages: "true"
-      #     remove-cached-tools: "true"
-      #     remove-swapfile: "true"
+      - if: ${{ github.event.inputs.build == false }} || ${{ github.event.inputs.fastbuild == true }}
+        name: 准备可用空间
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+          remove-large-packages: "true"
+          remove-cached-tools: "true"
+          remove-swapfile: "true"
 
       - name: 检出代码
         uses: actions/checkout@v4

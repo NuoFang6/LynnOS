@@ -47,8 +47,8 @@ df -h
 
 
 p "准备 CachyOS"
-set_env "workdir_out" "/mnt/ci"
-set_env "workdir" "/ci"
+. set_env "workdir_out" "/mnt/ci" # 必须使用 . set_env ，否则变量不会在当前 shell 生效
+. set_env "workdir" "/ci"
 sudo mkdir ${workdir_out} && sudo chown -R runner:runner ${workdir_out}
 
 # -v ${workdir_out}:${workdir}: 挂载工作目录
@@ -97,6 +97,6 @@ d paru --noconfirm -S ack antlr3
 
 p "复制仓库到容器内 ${workdir}/lynnos"
 cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
-set_env "lynndir" "${workdir}/lynnos"
+. set_env "lynndir" "${workdir}/lynnos"
 
 p "外部脚本结束"

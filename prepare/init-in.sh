@@ -10,11 +10,11 @@
 
 p "设置临时目录"
 mkdir -p "${workdir}/tmp"
-set_env "tmpdir" "${workdir}/tmp"
-set_env "TMPDIR" "${tmpdir}"
-set_env "TEMP" "${tmpdir}"
-set_env "TEMPDIR" "${tmpdir}"
-set_env "TMP" "${tmpdir}"
+. set_env "tmpdir" "${workdir}/tmp"
+. set_env "TMPDIR" "${tmpdir}"
+. set_env "TEMP" "${tmpdir}"
+. set_env "TEMPDIR" "${tmpdir}"
+. set_env "TMP" "${tmpdir}"
 
 
 
@@ -32,7 +32,7 @@ sudo timedatectl set-timezone 'Asia/Shanghai'
 
 
 p "克隆 immortalwrt 到 ${workdir}/immortalwrt"
-set_env "wrtdir" "${workdir}/immortalwrt"
+. set_env "wrtdir" "${workdir}/immortalwrt"
 git clone -b ${immortalwrt_branch} --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt ${wrtdir}
 pushd ${wrtdir}
 git config core.filemode false # 忽略权限变更
@@ -41,9 +41,9 @@ popd
 
 
 p "克隆 openwrt packages"
-set_env "upstream_packages" "${workdir}/upstream/packages"
+. set_env "upstream_packages" "${workdir}/upstream/packages"
 clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} # TODO: 自动检测稳定版分支名
 
 
 
-p "结束"
+p "容器内脚本结束"

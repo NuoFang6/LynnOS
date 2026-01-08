@@ -34,7 +34,7 @@ jobs:
       immortalwrt_branch: "master" # TODO: 以后改成输入参数
 
     steps:
-      - if: github.event.inputs.build == "false" || github.event.inputs.fastbuild == "true"
+      - if: github.event.inputs.build == 'false' || github.event.inputs.fastbuild == 'true'
         name: 准备可用空间
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:

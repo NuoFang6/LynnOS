@@ -2,6 +2,8 @@ echo "权限状态："
 ls -l
 id
 
+p "fastbuild = ${fastbuild}"
+
 # echo "自定义feed源"
 echo "
 src-link new ./package/new/

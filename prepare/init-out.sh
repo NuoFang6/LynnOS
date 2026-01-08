@@ -140,4 +140,4 @@ cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
 
 p "外部脚本结束"
 
-p cat ${workdir}/ci_env
+d cat ${workdir}/ci_env

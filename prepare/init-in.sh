@@ -27,7 +27,7 @@ git config --global core.abbrev auto
 
 
 p "修改时区为上海"
-sudo timedatectl set-timezone 'Asia/Shanghai'
+sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 
 

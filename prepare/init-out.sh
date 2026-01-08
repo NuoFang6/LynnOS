@@ -12,13 +12,13 @@ EOF
 cat <<'EOF' > $bin_host/d
 #!/bin/bash
 p "runner@cachyos: $*"
-docker exec -u runner -e BASH_ENV=/etc/ci_env cachyos bash -c "$*"
+docker exec -u runner -e BASH_ENV=${workdir}/ci_env cachyos bash -c "$*"
 EOF
 # dr: 以 root 身份在容器内执行命令并打印日志
 cat <<'EOF' > $bin_host/dr
 #!/bin/bash
 p "root@cachyos: $*"
-docker exec -u root -e BASH_ENV=/etc/ci_env cachyos bash -c "$*"
+docker exec -u root -e BASH_ENV=${workdir}/ci_env cachyos bash -c "$*"
 EOF
 # clone: git浅克隆，参数1: 分支名 参数2: 仓库地址 参数3: 目标目录
 cat <<'EOF' > $bin_host/clone
@@ -36,7 +36,7 @@ EOF
 # 3. 写入 BASH_ENV 文件 (供容器内后续所有 Bash 自动读取)
 # 4. 写入 GITHUB_ENV (供 Workflow 后续步骤使用)
 # 容器内的持久化环境文件路径
-CI_ENV_FILE="/etc/ci_env"
+CI_ENV_FILE="${workdir}/ci_env"
 cat <<EOF > $bin_host/set_env
 #!/bin/bash
 p "set_env: \$1 = \$2"
@@ -85,18 +85,18 @@ docker run -d --name cachyos \
   -e PATH="/usr/local/bin_host:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   -e workdir="${workdir}" \
   -e lynndir="${lynndir}" \
-  -e BASH_ENV="/etc/ci_env" \
+  -e BASH_ENV="${workdir}/ci_env" \
   -w ${workdir} \
   cachyos/cachyos-v3 tail -f /dev/null
 
 p "初始化容器环境文件"
 # 先创建文件并授权，这样容器内的 set_env 才能写入
-dr "touch /etc/ci_env"
-dr "chown runner:runner /etc/ci_env"
-dr "chmod 666 /etc/ci_env"
+dr "touch ${workdir}/ci_env"
+dr "chown runner:runner ${workdir}/ci_env"
+dr "chmod 666 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
-dr "echo 'export workdir=\"${workdir}\"' >> /etc/ci_env"
-dr "echo 'export lynndir=\"${lynndir}\"' >> /etc/ci_env"
+dr "echo 'export workdir=\"${workdir}\"' >> ${workdir}/ci_env"
+dr "echo 'export lynndir=\"${lynndir}\"' >> ${workdir}/ci_env"
 
 
 

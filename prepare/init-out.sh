@@ -20,7 +20,7 @@ cat <<'EOF' > $bin_host/dr
 p "root@cachyos: $*"
 docker exec -u root -e BASH_ENV=${workdir}/ci_env cachyos bash -c "$*"
 EOF
-# clone: git浅克隆，参数1: 分支名 参数2: 仓库地址 参数3: 目标目录
+# clone: git克隆，参数1: 分支名 参数2: 仓库地址 参数3: 目标目录
 cat <<'EOF' > $bin_host/clone
 #!/bin/bash
 if [ $# -lt 2 ]; then
@@ -28,7 +28,7 @@ if [ $# -lt 2 ]; then
   return 1
 fi
 p "浅克隆: $2 (branch: $1) $3"
-git clone -q -b "$1" --depth 1 --single-branch --no-tags "$2" "$3"
+git clone -q -b "$1" --filter=blob:none --single-branch --no-tags "$2" "$3"
 EOF
 # set_env: 设置环境变量
 # 1. 输出日志
@@ -96,7 +96,6 @@ dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
 dr "echo 'export workdir=\"${workdir}\"' >> ${workdir}/ci_env"
 dr "echo 'export lynndir=\"${lynndir}\"' >> ${workdir}/ci_env"
-dr "echo 'export immortalwrt_branch=\"${immortalwrt_branch}\"' >> ${workdir}/ci_env"
 
 
 

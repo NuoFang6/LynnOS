@@ -1,14 +1,3 @@
-clone() {
-  # 参数1: 分支名  参数2: 仓库地址  参数3: 目标目录
-  if [ $# -lt 3 ]; then
-    echo "用法: clone <branch> <repo_url> <target_dir>" >&2
-    return 1
-  fi
-  local branch_name="$1" repo_url="$2" target_dir="$3"
-  git clone -q -b "$branch_name" --depth 1 --single-branch --no-tags "$repo_url" "$target_dir"
-}
-
-
 echo "权限状态："
 ls -l
 id
@@ -270,91 +259,6 @@ CONFIG_USE_LTO=y
 " >> .config
 
 
-echo "以下来源于 sbwml"
-
-echo "通用补丁"
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0001-tools-add-upx-tools.patch
-# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0002-rootfs-add-upx-compression-support.patch
-# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0003-rootfs-add-r-w-permissions-for-UCI-configuration-fil.patch
-# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0004-rootfs-Add-support-for-local-kmod-installation-sourc.patch
-# patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0005-kernel-Add-support-for-llvm-clang-compiler.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0006-build-kernel-add-out-of-tree-kernel-config.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0007-include-kernel-add-miss-config-for-linux-6.11.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0008-meson-add-platform-variable-to-cross-compilation-fil.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0009-kernel-add-legacy-cgroup-v1-memory-controller.patch
-patch -p1 < ${sbwml}/openwrt/patch/generic-24.10/0010-kernel-add-PREEMPT_RT-support-for-aarch64-x86_64.patch
-
-echo "attr no-mold"
-sed -i '/PKG_BUILD_PARALLEL/aPKG_BUILD_FLAGS:=no-mold' feeds/packages/utils/attr/Makefile
-
-echo "Use nginx instead of uhttpd"
-sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci/Makefile
-sed -i 's/+uhttpd-mod-ubus //' feeds/luci/collections/luci/Makefile
-sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci-light/Makefile
-sed -i "s/+luci /+luci-nginx /g" feeds/luci/collections/luci-ssl-openssl/Makefile
-sed -i "s/+luci /+luci-nginx /g" feeds/luci/collections/luci-ssl/Makefile
-sed -i 's/+uhttpd +uhttpd-mod-ubus /+luci-nginx /g' feeds/packages/net/wg-installer/Makefile
-sed -i '/uhttpd-mod-ubus/d' feeds/luci/collections/luci-light/Makefile
-sed -i 's/+luci-nginx \\$/+luci-nginx/' feeds/luci/collections/luci-light/Makefile
-
-# echo "libubox"
-# sed -i '/TARGET_CFLAGS/ s/$/ -Os/' package/libs/libubox/Makefile
-
-echo "DPDK & NUMACTL"
-mkdir -p package/new
-cp -rf ${sbwml}/openwrt/patch/dpdk/dpdk package/new/
-cp -rf ${sbwml}/openwrt/patch/dpdk/numactl package/new/
-
-echo "cgroupfs-mount"
-echo "fix unmount hierarchical mount"
-pushd feeds/packages
-    cat ${sbwml}/openwrt/patch/cgroupfs-mount/0001-fix-cgroupfs-mount.patch | patch -p1
-popd
-echo "mount cgroup v2 hierarchy to /sys/fs/cgroup/cgroup2"
-mkdir -p feeds/packages/utils/cgroupfs-mount/patches
-cat ${sbwml}/openwrt/patch/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch > feeds/packages/utils/cgroupfs-mount/patches/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch
-cat ${sbwml}/openwrt/patch/cgroupfs-mount/901-fix-cgroupfs-umount.patch > feeds/packages/utils/cgroupfs-mount/patches/901-fix-cgroupfs-umount.patch
-echo "docker systemd support"
-cat ${sbwml}/openwrt/patch/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch > feeds/packages/utils/cgroupfs-mount/patches/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch
-
-echo "nginx - ubus"
-sed -i 's/ubus_parallel_req 2/ubus_parallel_req 6/g' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
-sed -i '/ubus_parallel_req/a\        ubus_script_timeout 300;' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
-echo "nginx - config"
-cat ${sbwml}/openwrt/nginx/luci.locations > feeds/packages/net/nginx/files-luci-support/luci.locations
-cat ${sbwml}/openwrt/nginx/uci.conf.template > feeds/packages/net/nginx-util/files/uci.conf.template
-echo "uwsgi - fix timeout"
-sed -i '$a cgi-timeout = 600' feeds/packages/net/uwsgi/files-luci-support/luci-*.ini
-sed -i '/limit-as/c\limit-as = 5000' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
-echo "uwsgi - performance"
-sed -i 's/threads = 1/threads = 2/g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
-sed -i 's/processes = 3/processes = 4/g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
-sed -i 's/cheaper = 1/cheaper = 2/g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
-echo "rpcd - fix timeout"
-sed -i 's/option timeout 30/option timeout 60/g' package/system/rpcd/files/rpcd.config
-sed -i 's#20) \* 1000#60) \* 1000#g' feeds/luci/modules/luci-base/htdocs/luci-static/resources/rpc.js
-
-echo "rootfs files"
-mkdir -p files/etc/sysctl.d
-cp -rf ${sbwml}/openwrt/files/etc/sysctl.d/10-default.conf files/etc/sysctl.d/10-default.conf
-cp -rf ${sbwml}/openwrt/files/etc/sysctl.d/15-vm-swappiness.conf files/etc/sysctl.d/15-vm-swappiness.conf
-cp -rf ${sbwml}/openwrt/files/etc/sysctl.d/16-udp-buffer-size.conf files/etc/sysctl.d/16-udp-buffer-size.conf
-
-echo "LRNG"
-pushd target/linux/generic/hack-6.12
-    cp -rf ${sbwml}/openwrt/patch/kernel-6.12/lrng/* ./
-popd
-
-echo "wireless-regdb"
-cat ${sbwml}/openwrt/patch/openwrt-6.x/500-world-regd-5GHz.patch > package/firmware/wireless-regdb/patches/500-world-regd-5GHz.patch
-
-echo "kernel patch"
-echo "btf: silence btf module warning messages"
-cat ${sbwml}/openwrt/patch/kernel-6.12/btf/990-btf-silence-btf-module-warning-messages.patch > target/linux/generic/hack-6.12/990-btf-silence-btf-module-warning-messages.patch
-
-echo "irqbalance: disable build with numa"
-cat ${sbwml}/openwrt/patch/irqbalance/011-meson-numa.patch > feeds/packages/utils/irqbalance/patches/011-meson-numa.patch
-sed -i '/-Dcapng=disabled/i\\t-Dnuma=disabled \\' feeds/packages/utils/irqbalance/Makefile
 
 echo "
 # Kernel - LRNG

@@ -118,6 +118,8 @@ dr "echo 'runner ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/runner;" # 涉及运�
 dr "chmod 0440 /etc/sudoers.d/runner;"
 dr "chown -R runner:runner /home/runner"
 
+p "d 命令已可用"
+
 d paru --noconfirm -S ack antlr3
 
 

@@ -55,13 +55,15 @@ jobs:
       - name: 准备容器
         run: bash prepare/init-out.sh 
 
-      - name: 准备环境
-        run: d "cd ${lynndir} && bash prepare/init-in.sh"
-
       - name: 接收环境变量
         run: |
-          d "echo 'export immortalwrt_branch=${{ env.immortalwrt_branch }}' >> ${workdir}/ci_env"
-          d "echo 'export fastbuild=${{ github.event.inputs.fastbuild }}' >> ${workdir}/ci_env"
+          d "
+          echo 'export immortalwrt_branch=${{ env.immortalwrt_branch }}'
+          echo 'export fastbuild=${{ github.event.inputs.fastbuild }}' >> ${workdir}/ci_env
+          "
+
+      - name: 准备环境
+        run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
       - name: 准备编译目标设备
         run: d "cd ${lynndir} && bash target/${{ github.event.inputs.target }}/prepare.sh"

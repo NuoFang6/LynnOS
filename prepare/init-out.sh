@@ -92,8 +92,7 @@ docker run -d --name cachyos \
 p "初始化容器环境文件"
 # 先创建文件并授权，这样容器内的 set_env 才能写入
 dr "touch ${workdir}/ci_env"
-dr "chown runner:runner ${workdir}/ci_env"
-dr "chmod 666 ${workdir}/ci_env"
+dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
 dr "echo 'export workdir=\"${workdir}\"' >> ${workdir}/ci_env"
 dr "echo 'export lynndir=\"${lynndir}\"' >> ${workdir}/ci_env"

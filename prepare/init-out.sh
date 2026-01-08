@@ -12,13 +12,13 @@ EOF
 cat <<'EOF' > $bin_host/d
 #!/bin/bash
 p "runner@cachyos: $*"
-docker exec -u runner cachyos bash -c "$*"
+docker exec -u runner -e BASH_ENV=/etc/ci_env cachyos bash -c "$*"
 EOF
 # dr: 以 root 身份在容器内执行命令并打印日志
 cat <<'EOF' > $bin_host/dr
 #!/bin/bash
 p "root@cachyos: $*"
-docker exec -u root cachyos bash -c "$*"
+docker exec -u root -e BASH_ENV=/etc/ci_env cachyos bash -c "$*"
 EOF
 # clone: git浅克隆，参数1: 分支名 参数2: 仓库地址 参数3: 目标目录
 cat <<'EOF' > $bin_host/clone

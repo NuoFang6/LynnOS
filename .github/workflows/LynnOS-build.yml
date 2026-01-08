@@ -1,0 +1,67 @@
+name: LynnOS-build
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "选择编译目标"
+        default: "r2s"
+        type: choice
+        required: true
+        options:
+          - r2s
+      build:
+        description: "进行编译"
+        default: true
+        type: boolean
+        required: true
+      fastbuild:
+        description: "使用调试级别编译"
+        default: false
+        type: boolean
+        required: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  Build:
+    runs-on: "ubuntu-24.04"
+
+    env:
+      DEBIAN_FRONTEND: noninteractive # 无交互
+      immortalwrt_branch: "master" # TODO: 以后改成输入参数
+
+    steps:
+      # - name: 准备可用空间
+      #   uses: AdityaGarg8/remove-unwanted-software@v5
+      #   with:
+      #     remove-dotnet: "true"
+      #     remove-android: "true"
+      #     remove-haskell: "true"
+      #     remove-codeql: "true"
+      #     remove-docker-images: "true"
+      #     remove-large-packages: "true"
+      #     remove-cached-tools: "true"
+      #     remove-swapfile: "true"
+
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 准备容器环境
+        run: bash prepare/init-out.sh 
+
+      - name: 准备编译环境
+        run: d "cd ${lynndir} && bash prepare/init-in.sh"
+
+      # - name: 开始编译：${{ github.event.inputs.target }}
+      #   if: ${{ github.event.inputs.build == true }}
+      #   run: bash target/${{ github.event.inputs.target }}/build.sh
+          
+      # 以后记得删
+      - if: ${{ failure() }}
+        name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3

@@ -6,7 +6,7 @@ mkdir -p $bin_host
 # p: 打印日志
 cat <<'EOF' > $bin_host/p
 #!/bin/bash
-echo "    > $*"
+echo "   >> $*"
 EOF
 # d: 以 runner 身份在容器内执行命令并打印日志
 cat <<'EOF' > $bin_host/d
@@ -40,10 +40,10 @@ CI_ENV_FILE="/etc/ci_env"
 cat <<EOF > $bin_host/set_env
 #!/bin/bash
 p "set_env: \$1 = \$2"
-export "\$1" = "\$2"
-# 关键点：追加到持久化文件
-echo "export \$1=\"\$2\"" >> $CI_ENV_FILE
-# 兼容 GitHub Actions
+export "\$1"="\$2"
+if [ -w "$CI_ENV_FILE" ]; then
+    echo "export \$1=\"\$2\"" >> $CI_ENV_FILE
+fi
 echo "\$1=\$2" >> \$GITHUB_ENV
 EOF
 chmod +x $bin_host/*
@@ -83,18 +83,20 @@ docker run -d --name cachyos \
   -e GITHUB_ENV="$GITHUB_ENV" \
   -e GITHUB_PATH="$GITHUB_PATH" \
   -e PATH="/usr/local/bin_host:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
-  -e workdir="${workdir}" \      # <--- 显式传递这个变量
-  -e lynndir="${lynndir}" \      # <--- 如果容器内还需要其他变量，也要这样传
-  -e BASH_ENV="/etc/ci_env" \    # 解决变量跨脚本传递问题
+  -e workdir="${workdir}" \
+  -e lynndir="${lynndir}" \
+  -e BASH_ENV="/etc/ci_env" \
   -w ${workdir} \
   cachyos/cachyos-v3 tail -f /dev/null
 
-# 1. 创建空文件
+p "初始化容器环境文件"
+# 先创建文件并授权，这样容器内的 set_env 才能写入
 dr "touch /etc/ci_env"
-# 2. 授权给 runner 用户，允许他写入变量
 dr "chown runner:runner /etc/ci_env"
-# 3. 设置权限，确保大家都能读
 dr "chmod 666 /etc/ci_env"
+# 将初始变量写入容器的持久化文件，供后续 exec 使用
+dr "echo 'export workdir=\"${workdir}\"' >> /etc/ci_env"
+dr "echo 'export lynndir=\"${lynndir}\"' >> /etc/ci_env"
 
 
 
@@ -115,6 +117,8 @@ dr "groupadd -g $(id -g runner) runner || true;"
 dr "useradd -u $(id -u runner) -g $(id -g runner) -m -s /bin/bash runner;"
 dr "echo 'runner ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/runner;" # 涉及运算符，需要用引号括起来，避免歧义
 dr "chmod 0440 /etc/sudoers.d/runner;"
+dr "chown -R runner:runner /home/runner"
+
 d paru --noconfirm -S ack antlr3
 
 

@@ -6,7 +6,7 @@ mkdir -p $bin_host
 # p: 打印日志
 cat <<'EOF' > $bin_host/p
 #!/bin/bash
-echo ">>>  $*"
+echo ">>> $*"
 EOF
 # d: 以 runner 身份在容器内执行命令并打印日志
 cat <<'EOF' > $bin_host/d
@@ -47,11 +47,11 @@ df -h
 
 
 p "准备 CachyOS"
-set_env "workdir-out" "/mnt/ci"
+set_env "workdir_out" "/mnt/ci"
 set_env "workdir" "/ci"
-sudo mkdir ${workdir-out} && sudo chown -R runner:runner ${workdir-out}
+sudo mkdir ${workdir_out} && sudo chown -R runner:runner ${workdir_out}
 
-# -v ${workdir-out}:${workdir}: 挂载工作目录
+# -v ${workdir_out}:${workdir}: 挂载工作目录
 # -v $bin_host:/usr/local/bin_host: 将快捷命令挂载进去
 # -v $GH_ENV_DIR:$GH_ENV_DIR: 挂载 GitHub 环境文件目录
 # -e GITHUB_ENV=$GITHUB_ENV: 告诉容器环境变量文件路径
@@ -63,7 +63,7 @@ GH_ENV_DIR=$(dirname "$GITHUB_ENV")
 GH_PATH_DIR=$(dirname "$GITHUB_PATH")
 docker pull cachyos/cachyos-v3
 docker run -d --name cachyos \
-  -v ${workdir-out}:${workdir} \
+  -v ${workdir_out}:${workdir} \
   -v "$bin_host:/usr/local/bin_host" \
   -v "$GH_ENV_DIR:$GH_ENV_DIR" \
   -v "$GH_PATH_DIR:$GH_PATH_DIR" \
@@ -96,7 +96,7 @@ d paru --noconfirm -S ack antlr3
 
 
 p "复制仓库到容器内 ${workdir}/lynnos"
-cp -r $GITHUB_WORKSPACE ${workdir-out}/lynnos
+cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
 set_env "lynndir" "${workdir}/lynnos"
 
 p "外部脚本结束"

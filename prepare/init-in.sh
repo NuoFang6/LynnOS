@@ -8,16 +8,6 @@
 #
 
 
-p "设置临时目录"
-mkdir -p "${workdir}/tmp"
-. set_env "tmpdir" "${workdir}/tmp"
-. set_env "TMPDIR" "${tmpdir}"
-. set_env "TEMP" "${tmpdir}"
-. set_env "TEMPDIR" "${tmpdir}"
-. set_env "TMP" "${tmpdir}"
-
-
-
 p "配置 git"
 git config --global user.name "github-actions[bot]"
 git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"

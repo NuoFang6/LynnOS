@@ -7,8 +7,6 @@
 # 运行到这个脚本时依赖已安装；${workdir} 和 ${lynndir} 已设置
 #
 
-cat ${workdir}/ci_env
-
 p "配置 git"
 git config --global user.name "github-actions[bot]"
 git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"

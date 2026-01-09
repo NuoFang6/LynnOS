@@ -103,6 +103,7 @@ dr "touch ${workdir}/ci_env"
 dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
 dr "echo 'export GITHUB_ENV=$GITHUB_ENV' >> ${workdir}/ci_env"
+dr "test -f \"$GITHUB_ENV\" && chmod 666 \"$GITHUB_ENV\""
 dr '. set_env workdir "${workdir}"'
 dr '. set_env workdir_out "${workdir_out}"'
 dr '. set_env lynndir "${lynndir}"'
@@ -149,4 +150,16 @@ cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
 
 p "外部脚本结束"
 
-d cat ${workdir}/ci_env
+p "=== DEBUG INFO ==="
+echo "宿主机文件 Inode:"
+ls -i $GITHUB_ENV
+
+echo "容器内文件 Inode (应该与上面一致):"
+dr "ls -i $GITHUB_ENV"
+
+echo "容器内文件权限:"
+dr "ls -l $GITHUB_ENV"
+dr "id"
+
+cat ${workdir}/ci_env
+p "=================="

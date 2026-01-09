@@ -22,10 +22,12 @@ This is an openwrt compilation script that is still under development.
   - [ ] kernel.sched_bore
   - [ ] SCHED_AUTOGROUP
   - [ ] scx内核支持
+  - [ ] adios
   - [ ] fullcone
   - [ ] 电压调节
   - [ ] 在线 OTA 更新
   - [ ] 6.18 内核
+  - [ ] 300Hz
 - [ ] 编译流程优化
   - [ ] 使用cachyos中优化的包
   - [ ] 复用缓存

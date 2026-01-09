@@ -44,6 +44,9 @@ export "\$1"="\$2"
 if [ -w "$CI_ENV_FILE" ]; then
     echo "export \$1=\"\$2\"" >> $CI_ENV_FILE
 fi
+if [ -w "/mnt$CI_ENV_FILE" ]; then
+    echo "export \$1=\"\$2\"" >> /mnt$CI_ENV_FILE
+fi
 echo "\$1=\$2" >> \$GITHUB_ENV
 EOF
 chmod +x $bin_host/*

@@ -52,7 +52,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 准备容器
+      - name: 准备容器 (init-out.sh)
         run: bash prepare/init-out.sh 
 
       - name: 接收环境变量
@@ -62,7 +62,7 @@ jobs:
             set_env fastbuild "${{ github.event.inputs.fastbuild }}"
           '
 
-      - name: 准备环境
+      - name: 准备环境 (init-in.sh)
         run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
       - name: 准备编译目标设备

@@ -3,24 +3,84 @@ sudo timedatectl set-timezone 'Asia/Shanghai'
 echo "创建快捷命令"
 bin_host="${HOME}/bin_host"
 mkdir -p $bin_host
-# p: 打印日志
+
+# --- 1. 定义 set_env (负责生产变量) ---
+# 注意：这里使用 'EOF' 防止展开，逻辑更加纯粹
+cat <<'EOF' > $bin_host/set_env
+#!/bin/bash
+# 这里的路径是容器内的视角
+SYNC_FILE="${workdir}/.env_sync"
+CI_ENV_FILE="${workdir}/ci_env"
+
+p "set_env: $1 = $2"
+export "$1"="$2"
+
+# 1. 写入容器内持久化文件 (供容器内后续 bash 使用)
+if [ -n "$CI_ENV_FILE" ]; then
+    mkdir -p "$(dirname "$CI_ENV_FILE")" 2>/dev/null
+    echo "export $1=\"$2\"" >> "$CI_ENV_FILE"
+fi
+
+# 2. 写入同步文件 (这是自动化的关键)
+# 只要 workdir 存在，就追加写入，等待宿主机的 d/dr 命令回收
+if [ -d "${workdir}" ]; then
+    echo "$1=$2" >> "$SYNC_FILE"
+fi
+
+# 3. 兼容逻辑：如果是宿主机直接运行，且有 GITHUB_ENV，直接写入
+if [ -z "$workdir" ] && [ -n "$GITHUB_ENV" ]; then
+     echo "$1=$2" >> "$GITHUB_ENV"
+fi
+EOF
+
+# --- 2. 定义 p (打印日志，无需改动) ---
 cat <<'EOF' > $bin_host/p
 #!/bin/bash
 echo "    >> $*"
 EOF
-# d: 以 runner 身份在容器内执行命令并打印日志
+
+# --- 3. 定义 d (Runner 身份执行 + 自动同步变量) ---
 cat <<'EOF' > $bin_host/d
 #!/bin/bash
 p "runner@cachyos: $*"
 docker exec -u runner -e BASH_ENV=${workdir}/ci_env cachyos bash -c "$*"
+EXIT_CODE=$?
+
+# === 自动化同步逻辑开始 ===
+# 这里的路径是宿主机视角
+HOST_SYNC_FILE="${workdir_out}/.env_sync"
+if [ -f "$HOST_SYNC_FILE" ] && [ -s "$HOST_SYNC_FILE" ]; then
+    # 追加到 GitHub 环境
+    cat "$HOST_SYNC_FILE" >> $GITHUB_ENV
+    # 清空文件，防止重复写入
+    > "$HOST_SYNC_FILE"
+    # 可选：打印调试信息，证明自动化生效了
+    # echo "  [Auto-Sync] 环境变量已同步到宿主机"
+fi
+# === 自动化同步逻辑结束 ===
+
+exit $EXIT_CODE
 EOF
-# dr: 以 root 身份在容器内执行命令并打印日志
+
+# --- 4. 定义 dr (Root 身份执行 + 自动同步变量) ---
 cat <<'EOF' > $bin_host/dr
 #!/bin/bash
 p "root@cachyos: $*"
 docker exec -u root -e BASH_ENV=${workdir}/ci_env cachyos bash -c "$*"
+EXIT_CODE=$?
+
+# === 自动化同步逻辑开始 ===
+HOST_SYNC_FILE="${workdir_out}/.env_sync"
+if [ -f "$HOST_SYNC_FILE" ] && [ -s "$HOST_SYNC_FILE" ]; then
+    cat "$HOST_SYNC_FILE" >> $GITHUB_ENV
+    > "$HOST_SYNC_FILE"
+fi
+# === 自动化同步逻辑结束 ===
+
+exit $EXIT_CODE
 EOF
-# clone: git克隆，参数1: 分支名 参数2: 仓库地址 参数3: 目标目录
+
+# --- 5. clone 命令 (无需改动) ---
 cat <<'EOF' > $bin_host/clone
 #!/bin/bash
 if [ $# -lt 2 ]; then
@@ -30,29 +90,7 @@ fi
 p "浅克隆: $2 (branch: $1) $3"
 git clone -q -b "$1" --filter=blob:none --single-branch --no-tags "$2" "$3"
 EOF
-# set_env: 设置环境变量
-cat <<'EOF' > $bin_host/set_env
-#!/bin/bash
-# 1. 在脚本运行时动态获取 workdir，而不是生成时硬编码
-CI_ENV_FILE="${workdir}/ci_env"
 
-p "set_env: $1 = $2"
-export $1=$2
-
-# 2. 写入容器内的 BASH_ENV (如果在容器内)
-# 简单的判断：如果文件存在(或者所在目录可写)，直接追加
-if [ -w "$CI_ENV_FILE" ]; then
-    echo "export $1=$2" >> "$CI_ENV_FILE"
-fi
-
-# 3. 兼容逻辑：如果是从宿主机调用，且挂载了 /mnt
-if [ -w "/mnt${CI_ENV_FILE}" ]; then
-    echo "export $1=$2" >> "/mnt${CI_ENV_FILE}"
-fi
-
-# 4. 写入 GITHUB_ENV
-echo "$1=$2" >> "$GITHUB_ENV"
-EOF
 chmod +x $bin_host/*
 echo "$bin_host" >> $GITHUB_PATH
 export PATH="$bin_host:$PATH"
@@ -73,9 +111,6 @@ sudo mkdir ${workdir_out} && sudo chown -R runner:runner ${workdir_out}
 
 # -v ${workdir_out}:${workdir}: 挂载工作目录
 # -v $bin_host:/usr/local/bin_host: 将快捷命令挂载进去
-# -v $GH_ENV_DIR:$GH_ENV_DIR: 挂载 GitHub 环境文件目录
-# -e GITHUB_ENV=$GITHUB_ENV: 告诉容器环境变量文件路径，可以写入但不能读
-# -e GITHUB_PATH=$GITHUB_PATH: 告诉容器 PATH 文件路径
 # -e PATH="/usr/local/bin_host:$PATH": 将挂载的脚本目录加入容器的 PATH
 # -w ${workdir}: 设置工作目录
 # tail -f /dev/null: 保持容器运行
@@ -85,10 +120,6 @@ docker pull cachyos/cachyos-v3
 docker run -d --name cachyos \
   -v ${workdir_out}:${workdir} \
   -v "$bin_host:/usr/local/bin_host" \
-  -v "$GH_ENV_DIR:$GH_ENV_DIR" \
-  -v "$GH_PATH_DIR:$GH_PATH_DIR" \
-  -e GITHUB_ENV="$GITHUB_ENV" \
-  -e GITHUB_PATH="$GITHUB_PATH" \
   -e PATH="/usr/local/bin_host:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   -e workdir="${workdir}" \
   -e workdir_out="${workdir_out}" \
@@ -102,8 +133,6 @@ p "初始化容器环境文件"
 dr "touch ${workdir}/ci_env"
 dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
-dr "echo 'export GITHUB_ENV=$GITHUB_ENV' >> ${workdir}/ci_env"
-dr "test -f \"$GITHUB_ENV\" && chmod 666 \"$GITHUB_ENV\""
 dr '. set_env workdir "${workdir}"'
 dr '. set_env workdir_out "${workdir_out}"'
 dr '. set_env lynndir "${lynndir}"'
@@ -149,17 +178,3 @@ p "复制仓库到容器内 ${lynndir}"
 cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos
 
 p "外部脚本结束"
-
-p "=== DEBUG INFO ==="
-echo "宿主机文件 Inode:"
-ls -i $GITHUB_ENV
-
-echo "容器内文件 Inode (应该与上面一致):"
-dr "ls -i $GITHUB_ENV"
-
-echo "容器内文件权限:"
-dr "ls -l $GITHUB_ENV"
-dr "id"
-
-cat ${workdir}/ci_env
-p "=================="

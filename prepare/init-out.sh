@@ -31,23 +31,29 @@ p "浅克隆: $2 (branch: $1) $3"
 git clone -q -b "$1" --filter=blob:none --single-branch --no-tags "$2" "$3"
 EOF
 # set_env: 设置环境变量
-# 1. 输出日志
-# 2. 导出到当前 Shell (供当前脚本立即使用)
-# 3. 写入 BASH_ENV 文件 (供容器内后续所有 Bash 自动读取)
-# 4. 写入 GITHUB_ENV (供 Workflow 后续步骤使用)
-# 容器内的持久化环境文件路径
-CI_ENV_FILE="${workdir}/ci_env"
-cat <<EOF > $bin_host/set_env
+cat <<'EOF' > $bin_host/set_env
 #!/bin/bash
-p "set_env: \$1 = \$2"
-export "\$1"="\$2"
-if [ -w "$CI_ENV_FILE" ]; then
-    echo "export \$1=\"\$2\"" >> $CI_ENV_FILE
+# 1. 在脚本运行时动态获取 workdir，而不是生成时硬编码
+CI_ENV_FILE="${workdir}/ci_env"
+
+p "set_env: $1 = $2"
+export "$1"="$2"
+
+# 2. 写入容器内的 BASH_ENV (如果在容器内)
+# 简单的判断：如果文件存在(或者所在目录可写)，直接追加
+if [ -n "$CI_ENV_FILE" ]; then
+    echo "export $1=\"$2\"" >> "$CI_ENV_FILE"
 fi
-if [ -w "/mnt$CI_ENV_FILE" ]; then
-    echo "export \$1=\"\$2\"" >> /mnt$CI_ENV_FILE
+
+# 3. 兼容逻辑：如果是从宿主机调用，且挂载了 /mnt
+if [ -w "/mnt${CI_ENV_FILE}" ]; then
+    echo "export $1=\"$2\"" >> "/mnt${CI_ENV_FILE}"
 fi
-echo "\$1=\$2" >> \$GITHUB_ENV
+
+# 4. 写入 GITHUB_ENV (仅当 GITHUB_ENV 变量存在时)
+if [ -n "$GITHUB_ENV" ]; then
+    echo "$1=$2" >> "$GITHUB_ENV"
+fi
 EOF
 chmod +x $bin_host/*
 echo "$bin_host" >> $GITHUB_PATH

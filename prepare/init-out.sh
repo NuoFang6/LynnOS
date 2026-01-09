@@ -16,7 +16,7 @@ p "set_env: $1 = $2"
 export "$1"="$2"
 
 # 1. 写入容器内持久化文件 (仅当目录存在且可写时)
-# 修复：宿主机运行时，/ci 目录不存在，这里会自动跳过，不再报错
+# 宿主机运行时，/ci 目录不存在，这里会自动跳过，不报错
 if [ -n "$workdir" ] && [ -d "$workdir" ]; then
     # 确保能写入 ci_env
     if [ -w "$workdir" ] || [ -w "$CI_ENV_FILE" ]; then
@@ -26,7 +26,6 @@ if [ -n "$workdir" ] && [ -d "$workdir" ]; then
     # 2. 写入同步文件 (这是自动化的关键)
     echo "$1=$2" >> "$SYNC_FILE"
     
-    # === 关键修复 ===
     # 无论当前是 root 还是 runner，都将文件权限放开为 666 (rw-rw-rw-)
     # 这样宿主机脚本（runner用户）才有权限清空它
     chmod 666 "$SYNC_FILE" 2>/dev/null || true
@@ -60,8 +59,6 @@ if [ -f "$HOST_SYNC_FILE" ] && [ -s "$HOST_SYNC_FILE" ]; then
     cat "$HOST_SYNC_FILE" >> $GITHUB_ENV
     # 清空文件，防止重复写入
     > "$HOST_SYNC_FILE"
-    # 可选：打印调试信息，证明自动化生效了
-    # echo "  [Auto-Sync] 环境变量已同步到宿主机"
 fi
 # === 自动化同步逻辑结束 ===
 
@@ -86,7 +83,7 @@ fi
 exit $EXIT_CODE
 EOF
 
-# --- 5. clone 命令 (无需改动) ---
+# --- 5. clone 命令---
 cat <<'EOF' > $bin_host/clone
 #!/bin/bash
 if [ $# -lt 2 ]; then
@@ -94,7 +91,7 @@ if [ $# -lt 2 ]; then
   return 1
 fi
 p "浅克隆: $2 (branch: $1) $3"
-git clone -q -b "$1" --filter=blob:none --single-branch --no-tags "$2" "$3"
+git clone -q --filter=blob:none --single-branch -b "$1" "$2" "$3"
 EOF
 
 chmod +x $bin_host/*
@@ -153,7 +150,7 @@ dr pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils
   libelf glib2 gmp libtool libmpc mpfr ncurses python python-pip python-ply \
   python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
   subversion swig texinfo uglify-js upx unzip wget xmlto xxd zstd 7zip \
-  paru sudo shadow
+  paru sudo shadow jq
 
 
 

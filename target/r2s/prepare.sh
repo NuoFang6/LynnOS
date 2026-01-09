@@ -2,93 +2,16 @@ echo "权限状态："
 ls -l
 id
 
-p "fastbuild = ${fastbuild}"
-
-# echo "自定义feed源"
-echo "
-src-link new ./package/new/
-" >> "feeds.conf.default"
-echo "
-src-link add ./package/add/
-" >> "feeds.conf.default"
-
-echo "覆盖或添加包"
-pushd package
-# clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash
-clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy
-# clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo
-clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome
-clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2
-clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest
-clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice
-clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
-clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
-clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier
-popd
-rm -f ./staging_dir/host/.prereq-build
-
-echo "更新 Feeds"
-./scripts/feeds update -f -a
-./scripts/feeds install -a
-echo "强制覆盖"
-./scripts/feeds install -f luci-app-openclash
-
-echo "utils/cgroupfs-mount"
-mkdir -p feeds/packages/utils/
-cp -rf ${upstreampkg}/utils/cgroupfs-mount ./feeds/packages/utils/
-
-echo "降级 rust"
-rm -rf feeds/packages/lang/rust
-cp -rf ${upstreampkg}/lang/rust ./feeds/packages/lang/
-
-echo "tcp-brutal"
-clone main https://github.com/sbwml/package_kernel_tcp-brutal ./package/kernel/tcp-brutal
-
-./scripts/feeds update -a
-./scripts/feeds install -f cgroupfs-mount rust numactl libnuma
-
-echo "下载其他仓库"
-# clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
-# clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
-# clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
-# clone master https://github.com/coolsnowwolf/lede.git ../lede &
-# clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
-# clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
-# wait # 等待后台全部完成
-
-# 功能增强Patch
-echo "BBRv3"
-cp -rf ${lynndir}/patch/bbrv3/linux/* ./target/linux/generic/hack-${linux_version}/
-cp -rf ${lynndir}/patch/bbrv3/iproute2/* ./package/network/utils/iproute2/patches/
-# dont wrongly interpret first-time data
-echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
-
-echo "Patch LuCI 以支持自定义 nft 规则"
-echo "FW4"
-patch -p1 < ${lynndir}/patch/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
-cp -f ${lynndir}/patch/fw4/100-fw4-add-custom-nft-command-support.patch ./package/network/config/firewall4/patches/
-pushd feeds/luci
-patch -p1 <${lynndir}/patch/fw4/0004-luci-add-firewall-add-custom-nft-rule-support.patch
-popd
+echo "应用配置"
+cp -f ${lynndir}/target/r2s/seed.config .config
 
 # 超频补丁
 echo "超频"
 cp -f ${lynndir}/patch/target/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
 
-#Vermagic # 内核模块兼容
-echo "Vermagic"
-# wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
-wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json
-jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
-cat .vermagic
-sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
-
 
 
 # 自定义 Patch
-echo "SquashFS 支持 Zstd 和 LZ4"
-patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
-
 echo "修改源码"
 echo "交换 LAN/WAN 口"
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
@@ -98,11 +21,7 @@ echo "强制使用 O3 级别的优化、使用专属优化"
 patch -p1 < ${lynndir}/patch/include/target.mk.patch
 
 
-echo "应用配置"
-cp -f ${lynndir}/seed/R2S/seed.config .config
 
-echo "去除不必要的过滤"
-sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
 echo "应用内核配置"
 CONFIG_CONTENT='
 CONFIG_ASN1=y
@@ -243,15 +162,6 @@ CONFIG_SQUASHFS_FILE_CACHE=n
 # 追加到指定的内核配置文件
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
 
-# echo "启用硬件随机数设备, crypto 硬件加速将被占用" # 用不得，RK3328的随机性就是一坨，加了反而污染
-# sed -i 's/^\(+\s*status = "\)disabled\(";\)$/\1okay\2/' target/linux/rockchip/patches-${linux_version}/*-arm64-dts-rockchip-rk3328-add-rng-node.patch
-
-echo "修复无法编译"
-cp -f ${upstreampkg}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile # node-ffi-napi 可能会出问题
-patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
-patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
-patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
-patch -p0 < ${lynndir}/patch/rust/Makefile.patch
 
 echo "防止意外修改"
 echo "

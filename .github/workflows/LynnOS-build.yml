@@ -65,6 +65,8 @@ jobs:
       - name: 准备环境 (init-in.sh)
         run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
+      # - name: 准备当前编译目录 # TODO
+
       - name: 准备编译目标设备
         run: d "cd ${wrtdir} && bash ${lynndir}/target/${{ github.event.inputs.target }}/prepare.sh"
 

@@ -29,9 +29,136 @@ popd
 
 
 
+
+
+p ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
+p "进入编译目录 ${wrtdir}"
+cd ${wrtdir}
+
+
+p "检查内核版本"
+# 定义预期的内核版本
+SUPPORTED_KERNEL="6.12"
+current_version=$(sed -n 's/^KERNEL_PATCHVER:=//p' ./target/linux/rockchip/Makefile) # 如 6.12
+if [ -z "${current_version}" ]; then
+    echo "Error: Failed to extract KERNEL_PATCHVER from ./target/linux/rockchip/Makefile"
+    exit 1
+fi
+if [[ "${SUPPORTED_KERNEL}" != "${current_version}" ]]; then
+    echo "##########
+      错误：
+      编译的内核版本为 ${current_version} ，
+      预期的版本为 ${SUPPORTED_KERNEL}
+    ##########"
+    exit 1
+fi
+. set_env "linux_version" "${current_version}"
+
+
+
+p "覆盖或添加包"
+pushd package
+# clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
+clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
+# clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
+clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
+clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
+clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
+clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
+clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
+clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
+clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier &
+clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
+p "等待所有后台克隆完成"
+wait
+sync
+popd
+echo "
+src-link add ./package/add/
+" >> "feeds.conf.default"
+
+
+p "下载其他仓库"
 p "克隆 openwrt packages"
 . set_env "upstream_packages" "${workdir}/upstream/packages"
-clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} # TODO: 自动检测稳定版分支名
+clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} & # TODO: 自动检测稳定版分支名
+# clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
+# clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
+# clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
+# clone master https://github.com/coolsnowwolf/lede.git ../lede &
+# clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
+# clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
+wait
+sync
+
+
+p "修复编译问题"
+p "替换 utils/cgroupfs-mount"
+mkdir -p feeds/packages/utils/
+cp -rf ${upstream_packages}/utils/cgroupfs-mount ./feeds/packages/utils/
+p "降级 rust"
+rm -rf feeds/packages/lang/rust
+cp -rf ${upstream_packages}/lang/rust ./feeds/packages/lang/
+p "替换 node-ffi-napi"
+cp -f ${upstream_packages}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile
+
+
+p "更新 Feeds"
+./scripts/feeds update -f -a
+./scripts/feeds install -a
+p "强制覆盖"
+./scripts/feeds install -f luci-app-openclash cgroupfs-mount rust numactl libnuma
+
+
+p "应用补丁"
+p "修复编译"
+patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
+patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
+patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
+patch -p0 < ${lynndir}/patch/rust/Makefile.patch
+
+
+
+
+
+p "应用自定义修改"
+p "BBRv3"
+cp -rf ${lynndir}/patch/bbrv3/linux/* ./target/linux/generic/hack-${linux_version}/
+cp -rf ${lynndir}/patch/bbrv3/iproute2/* ./package/network/utils/iproute2/patches/
+# dont wrongly interpret first-time data
+echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
+
+
+p "LuCI 自定义 nft 规则页面"
+patch -p1 < ${lynndir}/patch/fw4/100-openwrt-firewall4-add-custom-nft-command-support.patch
+cp -f ${lynndir}/patch/fw4/100-fw4-add-custom-nft-command-support.patch ./package/network/config/firewall4/patches/
+pushd feeds/luci
+patch -p1 <${lynndir}/patch/fw4/0004-luci-add-firewall-add-custom-nft-rule-support.patch
+popd
+
+
+p "SquashFS 支持 Zstd 和 LZ4"
+patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
+
+
+p "Vermagic 内核模块兼容"
+# wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
+wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json # TODO
+jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
+cat .vermagic
+sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+
+
+p "去除不必要的内核配置过滤"
+sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
+
+
+p "修复缺失的必要内核参数"
+CONFIG_CONTENT='
+CONFIG_FRAME_WARN=2048
+'
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
 
 
 

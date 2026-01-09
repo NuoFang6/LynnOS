@@ -15,19 +15,25 @@ CI_ENV_FILE="${workdir}/ci_env"
 p "set_env: $1 = $2"
 export "$1"="$2"
 
-# 1. 写入容器内持久化文件 (供容器内后续 bash 使用)
-if [ -n "$CI_ENV_FILE" ]; then
-    mkdir -p "$(dirname "$CI_ENV_FILE")" 2>/dev/null
-    echo "export $1=\"$2\"" >> "$CI_ENV_FILE"
-fi
-
-# 2. 写入同步文件 (这是自动化的关键)
-# 只要 workdir 存在，就追加写入，等待宿主机的 d/dr 命令回收
-if [ -d "${workdir}" ]; then
+# 1. 写入容器内持久化文件 (仅当目录存在且可写时)
+# 修复：宿主机运行时，/ci 目录不存在，这里会自动跳过，不再报错
+if [ -n "$workdir" ] && [ -d "$workdir" ]; then
+    # 确保能写入 ci_env
+    if [ -w "$workdir" ] || [ -w "$CI_ENV_FILE" ]; then
+        echo "export $1=\"$2\"" >> "$CI_ENV_FILE"
+    fi
+    
+    # 2. 写入同步文件 (这是自动化的关键)
     echo "$1=$2" >> "$SYNC_FILE"
+    
+    # === 关键修复 ===
+    # 无论当前是 root 还是 runner，都将文件权限放开为 666 (rw-rw-rw-)
+    # 这样宿主机脚本（runner用户）才有权限清空它
+    chmod 666 "$SYNC_FILE" 2>/dev/null || true
 fi
 
-# 3. 兼容逻辑：如果是宿主机直接运行，且有 GITHUB_ENV，直接写入
+# 3. 兼容逻辑：宿主机 fallback
+# 如果是在宿主机运行，且 GITHUB_ENV 存在，直接写入
 if [ -z "$workdir" ] && [ -n "$GITHUB_ENV" ]; then
      echo "$1=$2" >> "$GITHUB_ENV"
 fi

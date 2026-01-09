@@ -37,23 +37,21 @@ cat <<'EOF' > $bin_host/set_env
 CI_ENV_FILE="${workdir}/ci_env"
 
 p "set_env: $1 = $2"
-export "$1"="$2"
+export $1=$2
 
 # 2. 写入容器内的 BASH_ENV (如果在容器内)
 # 简单的判断：如果文件存在(或者所在目录可写)，直接追加
-if [ -n "$CI_ENV_FILE" ]; then
-    echo "export $1=\"$2\"" >> "$CI_ENV_FILE"
+if [ -w "$CI_ENV_FILE" ]; then
+    echo "export $1=$2" >> "$CI_ENV_FILE"
 fi
 
 # 3. 兼容逻辑：如果是从宿主机调用，且挂载了 /mnt
 if [ -w "/mnt${CI_ENV_FILE}" ]; then
-    echo "export $1=\"$2\"" >> "/mnt${CI_ENV_FILE}"
+    echo "export $1=$2" >> "/mnt${CI_ENV_FILE}"
 fi
 
-# 4. 写入 GITHUB_ENV (仅当 GITHUB_ENV 变量存在时)
-if [ -n "$GITHUB_ENV" ]; then
-    echo "$1=$2" >> "$GITHUB_ENV"
-fi
+# 4. 写入 GITHUB_ENV
+echo "$1=$2" >> "$GITHUB_ENV"
 EOF
 chmod +x $bin_host/*
 echo "$bin_host" >> $GITHUB_PATH
@@ -93,6 +91,7 @@ docker run -d --name cachyos \
   -e GITHUB_PATH="$GITHUB_PATH" \
   -e PATH="/usr/local/bin_host:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   -e workdir="${workdir}" \
+  -e workdir_out="${workdir_out}" \
   -e lynndir="${lynndir}" \
   -e BASH_ENV="${workdir}/ci_env" \
   -w ${workdir} \

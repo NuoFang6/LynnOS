@@ -66,7 +66,7 @@ jobs:
         run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
       - name: 准备编译目标设备
-        run: d "cd ${lynndir} && bash target/${{ github.event.inputs.target }}/prepare.sh"
+        run: d "cd ${wrtdir} && bash ${lynndir}/target/${{ github.event.inputs.target }}/prepare.sh"
 
       # - name: 开始编译：${{ github.event.inputs.target }}
       #   if: ${{ github.event.inputs.build == true }}

@@ -93,6 +93,13 @@ wait
 sync
 
 
+p "更新 Feeds"
+./scripts/feeds update -f -a
+./scripts/feeds install -a
+p "强制覆盖"
+./scripts/feeds install -f luci-app-openclash cgroupfs-mount rust numactl libnuma
+
+
 p "修复编译问题"
 p "替换 utils/cgroupfs-mount"
 mkdir -p feeds/packages/utils/
@@ -103,12 +110,6 @@ cp -rf ${upstream_packages}/lang/rust ./feeds/packages/lang/
 p "替换 node-ffi-napi"
 cp -f ${upstream_packages}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile
 
-
-p "更新 Feeds"
-./scripts/feeds update -f -a
-./scripts/feeds install -a
-p "强制覆盖"
-./scripts/feeds install -f luci-app-openclash cgroupfs-mount rust numactl libnuma
 
 
 p "应用补丁"

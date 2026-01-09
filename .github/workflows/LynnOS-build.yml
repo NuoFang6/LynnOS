@@ -71,8 +71,6 @@ jobs:
         run: d "cd ${wrtdir} && bash ${lynndir}/target/${{ github.event.inputs.target }}/prepare.sh"
 
       # - name: 开始编译：${{ github.event.inputs.target }}
-      #   if: ${{ github.event.inputs.build == true }}
-      #   run: bash target/${{ github.event.inputs.target }}/build.sh
           
       # 以后记得删
       # - if: ${{ failure() }}

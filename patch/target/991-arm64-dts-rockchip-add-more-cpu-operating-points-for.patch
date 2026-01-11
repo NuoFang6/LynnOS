@@ -7,6 +7,7 @@ Subject: [PATCH v2] arm64: dts: rockchip: add more cpu operating points for
 This allows for greater max frequency on rk3328 boards,
 increasing performance.
 
+硬件步进为 12.5mV
 降压了0.05V (50mV)
 
 It has been included in Armbian (a linux distibution for ARM boards)

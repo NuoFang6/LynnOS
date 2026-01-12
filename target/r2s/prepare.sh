@@ -5,6 +5,8 @@ id
 p "复制种子配置" # ./scripts/diffconfig.sh > diffconfig 生成
 cp -f ${targetdir}/seed.config .config
 
+p "复制首次启动配置脚本"
+cp -f ${targetdir}/99-custom_target ./files/etc/uci-defaults/
 
 p "超频"
 cp -f ${targetdir}/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}

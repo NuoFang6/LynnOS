@@ -151,8 +151,8 @@ dr pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils
   python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
   subversion swig texinfo uglify-js upx unzip wget xmlto xxd zstd 7zip \
   paru sudo shadow jq ninja python-setuptools python-pyelftools bc libxslt openssl time \
-  util-linux which zlib perl-extutils-makemaker
-
+  util-linux which perl-extutils-makemaker
+# 不要添加zlib，会冲突
 
 
 p "确保用户一致并配置 sudo"

@@ -59,17 +59,18 @@ fi
 
 p "覆盖或添加包"
 pushd package
-clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash
-clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy
-clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo
-clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome
-clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2
-clone master https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest
-clone master https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice
-clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages
-clone master https://github.com/SunBK201/UA3F.git ./add/ua3f
-clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier
-clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal
+clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
+clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
+clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
+clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
+clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
+clone master https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
+clone master https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
+clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
+clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
+clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier &
+clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
+wait && sync
 popd
 echo "
 src-link add ./package/add/
@@ -79,14 +80,14 @@ src-link add ./package/add/
 p "下载其他仓库"
 # p "克隆 openwrt packages"
 # . set_env "upstream_packages" "${workdir}/upstream/packages"
-# clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} # TODO: 自动检测稳定版分支名
-# clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages
-# clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt
-# clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF
-# clone master https://github.com/coolsnowwolf/lede.git ../lede
-# clone master https://github.com/lisaac/luci-app-dockerman ../dockerman
-# clone master https://github.com/lisaac/luci-lib-docker ../docker_lib
-
+# clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} & # TODO: 自动检测稳定版分支名
+# clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
+# clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
+# clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
+# clone master https://github.com/coolsnowwolf/lede.git ../lede &
+# clone master https://github.com/lisaac/luci-app-dockerman ../dockerman &
+# clone master https://github.com/lisaac/luci-lib-docker ../docker_lib &
+wait && sync
 
 
 p "更新 Feeds"

@@ -95,7 +95,7 @@ jobs:
           d '
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
-            tar -cf - $(basename ${wrtdir})/ | zstd -16 -T0 --auto-threads=logical > wrt_end.tar.zst # 最性价比-3 适度压缩-16 最大--ultra -22
+            tar -cf - $(basename ${wrtdir})/ | zstd -16 -T0 > wrt_end.tar.zst # 最性价比-3 适度压缩-16 最大--ultra -22
             rm -rf ${wrtdir}/$(basename ${lynndir})
           '
 
@@ -112,7 +112,7 @@ jobs:
           d '
             cd ${wrtdir}
             p "下载所需文件"
-            make download -j16 # 在多线程构建上必须先下载
+            make download -j$(($(nproc) + 1)) # 在多线程构建上必须先下载
             p "开始编译"
             make -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then
@@ -131,9 +131,9 @@ jobs:
             fi
 
             p "打包所有产物"
-            tar -cf - bin/ | zstd -16 -T0 --auto-threads=logical > "${workdir}/bin_${target}.tar.zst"
+            tar -cf - bin/ | zstd -16 -T0 > "${workdir}/bin_${target}.tar.zst"
             p "打包软件包"
-            tar -C bin/ -cf - packages/ | zstd -16 -T0 --auto-threads=logical > "${workdir}/packages_${target}.tar.zst"
+            tar -C bin/ -cf - packages/ | zstd -16 -T0 > "${workdir}/packages_${target}.tar.zst"
           '
           p "打印剩余空间"
           df -h

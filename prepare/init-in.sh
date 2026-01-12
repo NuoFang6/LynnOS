@@ -22,7 +22,7 @@ sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 p "克隆 immortalwrt 到 ${workdir}/immortalwrt"
 . set_env "wrtdir" "${workdir}/immortalwrt"
-umask 0022 && getfacl -d .
+umask 0022
 clone ${immortalwrt_branch} https://github.com/immortalwrt/immortalwrt ${wrtdir}
 pushd ${wrtdir}
 git config core.filemode false # 忽略权限变更

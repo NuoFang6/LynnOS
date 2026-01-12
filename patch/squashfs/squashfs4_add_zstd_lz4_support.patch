@@ -15,19 +15,6 @@ index 048e750..767dec0 100644
  
  JFFS2_BLOCKSIZE ?= 64k 128k
  
-diff --git a/tools/Makefile b/tools/Makefile
-index 752a561..c4911b6 100644
---- a/tools/Makefile
-+++ b/tools/Makefile
-@@ -134,7 +134,7 @@ $(curdir)/pkgconf/compile := $(curdir)/meson/compile
- $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
- $(curdir)/sdcc/compile := $(curdir)/bison/compile
- $(curdir)/squashfs3-lzma/compile := $(curdir)/lzma-old/compile
--$(curdir)/squashfs4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
-+$(curdir)/squashfs4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile $(curdir)/zstd/compile $(curdir)/lz4/compile
- $(curdir)/util-linux/compile := $(curdir)/bison/compile $(curdir)/automake/compile
- $(curdir)/yafut/compile := $(curdir)/cmake/compile
- 
 diff --git a/tools/squashfs4/Makefile b/tools/squashfs4/Makefile
 index 94679bd..ac90e79 100644
 --- a/tools/squashfs4/Makefile

@@ -59,13 +59,13 @@ fi
 
 p "覆盖或添加包"
 pushd package
-# clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
+clone dev https://github.com/vernesong/OpenClash.git ./add/luci-app-openclash &
 clone main https://github.com/morytyann/OpenWrt-mihomo.git ./add/MihomoTProxy &
-# clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
+clone main https://github.com/nikkinikki-org/OpenWrt-momo.git ./add/OpenWrt-momo &
 clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-app-adguardhome &
 clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
-clone js https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
-clone js https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
+clone master https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
+clone master https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
 clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
 clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier &
@@ -80,9 +80,9 @@ src-link add ./package/add/
 
 
 p "下载其他仓库"
-p "克隆 openwrt packages"
-. set_env "upstream_packages" "${workdir}/upstream/packages"
-clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} & # TODO: 自动检测稳定版分支名
+# p "克隆 openwrt packages"
+# . set_env "upstream_packages" "${workdir}/upstream/packages"
+# clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} & # TODO: 自动检测稳定版分支名
 # clone openwrt-23.05 https://github.com/immortalwrt/packages.git ./2305packages &
 # clone master https://github.com/immortalwrt/immortalwrt.git ./masterImmortalWrt &
 # clone 24.10 https://github.com/QiuSimons/YAOF.git ./YAOF &
@@ -95,13 +95,10 @@ sync
 
 p "更新 Feeds"
 ./scripts/feeds update -f -a
-./scripts/feeds install -a
-p "强制覆盖"
-./scripts/feeds install -f luci-app-openclash cgroupfs-mount rust numactl libnuma
+./scripts/feeds install -f -a
 
-
-# p "修复编译问题"
-# p "替换 utils/cgroupfs-mount"
+p "修复编译问题"
+# p "替换 utils/cgroupfs-mount" #TODO cgroupfs-mount numactl libnuma
 # mkdir -p feeds/packages/utils/
 # cp -rf ${upstream_packages}/utils/cgroupfs-mount ./feeds/packages/utils/
 # p "降级 rust"
@@ -113,7 +110,6 @@ p "强制覆盖"
 # patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
 # patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
 # patch -p0 < ${lynndir}/patch/rust/Makefile.patch
-
 
 
 
@@ -136,14 +132,31 @@ popd
 
 p "SquashFS 支持 Zstd 和 LZ4"
 patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
+sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/compile \$(curdir)/lz4/compile|' ./tools/Makefile
+# 这里的 `&` 代表匹配到的原始字符串。
+# **`-i`**: 表示直接修改文件内容（In-place edit）。
+# **`s|...|...|`**: 使用 `|` 作为分隔符，格式为 `s|旧字符串|新字符串|`。
+# **`\$`**: 在正则表达式中 `$` 是特殊字符（表示行尾），匹配字面含义的 `$` 需要加反斜杠转义。
+# **`g`**: 表示全局替换（如果一行中出现多次则全部替换）。
+
+p "启用 LRNG" # TODO
+echo "
+# Kernel - LRNG
+CONFIG_KERNEL_LRNG=y
+CONFIG_PACKAGE_urandom-seed=n
+CONFIG_PACKAGE_urngd=n
+# Docker cgroup options
+CONFIG_DOCKER_CGROUP_OPTIONS=n
+" >> .config_pending
 
 
-p "Vermagic 内核模块兼容"
-# wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
-wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json # TODO
-jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
-cat .vermagic
-sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+# p "Vermagic 内核模块兼容" # 没有什么用
+# # wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
+# wget https://downloads.immortalwrt.org/snapshots/targets/rockchip/armv8/profiles.json # TODO
+# jq -r '.linux_kernel.vermagic' profiles.json >.vermagic
+# cat .vermagic
+# sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+# rm -f profiles.json
 
 
 # p "修复缺失的必要内核参数"

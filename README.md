@@ -25,6 +25,7 @@ This is an openwrt compilation script that is still under development.
   - [ ] CPU 性能调节
   - [ ] Nginx（quic）替换 uhttpd
   - [ ] 6.18 内核
+  - ~~[ ] Vermagic 兼容~~
   - ~~[ ] LLVM 编译~~ **兼容性过差**
   - ~~[ ] adios~~ **可能属于过度优化**
   - ~~[ ] sched_bore~~ **不适用于网络设备**

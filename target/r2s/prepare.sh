@@ -1,28 +1,24 @@
-echo "权限状态："
+p "权限状态"
 ls -l
 id
 
-echo "应用配置"
-cp -f ${lynndir}/target/r2s/seed.config .config
-
-# 超频补丁
-echo "超频"
-cp -f ${lynndir}/target/r2s/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
+p "复制种子配置"
+cp -f ${targetdir}/seed.config .config
 
 
+p "超频"
+cp -f ${targetdir}/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
 
-# 自定义 Patch
-echo "修改源码"
-echo "交换 LAN/WAN 口"
+p "使用 O2 级别的优化、使用专属优化"
+patch -p1 < ${targetdir}/target.mk.patch
+
+p "交换 LAN/WAN 口"
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 
-echo "强制使用 O3 级别的优化、使用专属优化"
-patch -p1 < ${lynndir}/patch/include/target.mk.patch
 
 
-
-echo "应用内核配置"
+p "修改内核配置"
 CONFIG_CONTENT='
 CONFIG_ASN1=y
 CONFIG_ASSOCIATIVE_ARRAY=y
@@ -159,29 +155,6 @@ CONFIG_FRAME_WARN=2048
 CONFIG_SQUASHFS_FILE_DIRECT=y
 CONFIG_SQUASHFS_FILE_CACHE=n
 '
-# 追加到指定的内核配置文件
 echo "$CONFIG_CONTENT" | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
-
-
-echo "防止意外修改"
-echo "
-CONFIG_DOCKER_CGROUP_OPTIONS=n
-CONFIG_PACKAGE_cgroupfs-mount=m
-CONFIG_USE_LTO=y
-" >> .config
-
-
-
-echo "
-# Kernel - LRNG
-CONFIG_KERNEL_LRNG=y
-CONFIG_PACKAGE_urandom-seed=n
-CONFIG_PACKAGE_urngd=n
-" >> .config
-
-echo "
-CONFIG_PACKAGE_dpdk-tools=y
-CONFIG_PACKAGE_numactl=y
-" >> .config
 
 echo "结束"

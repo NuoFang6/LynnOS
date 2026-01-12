@@ -11,12 +11,17 @@ on:
         options:
           - r2s
       build:
-        description: "进行编译"
+        description: "编译固件"
         default: true
         type: boolean
         required: true
       fastbuild:
-        description: "使用调试级别编译"
+        description: "验证模式（快速编译）" # TODO
+        default: false
+        type: boolean
+        required: false
+      needssh:
+        description: "需要 SSH 连接调试"
         default: false
         type: boolean
         required: false
@@ -33,6 +38,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive # 无交互
       immortalwrt_branch: "master" # TODO: 以后改成输入参数
       workdir_out: ""
+      target: ""
 
     steps:
       - if: github.event.inputs.build == 'true' && github.event.inputs.fastbuild == 'false'
@@ -59,24 +65,34 @@ jobs:
       - name: 接收环境变量
         run: |
           d '
-            set_env immortalwrt_branch "${{ env.immortalwrt_branch }}"
-            set_env fastbuild "${{ github.event.inputs.fastbuild }}"
+            . set_env target "${{ github.event.inputs.target }}"
+            . set_env fastbuild "${{ github.event.inputs.fastbuild }}"
+
+            . set_env immortalwrt_branch "${{ env.immortalwrt_branch }}"
+
+            . set_env targetdir "${lynndir}/target/${target}"
           '
 
       - name: 准备环境 （init-in.sh）
         run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
-      # - name: 准备当前编译目录 # TODO
-
-      - name: 准备编译目标设备
-        run: d "cd ${wrtdir} && bash ${lynndir}/target/${{ github.event.inputs.target }}/prepare.sh"
+      - name: 准备编译目标设备 （prepare.sh）
+        run: |
+          d "
+            cd ${wrtdir}
+            bash ${lynndir}/target/${target}/prepare.sh
+            p "追加配置"
+            cat .config_pending | tee -a .config
+            p "生成最终配置"
+            make defconfig -j$(($(nproc) + 1))
+          "
 
       - name: 压缩编译目录
         run: |
           d '
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
-            tar -cf - ${wrtdir}/ | zstd -19 -T0 > wrt_end.tar.zst
+            tar -cf - $(basename ${wrtdir})/ | zstd -16 -T0 --auto-threads=logical > wrt_end.tar.zst # 最性价比-3 适度压缩-16 最大--ultra -22
             rm -rf ${wrtdir}/$(basename ${lynndir})
           '
 
@@ -87,9 +103,44 @@ jobs:
           path: "${{ env.workdir_out }}/wrt_end.tar.zst"
           compression-level: 0
 
-      # - name: 开始编译：${{ github.event.inputs.target }}
+      - name: 开始编译：${{ env.target }}
+        if: github.event.inputs.build == 'true'
+        run: |
+          d '
+            cd ${wrtdir}
+            p "开始编译"
+            make download -j$(($(nproc) + 1))
+            make -j$(($(nproc) + 1))
+            if [ $? -ne 0 ]; then
+              p "！！编译失败，进行单线程详细日志编译"
+              make V=s -j1
+              if [ $? -ne 0 ]; then
+                p "！！单线程编译依然失败，结束"
+                exit 1
+              else
+                p "单线程编译成功"
+                . set_env build_success "true"
+              fi
+            else
+              p "编译成功"
+              . set_env build_success "true"
+            fi
 
-      # 以后记得删
-      # - if: ${{ failure() }}
-      #   name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+            p "打包所有产物"
+            tar -cf - bin/ | zstd -16 -T0 --auto-threads=logical > "${workdir_out}/bin_${target}.tar.zst"
+            p "打包软件包"
+            tar -C bin/ -cf - packages/ | zstd -16 -T0 --auto-threads=logical > "${workdir_out}/packages_${target}.tar.zst"
+
+          '
+          
+      - name: 上传产物文件夹
+        uses: actions/upload-artifact@main
+        with:
+          name: firmware
+          path: "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
+          compression-level: 0
+
+      - if: github.event.inputs.needssh == 'true'
+        name: SSH 临时调试
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 240

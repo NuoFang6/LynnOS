@@ -48,6 +48,7 @@ This is an openwrt compilation script that is still under development.
   - [ ] 更换 projectsmirrors.json 顺序
   - [ ] 复用缓存
   - [ ] 复用工具链
+  - ~~[ ] 并行clone~~ **会出问题**
   - ~~[ ] 中文日志~~ **不兼容**
 
 

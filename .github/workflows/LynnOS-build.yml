@@ -103,8 +103,8 @@ jobs:
           path: "${{ env.workdir_out }}/wrt_end.tar.zst"
           compression-level: 0
 
-      - name: 开始编译：${{ env.target }}
-        if: github.event.inputs.build == 'true'
+      - if: github.event.inputs.build == 'true'
+        name: 开始编译：${{ env.target }}
         run: |
           d '
             cd ${wrtdir}
@@ -133,12 +133,14 @@ jobs:
 
           '
           
-      - name: 上传产物文件夹
+      - if: github.event.inputs.build == 'true'
+        name: 上传产物文件夹
         uses: actions/upload-artifact@main
         with:
           name: firmware
           path: "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
           compression-level: 0
+          if-no-files-found: error
 
       - if: github.event.inputs.needssh == 'true'
         name: SSH 临时调试

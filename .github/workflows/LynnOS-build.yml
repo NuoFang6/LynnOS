@@ -127,9 +127,9 @@ jobs:
             fi
 
             p "打包所有产物"
-            tar -cf - bin/ | zstd -16 -T0 --auto-threads=logical > "${workdir_out}/bin_${target}.tar.zst"
+            tar -cf - bin/ | zstd -16 -T0 --auto-threads=logical > "${workdir}/bin_${target}.tar.zst"
             p "打包软件包"
-            tar -C bin/ -cf - packages/ | zstd -16 -T0 --auto-threads=logical > "${workdir_out}/packages_${target}.tar.zst"
+            tar -C bin/ -cf - packages/ | zstd -16 -T0 --auto-threads=logical > "${workdir}/packages_${target}.tar.zst"
           '
           p "打印剩余空间"
           df -h

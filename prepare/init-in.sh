@@ -92,7 +92,7 @@ wait && sync
 
 p "更新 Feeds"
 ./scripts/feeds update -f -a
-./scripts/feeds install -f -a
+./scripts/feeds install -f -a # TODO
 
 p "修复编译问题"
 # p "替换 utils/cgroupfs-mount" #TODO cgroupfs-mount numactl libnuma

@@ -108,8 +108,9 @@ jobs:
         run: |
           d '
             cd ${wrtdir}
+            p "下载所需文件"
+            make download -j32
             p "开始编译"
-            make download -j$(($(nproc) + 1))
             make -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then
               p "！！编译失败，进行单线程详细日志编译"

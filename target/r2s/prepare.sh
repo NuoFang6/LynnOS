@@ -2,7 +2,7 @@ p "权限状态"
 ls -l
 id
 
-p "复制种子配置"
+p "复制种子配置" # ./scripts/diffconfig.sh > diffconfig 生成
 cp -f ${targetdir}/seed.config .config
 
 
@@ -18,7 +18,7 @@ sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-file
 
 
 
-p "修改内核配置"
+p "修改内核配置" # make kernel_menuconfig CONFIG_TARGET=target、subtarget、env
 CONFIG_CONTENT='
 CONFIG_ASN1=y
 CONFIG_ASSOCIATIVE_ARRAY=y

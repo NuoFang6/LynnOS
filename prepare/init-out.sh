@@ -150,7 +150,8 @@ dr pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils
   libelf glib2 gmp libtool libmpc mpfr ncurses python python-pip python-ply \
   python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
   subversion swig texinfo uglify-js upx unzip wget xmlto xxd zstd 7zip \
-  paru sudo shadow jq ninja python-setuptools python-pyelftools bc
+  paru sudo shadow jq ninja python-setuptools python-pyelftools bc libxslt openssl time \
+  util-linux which zlib perl-extutils-makemaker
 
 
 

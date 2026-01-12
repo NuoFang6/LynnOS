@@ -1,0 +1,14 @@
+# 这个脚本将在刷写后第一次启动时运行，用于执行自定义的初始配置任务。更新固件也会运行
+
+# 防止更新时也运行此脚本
+[ -f /etc/dont_delete_this_file ] && exit 0
+
+# uci -q batch << EOI
+# EOI
+
+touch /etc/dont_delete_this_file
+echo "uci-defaults/99-custom_target: 初始配置已完成。此文件用于防止更新后重复执行" >> /etc/dont_delete_this_file
+
+# 如果以代码 0 退出，则随后会被删除。
+# 以非零退出代码退出的脚本不会被删除，而是会在下次启动时重新执行，直到它们成功退出为止。
+exit 0

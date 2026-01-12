@@ -83,9 +83,12 @@ jobs:
             bash ${lynndir}/target/${target}/prepare.sh
             p "追加配置"
             cat .config_pending | tee -a .config
-            p "生成最终配置"
+            p "展开配置"
             make defconfig -j$(($(nproc) + 1))
           "
+
+      # - name: 配置外部工具链 #TODO: 利用上一次的工具链
+      #   run: 
 
       - name: 压缩编译目录
         run: |
@@ -109,7 +112,7 @@ jobs:
           d '
             cd ${wrtdir}
             p "下载所需文件"
-            make download -j16
+            make download -j16 # 在多线程构建上必须先下载
             p "开始编译"
             make -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then

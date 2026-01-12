@@ -22,6 +22,7 @@ sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 p "克隆 immortalwrt 到 ${workdir}/immortalwrt"
 . set_env "wrtdir" "${workdir}/immortalwrt"
+umask 0022 && getfacl -d .
 clone ${immortalwrt_branch} https://github.com/immortalwrt/immortalwrt ${wrtdir}
 pushd ${wrtdir}
 git config core.filemode false # 忽略权限变更
@@ -66,18 +67,19 @@ clone dev https://github.com/stevenjoezhang/luci-app-adguardhome.git ./add/luci-
 clone main https://github.com/sbwml/luci-app-openlist2.git ./add/luci-app-openlist2 &
 clone master https://github.com/sirpdboy/luci-app-netspeedtest.git ./add/luci-app-netspeedtest &
 clone master https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-app-poweroffdevice &
-clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
 clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier &
 clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
 wait && sync
 popd
-echo "
-src-link add ./package/add/
-" >> "feeds.conf.default"
+sed -i "1isrc-link add ${wrtdir}/package/add" feeds.conf.default # 这里一定要用绝对路径；将包含自定义订阅源的行移动到标准订阅源上方，即可覆盖标准订阅源
+# -i: 表示直接修改文件（in-place）。
+# 1i: 表示在第 1 行之前插入（insert）。
+
 
 
 p "下载其他仓库"
+# clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
 # p "克隆 openwrt packages"
 # . set_env "upstream_packages" "${workdir}/upstream/packages"
 # clone openwrt-25.12 https://github.com/openwrt/packages.git ${upstream_packages} & # TODO: 自动检测稳定版分支名
@@ -163,6 +165,7 @@ CONFIG_DOCKER_CGROUP_OPTIONS=n
 # '
 # find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
 
-
+p "复制自定义文件目录"
+cp -rf ${lynndir}/files ./
 
 p "容器内脚本结束"

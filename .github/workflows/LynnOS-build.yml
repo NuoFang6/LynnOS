@@ -32,6 +32,7 @@ jobs:
     env:
       DEBIAN_FRONTEND: noninteractive # 无交互
       immortalwrt_branch: "master" # TODO: 以后改成输入参数
+      workdir_out: ""
 
     steps:
       - if: github.event.inputs.build == 'true' && github.event.inputs.fastbuild == 'false'
@@ -52,8 +53,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 准备容器 (init-out.sh)
-        run: bash prepare/init-out.sh 
+      - name: 准备容器 （init-out.sh）
+        run: bash prepare/init-out.sh
 
       - name: 接收环境变量
         run: |
@@ -62,7 +63,7 @@ jobs:
             set_env fastbuild "${{ github.event.inputs.fastbuild }}"
           '
 
-      - name: 准备环境 (init-in.sh)
+      - name: 准备环境 （init-in.sh）
         run: d "cd ${lynndir} && bash prepare/init-in.sh"
 
       # - name: 准备当前编译目录 # TODO
@@ -70,8 +71,24 @@ jobs:
       - name: 准备编译目标设备
         run: d "cd ${wrtdir} && bash ${lynndir}/target/${{ github.event.inputs.target }}/prepare.sh"
 
+      - name: 压缩编译目录
+        run: |
+          d '
+            cd ${workdir}
+            cp -r ${lynndir} ${wrtdir}/
+            tar -cf - ${wrtdir}/ | zstd -19 -T0 > wrt_end.tar.zst
+            rm -rf ${wrtdir}/$(basename ${lynndir})
+          '
+
+      - name: 上传编译目录
+        uses: actions/upload-artifact@main
+        with:
+          name: wrt_end.tar.zst
+          path: "${{ env.workdir_out }}/wrt_end.tar.zst"
+          compression-level: 0
+
       # - name: 开始编译：${{ github.event.inputs.target }}
-          
+
       # 以后记得删
       # - if: ${{ failure() }}
       #   name: Setup tmate session

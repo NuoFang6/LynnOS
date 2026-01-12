@@ -100,24 +100,19 @@ p "强制覆盖"
 ./scripts/feeds install -f luci-app-openclash cgroupfs-mount rust numactl libnuma
 
 
-p "修复编译问题"
-p "替换 utils/cgroupfs-mount"
-mkdir -p feeds/packages/utils/
-cp -rf ${upstream_packages}/utils/cgroupfs-mount ./feeds/packages/utils/
-p "降级 rust"
-rm -rf feeds/packages/lang/rust
-cp -rf ${upstream_packages}/lang/rust ./feeds/packages/lang/
-p "替换 node-ffi-napi"
-cp -f ${upstream_packages}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile
-
-
-
-p "应用补丁"
-p "修复编译"
-patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
-patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
-patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
-patch -p0 < ${lynndir}/patch/rust/Makefile.patch
+# p "修复编译问题"
+# p "替换 utils/cgroupfs-mount"
+# mkdir -p feeds/packages/utils/
+# cp -rf ${upstream_packages}/utils/cgroupfs-mount ./feeds/packages/utils/
+# p "降级 rust"
+# rm -rf feeds/packages/lang/rust
+# cp -rf ${upstream_packages}/lang/rust ./feeds/packages/lang/
+# p "替换 node-ffi-napi"
+# cp -f ${upstream_packages}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile
+# patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
+# patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
+# patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
+# patch -p0 < ${lynndir}/patch/rust/Makefile.patch
 
 
 
@@ -151,15 +146,12 @@ cat .vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
 
-p "去除不必要的内核配置过滤"
-sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
-
-
-p "修复缺失的必要内核参数"
-CONFIG_CONTENT='
-CONFIG_FRAME_WARN=2048
-'
-find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+# p "修复缺失的必要内核参数"
+# sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
+# CONFIG_CONTENT='
+# CONFIG_FRAME_WARN=2048
+# '
+# find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
 
 
 

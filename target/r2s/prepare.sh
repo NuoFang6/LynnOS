@@ -7,7 +7,7 @@ cp -f ${lynndir}/target/r2s/seed.config .config
 
 # 超频补丁
 echo "超频"
-cp -f ${lynndir}/patch/target/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
+cp -f ${lynndir}/target/r2s/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch ./target/linux/rockchip/patches-${linux_version}
 
 
 

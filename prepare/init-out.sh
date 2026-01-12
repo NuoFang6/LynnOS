@@ -163,16 +163,16 @@ dr "chown -R runner:runner /home/runner"
 
 p "d 命令已可用"
 
-p "设置临时目录"
-dr "chmod 777 /tmp"
-d '
-  mkdir -p "${workdir}/tmp"
-  . set_env "tmpdir" "${workdir}/tmp"
-  . set_env "TMPDIR" "${tmpdir}"
-  . set_env "TEMP" "${tmpdir}"
-  . set_env "TEMPDIR" "${tmpdir}"
-  . set_env "TMP" "${tmpdir}"
-'
+# p "设置临时目录"
+# dr "chmod 777 /tmp"
+# d '
+#   mkdir -p "${workdir}/tmp"
+#   . set_env "tmpdir" "${workdir}/tmp"
+#   . set_env "TMPDIR" "${tmpdir}"
+#   . set_env "TEMP" "${tmpdir}"
+#   . set_env "TEMPDIR" "${tmpdir}"
+#   . set_env "TMP" "${tmpdir}"
+# '
 
 d paru --noconfirm -S ack antlr3
 

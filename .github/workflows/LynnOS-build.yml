@@ -109,7 +109,7 @@ jobs:
           d '
             cd ${wrtdir}
             p "下载所需文件"
-            make download -j32
+            make download -j16
             p "开始编译"
             make -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then

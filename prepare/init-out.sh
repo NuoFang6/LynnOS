@@ -136,9 +136,6 @@ p "初始化容器环境文件"
 dr "touch ${workdir}/ci_env"
 dr "chmod 777 ${workdir}/ci_env"
 # 将初始变量写入容器的持久化文件，供后续 exec 使用
-dr '. set_env LANG "zh_CN.UTF-8"'
-dr '. set_env LC_ALL "zh_CN.UTF-8"'
-dr '. set_env LANGUAGE "zh_CN:zh"'
 dr '. set_env workdir "${workdir}"'
 dr '. set_env workdir_out "${workdir_out}"'
 dr '. set_env lynndir "${lynndir}"'
@@ -148,12 +145,12 @@ dr '. set_env lynndir "${lynndir}"'
 p "安装依赖"
 dr pacman -Syu --noconfirm
 dr pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils bison \
-  bzip2 ccache clang cmake cpio curl dtc eclipse-ecj fastjar flex gawk gettext \
+  bzip2 ccache llvm clang cmake cpio curl dtc eclipse-ecj fastjar flex gawk gettext \
   gcc-multilib git gnutls gperf haveged help2man intltool lib32-gcc-libs lib32-glibc \
   libelf glib2 gmp libtool libmpc mpfr ncurses python python-pip python-ply \
   python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
   subversion swig texinfo uglify-js upx unzip wget xmlto xxd zstd 7zip \
-  paru sudo shadow jq llvm
+  paru sudo shadow jq
 
 
 

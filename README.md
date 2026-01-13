@@ -105,7 +105,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [ ] 电压调节支持
   - [ ] btrfs 系统固件
   - [ ] led 触发器
-  - ~~[ ] O3编译~~ **弱芯片收益存疑，反而可能导致负优化**
+  - [x] 精调编译参数
   - ~~[ ] 驱动GPU~~ **没有什么用**
   - ~~[ ] 硬件随机数~~ **慢且没必要，质量也不高**
   - ~~[ ] Rockchip Crypto 加密引擎~~ **不如 Arm 提供的加密扩展**

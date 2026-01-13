@@ -1,8 +1,50 @@
-这是一个还在开发的openwrt编译脚本。  
-This is an openwrt compilation script that is still under development.
+Still under develop...  
 
 ---
-## 通用
+### 这是 深入、简洁、可长期扩展 的自定义openwrt编译脚本
+
+## 使用方式
+1. 下载发行版 或 actions LynnOS-build 里的 Artifacts
+2. 解压得到固件，按照对应平台的方法刷写
+
+## 如何添加自己的设备
+1. 项目分为**通用修改**和**特定于设备的修改**，请在`target`里新建一个`你的设备名`文件夹，如`target/r2s`
+2. 修改`.github/workflows/LynnOS-build.yml`工作流，传递正确的`${{ github.event.inputs.target }}`（你的设备名）
+3. 新建`target/你的设备名/prepare.sh`，至少要完成`.config`的覆盖
+4. 始终在`设备名`文件夹下存放对源码的修改，且不应该干扰其它目标；**除非其它设备也能受益**
+5. `prepare/init-out.sh` 顶部定义了一些快捷工具，其它部分也定义了一些快捷变量，推荐使用。
+6. 调整通用修改时记得和使用不同目标的人商量（如有）；尽量小写变量名，多打换行；
+
+## 项目结构
+```
+.
+|-- files （此文件夹会复制到编译目录，*不要放其它东西*）
+|   `-- etc
+|       `-- uci-defaults （第一次启动脚本文件夹，设备首次启动或更新后会运行一次里面的所有脚本）
+|           `-- 98-custom （所有目标都会包含这个脚本）
+|-- patch （存放通用的补丁或修改）
+|   `-- 某个修改的名称
+|       |-- 这个修改所需的文件...
+|       `-- .patch 文件
+|-- prepare （存放通用修改脚本）
+|   |-- init-in.sh （将在容器内运行）
+|   `-- init-out.sh （在容器外运行的脚本）
+|-- target
+|   `-- 目标名
+|       |-- prepare.sh （将在 init-in.sh 之后运行）
+|       `-- seed.config （推荐使用种子/差异配置文件，需要手动覆盖）
+`-- tools （存放可能会用到的的工具脚本）
+    `-- ... sh 文件
+```
+files 文件夹的用途：https://openwrt.org/docs/guide-developer/toolchain/use-buildsystem#custom_files  
+uci-defaults 脚本：https://openwrt.org/docs/guide-developer/uci-defaults  
+seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buildsystem#diff_file  
+
+#### 目前基于 [immortalwrt](https://github.com/immortalwrt/immortalwrt) 的主线分支
+
+---
+## TODO List
+### 通用
 - [ ] 调整
   - [ ] BBRv3
   - [ ] QUIC 参数
@@ -52,7 +94,7 @@ This is an openwrt compilation script that is still under development.
   - ~~[ ] 中文日志~~ **不兼容**
 
 
-## [ ] 特定于 R2s  
+### [ ] 特定于 R2s  
 - [ ] 调整
   - [ ] armv8 硬件加密扩展
   - [ ] 针对 Cortex-A53 编译
@@ -79,7 +121,7 @@ This is an openwrt compilation script that is still under development.
   - [ ] Samba
   - ~~[ ] qBittorrent-Enhanced-Edition~~ **编译这个极其消耗时间**
 
-## [ ] 特定于 CMCC RAX3000M NAND
+### [ ] 特定于 CMCC RAX3000M NAND
 - [ ] 调整
   - [ ] web 救砖界面
   - [ ] 储存布局
@@ -90,3 +132,7 @@ This is an openwrt compilation script that is still under development.
 - [ ] 软件包
   - [ ] mtd 工具
   - [ ] 交换机相关
+
+---
+#### 感谢所有开发者
+#### 如果有违反相关 License ，请告诉我。

@@ -8,6 +8,7 @@ Still under develop...
 2. 解压得到固件，按照对应平台的方法刷写
 
 ## 如何添加自己的设备
+0. fork 为自己的仓库，就可以随便改了；当然，期待您的 pr。
 1. 项目分为**通用修改**和**特定于设备的修改**，请在`target`里新建一个`你的设备名`文件夹，如`target/r2s`
 2. 修改`.github/workflows/LynnOS-build.yml`工作流，传递正确的`${{ github.event.inputs.target }}`（你的设备名）
 3. 新建`target/你的设备名/prepare.sh`，至少要完成`.config`的覆盖

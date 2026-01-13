@@ -95,7 +95,7 @@ jobs:
           d '
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
-            tar -cf - $(basename ${wrtdir})/ | zstd -16 -T0 > wrt_end.tar.zst # 最性价比-3 适度压缩-16 最大--ultra -22
+            tar -cf - $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst # 效率-3 均衡-15 适度-16 最大-19 极限--ultra -22
             rm -rf ${wrtdir}/$(basename ${lynndir})
           '
 
@@ -131,9 +131,9 @@ jobs:
             fi
 
             p "打包所有产物"
-            tar -cf - bin/ | zstd -16 -T0 > "${workdir}/bin_${target}.tar.zst"
+            tar -cf - bin/ | zstd -19 -T0 > "${workdir}/bin_${target}.tar.zst"
             p "打包软件包"
-            tar -C bin/ -cf - packages/ | zstd -16 -T0 > "${workdir}/packages_${target}.tar.zst"
+            tar -C bin/ -cf - packages/ | zstd -19 -T0 > "${workdir}/packages_${target}.tar.zst"
           '
           p "打印剩余空间"
           df -h

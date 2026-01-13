@@ -44,7 +44,8 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
 #### 目前基于 [immortalwrt](https://github.com/immortalwrt/immortalwrt) 的主线分支
 
 ---
-## TODO List
+### TODO List （踩坑了或撤销了优化请在下面列出）
+
 ### 通用
 - [ ] 调整
   - [ ] BBRv3

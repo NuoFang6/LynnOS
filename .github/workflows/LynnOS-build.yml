@@ -115,7 +115,7 @@ jobs:
             make download world -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then
               p "！！编译失败，进行单线程详细日志编译"
-              make V=s -j1
+              make download world V=s -j1
               if [ $? -ne 0 ]; then
                 p "！！单线程编译依然失败，结束"
                 exit 1

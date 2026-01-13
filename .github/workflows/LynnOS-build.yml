@@ -54,6 +54,7 @@ jobs:
       immortalwrt_branch: "master" # TODO: 以后改成输入参数
       workdir_out: ""
       target: ""
+      build_success: ""
 
     steps:
       - if: github.event.inputs.build == 'true' && github.event.inputs.skip_max_space == 'false'
@@ -121,7 +122,7 @@ jobs:
           d '
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
-            tar -cf --exclude="$(basename ${wrtdir})/.ccache" - $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst
+            tar -cf - --exclude="$(basename ${wrtdir})/.ccache" $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst
             # 效率-3 均衡-15 适度-16 最大-19 极限--ultra -22
             rm -rf ${wrtdir}/$(basename ${lynndir})
           '
@@ -137,13 +138,15 @@ jobs:
         name: 开始编译：${{ env.target }}
         run: |
           d '
+            rm -f ${workdir}/wrt_end.tar.zst
+
             cd ${wrtdir}
             p "开始编译"
-            make download -j$(($(nproc) + 1)) -k # 避免部分下载失败导致终止
+            make download -j$(($(nproc) + 1)) -k || true # 避免部分下载失败导致终止
             make world -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then
               p "！！编译失败，进行单线程详细日志编译"
-              make download -j$(($(nproc) + 1)) -k
+              make download -j$(($(nproc) + 1)) -k || true
               make world V=s -j1
               if [ $? -ne 0 ]; then
                 p "！！单线程编译依然失败，结束"
@@ -165,7 +168,7 @@ jobs:
           p "打印剩余空间"
           df -h
 
-      - if: github.event.inputs.build == 'true'
+      - if: github.event.inputs.build == 'true' && env.build_success == 'true'
         name: 上传产物文件夹
         uses: actions/upload-artifact@main
         with:

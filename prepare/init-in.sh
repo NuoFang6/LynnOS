@@ -115,8 +115,9 @@ p "修复编译问题"
 
 p "应用自定义修改"
 p "BBRv3"
-cp -rf ${lynndir}/patch/bbrv3/linux/* ./target/linux/generic/hack-${linux_version}/
-cp -rf ${lynndir}/patch/bbrv3/iproute2/* ./package/network/utils/iproute2/patches/
+clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
+cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
+rm -rf ./bbrv3
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 

@@ -97,18 +97,8 @@ p "更新 Feeds"
 ./scripts/feeds install -f -a # TODO
 
 p "修复编译问题"
-# p "替换 utils/cgroupfs-mount" #TODO cgroupfs-mount numactl libnuma
-# mkdir -p feeds/packages/utils/
-# cp -rf ${upstream_packages}/utils/cgroupfs-mount ./feeds/packages/utils/
-# p "降级 rust"
-# rm -rf feeds/packages/lang/rust
-# cp -rf ${upstream_packages}/lang/rust ./feeds/packages/lang/
-# p "替换 node-ffi-napi"
-# cp -f ${upstream_packages}/libs/libffi/Makefile ./package/feeds/packages/libffi/Makefile
-# patch -p0 < ${lynndir}/patch/uwsgi/Makefile.patch
-# patch -p0 < ${lynndir}/patch/btrfs-progs/Makefile.patch
-# patch -p1 < ${lynndir}/patch/fullconenat-nft/Makefile.patch
-# patch -p0 < ${lynndir}/patch/rust/Makefile.patch
+p "修复 elfutils"
+patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch
 
 
 

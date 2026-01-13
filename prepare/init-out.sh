@@ -151,7 +151,7 @@ dr pacman -S --needed --noconfirm base-devel asciidoc autoconf automake binutils
   python-docutils python-pyelftools qemu-img re2c rsync scons squashfs-tools \
   subversion swig texinfo uglify-js upx unzip wget xmlto xxd zstd 7zip \
   paru sudo shadow jq ninja python-setuptools python-pyelftools bc libxslt openssl time \
-  util-linux which perl-extutils-makemaker fuse2
+  util-linux which perl-extutils-makemaker fuse2 less
 # 不要添加zlib，会冲突
 
 
@@ -177,6 +177,12 @@ p "d 命令已可用"
 
 d paru --noconfirm -S ack antlr3
 
+p "安装 zstd 到宿主机"
+d "cp /usr/sbin/zstd /usr/local/bin_host/"
+chmod +x "${bin_host}/zstd"
+p "安装 less 到宿主机"
+d "cp /usr/bin/less /usr/local/bin_host/"
+chmod +x "${bin_host}/less"
 
 p "复制仓库到容器内 ${lynndir}"
 cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos

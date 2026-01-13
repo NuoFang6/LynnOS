@@ -1,0 +1,15 @@
+diff --git a/package/libs/elfutils/Makefile b/package/libs/elfutils/Makefile
+index 74f5ea0759..a066aab8f6 100644
+--- a/package/libs/elfutils/Makefile
++++ b/package/libs/elfutils/Makefile
+@@ -86,7 +86,9 @@ TARGET_CFLAGS += \
+ 	-D_GNU_SOURCE \
+ 	-Wno-unused-result \
+ 	-Wno-format-nonliteral \
+-	-Wno-error=use-after-free
++	-Wno-error=use-after-free \
++	-Wno-maybe-uninitialized \
++	-Wno-error=maybe-uninitialized
+ 
+ define Build/InstallDev
+ 	$(INSTALL_DIR) $(1)/usr/include

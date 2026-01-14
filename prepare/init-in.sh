@@ -97,6 +97,8 @@ p "更新 Feeds"
 ./scripts/feeds install -f -a # TODO
 
 p "修复编译问题"
+p "卸载 qBittorrent-Enhanced-Edition"
+./scripts/feeds uninstall luci-app-qbittorrent qBittorrent-Enhanced-Edition
 p "修复 elfutils"
 patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch
 

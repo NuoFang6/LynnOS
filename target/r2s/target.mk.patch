@@ -10,7 +10,7 @@ index 9939658ea4..9271e54040 100644
 -    CPU_CFLAGS_generic = -mcpu=generic
 -    CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
 +    CPU_TYPE = cortex-a53
-+    CPU_CFLAGS = -O2 -pipe -fpredictive-commoning -ftree-partial-pre -fgcse-after-reload -floop-interchange -fschedule-insns -fsched-pressure -ftree-vectorize -fvect-cost-model=cheap -fdevirtualize-at-ltrans -fipa-pta -fno-plt -fno-semantic-interposition -mno-outline-atomics -fno-unwind-tables -fno-asynchronous-unwind-tables -fweb -frename-registers
++    CPU_CFLAGS = -O2 -pipe -fpredictive-commoning -ftree-partial-pre -fgcse-after-reload -floop-interchange -fschedule-insns -fsched-pressure -ftree-vectorize -fvect-cost-model=cheap -fdevirtualize-at-ltrans -mno-outline-atomics -fweb -frename-registers -fno-plt
 +    CPU_CFLAGS_generic = -mcpu=cortex-a53+crypto+crc
 +    CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53+crypto+crc
    endif

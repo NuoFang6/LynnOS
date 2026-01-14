@@ -145,37 +145,35 @@ jobs:
             make download -j$(($(nproc) + 1)) -k || true # 避免部分下载失败导致终止
             make world -j$(($(nproc) + 1))
             if [ $? -ne 0 ]; then
-              p "！！编译失败，进行单线程详细日志编译"
-              make download -j$(($(nproc) + 1)) -k || true
-              make world V=s -j1
-              if [ $? -ne 0 ]; then
-                p "！！单线程编译依然失败，结束"
-                exit 1
-              else
-                p "单线程编译成功"
-                . set_env build_success "true"
-              fi
+              p "！！编译失败"
             else
               p "编译成功"
               . set_env build_success "true"
             fi
+            tar -cf - log/ | zstd -19 -T0 > "${workdir}/log_${target}.tar.zst"
 
-            p "打包所有产物"
-            tar -cf - bin/ | zstd -19 -T0 > "${workdir}/bin_${target}.tar.zst"
-            p "打包软件包"
-            tar -C bin/ -cf - packages/ | zstd -19 -T0 > "${workdir}/packages_${target}.tar.zst"
+
+            if [ "${build_success}" == "true" ]; then
+              p "打包所有产物"
+              tar -cf - bin/ | zstd -19 -T0 > "${workdir}/bin_${target}.tar.zst"
+              p "打包软件包"
+              tar -C bin/ -cf - packages/ | zstd -19 -T0 > "${workdir}/packages_${target}.tar.zst"
+            else
+              exit 1
+            fi
           '
           p "打印剩余空间"
           df -h
 
-      - if: github.event.inputs.build == 'true' && env.build_success == 'true'
+      - if: always() && github.event.inputs.build == 'true'
         name: 上传产物文件夹
         uses: actions/upload-artifact@main
         with:
-          name: firmware
-          path: "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
+          name: output
+          path: |
+            "${{ env.workdir_out }}/log_${target}.tar.zst"
+            "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
           compression-level: 0
-          if-no-files-found: error
 
       - if: always() && github.event.inputs.needssh == 'true'
         name: SSH 临时调试

@@ -105,6 +105,8 @@ p "卸载无法编译的包"
 ./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli
 p "修复 elfutils"
 patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch
+p "修复 libbsd"
+patch -p0 < ${lynndir}/patch/libbsd/fix-libbsd-lto.patch
 
 
 
@@ -135,7 +137,7 @@ sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/comp
 # **`\$`**: 在正则表达式中 `$` 是特殊字符（表示行尾），匹配字面含义的 `$` 需要加反斜杠转义。
 # **`g`**: 表示全局替换（如果一行中出现多次则全部替换）。
 
-p "启用 LRNG" # TODO
+p "追加配置"
 echo "
 # Kernel - LRNG
 CONFIG_KERNEL_LRNG=y
@@ -143,6 +145,8 @@ CONFIG_PACKAGE_urandom-seed=n
 CONFIG_PACKAGE_urngd=n
 # Docker cgroup options
 CONFIG_DOCKER_CGROUP_OPTIONS=n
+# Log
+CONFIG_BUILD_LOG=y
 " >> .config_pending
 
 

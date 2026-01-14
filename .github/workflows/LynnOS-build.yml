@@ -150,7 +150,7 @@ jobs:
               p "编译成功"
               . set_env build_success "true"
             fi
-            tar -cf - log/ | zstd -19 -T0 > "${workdir}/log_${target}.tar.zst"
+            tar -cf - logs/ | zstd -19 -T0 > "${workdir}/logs_${target}.tar.zst"
 
 
             if [ "${build_success}" == "true" ]; then
@@ -171,7 +171,7 @@ jobs:
         with:
           name: output
           path: |
-            "${{ env.workdir_out }}/log_${target}.tar.zst"
+            "${{ env.workdir_out }}/logs_${{ env.target }}.tar.zst"
             "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
           compression-level: 0
 

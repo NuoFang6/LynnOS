@@ -109,6 +109,7 @@ jobs:
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
           key: ccache-${{ env.target }}
+          restore-keys: ccache
 
       - name: 压缩编译目录
         run: |

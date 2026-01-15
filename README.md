@@ -63,6 +63,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [ ] 兼容通用架构的包
   - [x] zram 算法
   - [ ] cake 等队列算法
+  - [ ] 使用稳定版主题
   - [ ] 本地 kmod 源
   - [ ] 每周编译
   - [ ] 在线 OTA 更新

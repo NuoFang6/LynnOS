@@ -165,14 +165,20 @@ jobs:
           p "打印剩余空间"
           df -h
 
-      - if: always() && github.event.inputs.build == 'true'
+      - if: always()
+        name: 上传日志文件夹
+        uses: actions/upload-artifact@main
+        with:
+          name: output
+          path: "${{ env.workdir_out }}/logs_${{ env.target }}.tar.zst"
+          compression-level: 0
+
+      - if: github.event.inputs.build == 'true'
         name: 上传产物文件夹
         uses: actions/upload-artifact@main
         with:
           name: output
-          path: |
-            "${{ env.workdir_out }}/logs_${{ env.target }}.tar.zst"
-            "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
+          path: "${{ env.workdir_out }}/bin_${{ env.target }}.tar.zst"
           compression-level: 0
 
       - if: always() && github.event.inputs.needssh == 'true'

@@ -17,7 +17,7 @@ on:
         required: true
       skip_max_space:
         description: "跳过最大化储存空间"
-        default: false
+        default: true
         type: boolean
         required: false
       save_ccache:

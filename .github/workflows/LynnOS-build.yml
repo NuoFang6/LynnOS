@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ env.target }}
+          key: ccache
           restore-keys: ccache
 
       - name: 压缩编译目录
@@ -170,7 +170,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ env.target }}
+          key: ccache
 
       - if: always() && github.event.inputs.build == 'true'
         name: 上传日志文件夹

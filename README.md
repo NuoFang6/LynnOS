@@ -48,25 +48,25 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
 
 ### 通用
 - [ ] 调整
-  - [ ] BBRv3
+  - [x] BBRv3
   - [ ] QUIC 参数
   - [ ] 自带默认配置
-  - [ ] LRNG
-  - [ ] irq 优化
-  - [ ] LTO 优化
-  - [ ] MOLD 链接器
-  - [ ] Kernel Preemption （Lazy）
-  - [ ] multigen_lru
-  - [ ] 300Hz
+  - [x] LRNG
+  - [x] irq 优化
+  - [x] LTO 优化
+  - [x] MOLD 链接器
+  - [x] Kernel Preemption  
+  - [x] multigen_lru
+  - [x] 300Hz
   - [ ] eBPF
   - [ ] 多种文件系统支持
   - [ ] 兼容通用架构的包
-  - [ ] zram 算法
+  - [x] zram 算法
   - [ ] cake 等队列算法
   - [ ] 本地 kmod 源
   - [ ] 每周编译
   - [ ] 在线 OTA 更新
-  - [ ] CPU 性能调节
+  - [x] CPU 性能调节
   - [ ] Nginx（quic）替换 uhttpd
   - [ ] 6.18 内核
   - ~~[ ] Vermagic 兼容~~
@@ -90,21 +90,20 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [x] 使用Cachyos优化的软件包
   - [ ] 更换镜像源
   - [ ] 更换 projectsmirrors.json 顺序
-  - [ ] 复用缓存
-  - [ ] 复用工具链
+  - [ ] 缓存
   - [ ] 并行clone
   - ~~[ ] 中文日志~~ **不兼容**
 
 
 ### [ ] 特定于 R2s  
 - [ ] 调整
-  - [ ] armv8 硬件加密扩展
-  - [ ] 针对 Cortex-A53 编译
-  - [ ] 超频
-  - [ ] 降压
+  - [x] armv8 硬件加密扩展
+  - [x] 针对 Cortex-A53 编译
+  - [x] 超频
+  - [x] 降压
   - [ ] 电压调节支持
   - [ ] btrfs 系统固件
-  - [ ] led 触发器
+  - [x] led 触发器
   - [x] 精调编译参数
   - ~~[ ] 驱动GPU~~ **没有什么用**
   - ~~[ ] 硬件随机数~~ **慢且没必要，质量也不高**
@@ -112,15 +111,15 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - ~~[ ] scx内核支持~~ **收益低**
   - ~~[ ] KVM 虚拟化~~ **应该是用不上的**
 - [ ] 软件包
-  - [ ] UA3F
-  - [ ] EasyTier
-  - [ ] rt2000
-  - [ ] zsh
-  - [ ] tcp-brutal
-  - [ ] Docker（nftables）
-  - [ ] q （DNS查询工具）
-  - [ ] 完整 vim 替换 vi
-  - [ ] Samba
+  - [x] UA3F
+  - [x] EasyTier
+  - [x] rt2000
+  - [x] zsh
+  - [x] tcp-brutal
+  - [x] podman
+  - [x] q （DNS查询工具）
+  - [x] 完整 vim
+  - [x] Samba
   - ~~[ ] qBittorrent-Enhanced-Edition~~ **编译这个极其消耗时间**
 
 ### [ ] 特定于 CMCC RAX3000M NAND

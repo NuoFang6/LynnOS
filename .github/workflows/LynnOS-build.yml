@@ -21,12 +21,12 @@ on:
         type: boolean
         required: false
       save_ccache:
-        description: "保存 ccache（可能很大）"
+        description: "保存 ccache"
         default: true
         type: boolean
         required: false
-      clean_cache:
-        description: "清理编译缓存"
+      no_cache:
+        description: "不使用编译缓存"
         default: false
         type: boolean
         required: false
@@ -55,6 +55,7 @@ jobs:
       workdir_out: ""
       target: ""
       build_success: ""
+      wrtdir: ""
 
     steps:
       - if: github.event.inputs.build == 'true' && github.event.inputs.skip_max_space == 'false'
@@ -100,20 +101,17 @@ jobs:
             make defconfig -j$(($(nproc) + 1))
           "
 
-      - name: 恢复缓存
+      - if: github.event.inputs.no_cache == 'false' && github.event.inputs.build == 'true'
+        name: 恢复缓存
         id: cache-restore
-        uses: stupidloud/cachewrtbuild@main
+        uses: actions/cache/restore@v5
         with:
-          prefix: "${{ env.workdir_out }}/immortalwrt"
-          mixkey: "${{ env.target }}"
-          ccache: "${{ github.event.inputs.save_ccache }}"
-          toolchain: "true"
-          clean: "${{ github.event.inputs.clean_cache }}"
-          skip_saving: "${{ github.event.inputs.skip_saving_cache }}"
+          path: ${{ env.workdir_out }}/immortalwrt/.ccache
+          key: ccache-${{ env.target }}
 
       - name: 压缩编译目录
         run: |
-          if [ '${{ steps.cache-restore.outputs.hit }}' == '1' ]; then
+          if [ '${{ steps.cache-restore.outputs.cache-hit }}' == 'true' ]; then
             p "缓存命中"
           else
             p "未命中缓存"
@@ -164,6 +162,13 @@ jobs:
           '
           p "打印剩余空间"
           df -h
+
+      - if: always() && github.event.inputs.build == 'true' && github.event.inputs.save_ccache == 'true' && github.event.inputs.skip_saving_cache == 'false'
+        name: 保存缓存
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ env.workdir_out }}/immortalwrt/.ccache
+          key: ccache-${{ env.target }}
 
       - if: always() && github.event.inputs.build == 'true'
         name: 上传日志文件夹

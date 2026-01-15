@@ -21,6 +21,6 @@ sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-file
 
 
 p "修改内核配置" # make kernel_nconfig CONFIG_TARGET=target、subtarget、env
-cat ${targetdir}/kernel.config | tee -a "./target/linux/rockchip/armv8/config-${linux_version}" "./target/linux/generic/config-${linux_version}" > /dev/null
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "cat ${targetdir}/kernel.config | tee -a {} > /dev/null"
 
 echo "结束"

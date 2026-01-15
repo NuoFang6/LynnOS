@@ -136,7 +136,11 @@ sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/comp
 # **`g`**: 表示全局替换（如果一行中出现多次则全部替换）。
 
 p "复制 lrng 补丁"
-cp -rf patch/lrng/* ./target/linux/generic/hack-${linux_version}/
+cp -rf ${lynndir}/patch/lrng/* ./target/linux/generic/hack-${linux_version}/
+p "复制 mac80211 补丁"
+cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
+p "复制 tcp-collapse 补丁"
+cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_version}/
 
 p "追加配置"
 echo "
@@ -152,7 +156,7 @@ CONFIG_BUILD_LOG=y
 
 " >> .config_pending
 
-echo '
+CONFIG_CONTENT='
 CONFIG_CPU_IDLE_GOV_MENU=n
 CONFIG_CPU_IDLE_GOV_TEO=y
 
@@ -164,6 +168,18 @@ CONFIG_TCP_CONG_BBR=y
 CONFIG_HZ=300
 CONFIG_HZ_250=n
 CONFIG_HZ_300=y
+
+CONFIG_PREEMPT=y
+CONFIG_PREEMPTION=y
+CONFIG_PREEMPT_BUILD=y
+CONFIG_PREEMPT_COUNT=y
+# CONFIG_PREEMPT_NONE is not set
+CONFIG_PREEMPT_RCU=y
+CONFIG_TOOLS_SUPPORT_RELR=y
+CONFIG_UNINLINE_SPIN_UNLOCK=y
+
+CONFIG_LRU_GEN=y
+CONFIG_LRU_GEN_ENABLED=y
 
 # LRNG
 CONFIG_RANDOM_DEFAULT_IMPL=n
@@ -225,7 +241,8 @@ CONFIG_LRNG_RANDOM_IF=y
 CONFIG_LRNG_SYSCTL=y
 CONFIG_LRNG_TIMER_COMMON=y
 
-' >>./target/linux/generic/config-${linux_version}
+'
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
 
 # p "Vermagic 内核模块兼容" # 没有什么用
 # # wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json
@@ -236,12 +253,6 @@ CONFIG_LRNG_TIMER_COMMON=y
 # rm -f profiles.json
 
 
-# p "修复缺失的必要内核参数"
-# sed -i 's/^CONFIG_FRAME_WARN=.*/# &/' ./target/linux/generic/config-filter
-# CONFIG_CONTENT='
-# CONFIG_FRAME_WARN=2048
-# '
-# find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
 
 p "复制自定义文件目录"
 cp -rf ${lynndir}/files ./

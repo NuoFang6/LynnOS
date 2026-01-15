@@ -178,11 +178,11 @@ p "d 命令已可用"
 d paru --noconfirm -S ack antlr3
 
 p "安装 zstd 到宿主机"
-d "cp /usr/sbin/zstd /usr/local/bin_host/"
-chmod +x "${bin_host}/zstd"
+d "cp -rf /usr/sbin/zstd* /usr/local/bin_host/"
+chmod +x "${bin_host}/zstd*"
 p "安装 less 到宿主机"
-d "cp /usr/bin/less /usr/local/bin_host/"
-chmod +x "${bin_host}/less"
+d "cp -rf /usr/sbin/less* /usr/local/bin_host/"
+chmod +x "${bin_host}/less*"
 
 p "复制仓库到容器内 ${lynndir}"
 cp -r $GITHUB_WORKSPACE ${workdir_out}/lynnos

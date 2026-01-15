@@ -99,6 +99,7 @@ jobs:
             cat .config_pending | tee -a .config
             p "展开配置"
             make defconfig -j$(($(nproc) + 1))
+            rm -rf .ccache || true
           "
 
       - if: github.event.inputs.no_cache == 'false' && github.event.inputs.build == 'true'

@@ -121,7 +121,7 @@ jobs:
           fi
 
           d '
-            tree ${wrtdir}/.ccache || true
+            tree -L 1 ${wrtdir}/.ccache || true
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
             tar -cf - --exclude="$(basename ${wrtdir})/.ccache" $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst

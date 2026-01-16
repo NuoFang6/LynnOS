@@ -10,6 +10,7 @@ on:
         required: true
         options:
           - r2s
+          - rax3000
       build:
         description: "编译固件"
         default: true

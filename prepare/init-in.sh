@@ -152,7 +152,12 @@ CONFIG_PACKAGE_urngd=n
 CONFIG_DOCKER_CGROUP_OPTIONS=n
 
 # Log
+CONFIG_DEVEL=y
 CONFIG_BUILD_LOG=y
+CONFIG_BUILD_LOG_DIR="./logs"
+
+# Enable ccache
+CONFIG_CCACHE=y
 
 " >> .config_pending
 

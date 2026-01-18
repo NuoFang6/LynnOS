@@ -137,8 +137,8 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache
-          restore-keys: ccache
+          key: ccache-${{ env.immortalwrt_branch }}-${{ hashFiles('/mnt/ci/immortalwrt/.config') }}
+          restore-keys: ccache-${{ env.immortalwrt_branch }}
 
       - if: github.event.inputs.build == 'true'
         name: 开始编译：${{ env.target }}
@@ -183,7 +183,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ hashFiles('/mnt/ci/immortalwrt/.config') }}
+          key: ccache-${{ env.immortalwrt_branch }}-${{ hashFiles('/mnt/ci/immortalwrt/.config') }}
 
       - if: always() && github.event.inputs.build == 'true'
         name: 上传日志文件夹

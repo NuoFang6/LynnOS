@@ -114,7 +114,7 @@ jobs:
             p "展开配置"
             make defconfig -j$(($(nproc) + 1))
 
-            . set_env config_hash $(sha256sum .config | head -c 6)
+            . set_env config_hash $(sha256sum "$(pwd)/.config" | head -c 6)
           "
 
       - name: 压缩编译目录

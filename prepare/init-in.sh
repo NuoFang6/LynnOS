@@ -92,7 +92,7 @@ p "卸载 qBittorrent-Enhanced-Edition"
 p "卸载无法下载的包"
 ./scripts/feeds uninstall aic8800 || true
 p "卸载无法编译的包"
-./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli exim luci-app-radicale python-zope-event python-zope-interface || true
+./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli exim luci-app-radicale python-zope-event python-zope-interface python-gevent python-twisted || true
 p "修复 elfutils"
 patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch || true
 

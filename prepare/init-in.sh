@@ -121,7 +121,7 @@ p "BBRv3"
     rm -rf ./bbrv3
 p "复制 lrng 补丁"
     cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
-    cp -rf ${lynndir}/patch/lrng/6.18/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ${lynndir}/patch/lrng/6.12/* ./target/linux/generic/hack-${linux_version}/
 p "复制 mac80211 补丁"
     cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
 p "复制 tcp-collapse 补丁"

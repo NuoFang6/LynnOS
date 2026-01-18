@@ -23,7 +23,13 @@ sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 p "克隆 immortalwrt 到 ${workdir}/immortalwrt"
 . set_env "wrtdir" "${workdir}/immortalwrt"
 umask 0022
-clone ${immortalwrt_branch} https://github.com/immortalwrt/immortalwrt ${wrtdir}
+if [ ${immortalwrt_branch} == "MTK2410" ]; then
+    p "使用MTK优化分支"
+    clone "openwrt-24.10-6.6" https://github.com/padavanonly/immortalwrt-mt798x-6.6.git ${wrtdir}
+else
+    p "使用 immortalwrt ${immortalwrt_branch}"
+    clone ${immortalwrt_branch} https://github.com/immortalwrt/immortalwrt ${wrtdir}
+fi
 pushd ${wrtdir}
 git config core.filemode false # 忽略权限变更
 popd
@@ -38,22 +44,8 @@ p "进入编译目录 ${wrtdir}"
 cd ${wrtdir}
 
 
-p "检查内核版本"
-# 定义预期的内核版本
-SUPPORTED_KERNEL="6.12"
-current_version=$(sed -n 's/^KERNEL_PATCHVER:=//p' ./target/linux/rockchip/Makefile) # 如 6.12
-if [ -z "${current_version}" ]; then
-    echo "Error: Failed to extract KERNEL_PATCHVER from ./target/linux/rockchip/Makefile"
-    exit 1
-fi
-if [[ "${SUPPORTED_KERNEL}" != "${current_version}" ]]; then
-    echo "##########
-      错误：
-      编译的内核版本为 ${current_version} ，
-      预期的版本为 ${SUPPORTED_KERNEL}
-    ##########"
-    exit 1
-fi
+p "获取内核版本"
+current_version=$(sed -n 's/^KERNEL_PATCHVER:=//p' ./target/linux/mediatek/Makefile)
 . set_env "linux_version" "${current_version}"
 
 
@@ -73,7 +65,6 @@ clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
 wait && sync
 popd
 sed -i "1isrc-link add ${wrtdir}/package/add" feeds.conf.default # 这里一定要用绝对路径；将包含自定义订阅源的行移动到标准订阅源上方，即可覆盖标准订阅源
-sed -i "1isrc-git mtk_openwrt_feed https://git01.mediatek.com/openwrt/feeds/mtk-openwrt-feeds" feeds.conf.default
 # -i: 表示直接修改文件（in-place）。
 # 1i: 表示在第 1 行之前插入（insert）。
 
@@ -97,22 +88,43 @@ p "更新 Feeds"
 
 p "修复编译问题"
 p "卸载 qBittorrent-Enhanced-Edition"
-./scripts/feeds uninstall luci-app-qbittorrent qBittorrent-Enhanced-Edition
+./scripts/feeds uninstall luci-app-qbittorrent qBittorrent-Enhanced-Edition || true
 p "卸载无法下载的包"
-./scripts/feeds uninstall aic8800
+./scripts/feeds uninstall aic8800 || true
 p "卸载无法编译的包"
-./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli
+./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli || true
 p "修复 elfutils"
-patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch
+patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch || true
 
 
 
 
 p "应用自定义修改"
+if [ ${current_version} == "6.6" ]; then
+clone "24.10" https://github.com/QiuSimons/YAOF.git ./YAOF
 p "BBRv3"
-clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
-cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
-rm -rf ./bbrv3
+    cp -rf ./YAOF/PATCH/kernel/bbr3/* ./target/linux/generic/hack-${linux_version}/
+p "复制 lrng 补丁"
+    cp -rf ./YAOF/PATCH/kernel/lrng/* ./target/linux/generic/hack-${linux_version}/
+p "其它补丁"
+    cp -rf ./YAOF/PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ./YAOF/PATCH/kernel/6.7_FQ_packet_scheduling/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ./YAOF/PATCH/kernel/6.8_Better_data_locality_in_networking_fast_paths-bp_but_put_in_hack/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ./YAOF/PATCH/kernel/6.8_Boost_TCP_Performance_For_Many_Concurrent_Connections-bp_but_put_in_hack/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ./YAOF/PATCH/kernel/arm/* ./target/linux/generic/hack-${linux_version}/
+rm -rf ./YAOF
+else
+p "BBRv3"
+    clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
+    cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
+    rm -rf ./bbrv3
+p "复制 lrng 补丁"
+    cp -rf ${lynndir}/patch/lrng/* ./target/linux/generic/hack-${linux_version}/
+p "复制 mac80211 补丁"
+    cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
+p "复制 tcp-collapse 补丁"
+    cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_version}/
+fi
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
@@ -132,20 +144,7 @@ sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/comp
 # **`-i`**: 表示直接修改文件内容（In-place edit）。
 # **`s|...|...|`**: 使用 `|` 作为分隔符，格式为 `s|旧字符串|新字符串|`。
 # **`\$`**: 在正则表达式中 `$` 是特殊字符（表示行尾），匹配字面含义的 `$` 需要加反斜杠转义。
-# **`g`**: 表示全局替换（如果一行中出现多次则全部替换）。
-
-p "复制 lrng 补丁"
-cp -rf ${lynndir}/patch/lrng/* ./target/linux/generic/hack-${linux_version}/
-p "复制 mac80211 补丁"
-cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
-p "复制 tcp-collapse 补丁"
-cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_version}/
-
-
-p "mtk-openwrt-feed"
-cp -af ./feeds/mtk_openwrt_feed/25.12/files/* .
-for file in $(find ./feeds/mtk_openwrt_feed/25.12/patches-base -name "*.patch" | sort); do patch -f -p1 -i ${file}; done
-
+# **`g`**: 表示全局替换（如果一行中出现多次则全部替换）
 
 
 p "追加配置"

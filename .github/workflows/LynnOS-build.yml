@@ -84,7 +84,19 @@ jobs:
         run: |
           d '
             . set_env target "${{ github.event.inputs.target }}"
-            . set_env immortalwrt_branch "${{ env.immortalwrt_branch }}"
+            case "$target" in
+              r2s)
+                . set_env immortalwrt_branch "master"
+                ;;
+              rax3000)
+                . set_env immortalwrt_branch "MTK2410"
+                ;;
+              *)
+                p "未知的 target: $target"
+                exit 1
+                ;;
+            esac
+            
             . set_env targetdir "${lynndir}/target/${target}"
           '
 
@@ -100,32 +112,15 @@ jobs:
             cat .config_pending | tee -a .config
             p "展开配置"
             make defconfig -j$(($(nproc) + 1))
-            rm -rf .ccache || true
           "
-
-      - if: github.event.inputs.no_cache == 'false' && github.event.inputs.build == 'true'
-        name: 恢复缓存
-        id: cache-restore
-        uses: actions/cache/restore@v5
-        with:
-          path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache
-          restore-keys: ccache
 
       - name: 压缩编译目录
         run: |
-          if [ '${{ steps.cache-restore.outputs.cache-hit }}' == 'true' ]; then
-            p "缓存命中"
-          else
-            p "未命中缓存"
-          fi
-
           d '
-            tree -L 1 ${wrtdir}/.ccache || true
             cd ${workdir}
             cp -r ${lynndir} ${wrtdir}/
-            tar -cf - --exclude="$(basename ${wrtdir})/.ccache" $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst
-            # 效率-3 均衡-15 适度-16 最大-19 极限--ultra -22
+            rm -rf ${wrtdir}/.ccache || true
+            tar -cf - $(basename ${wrtdir})/ | zstd -19 -T0 > wrt_end.tar.zst # 效率-3 均衡-15 适度-16 最大-19 极限--ultra -22
             rm -rf ${wrtdir}/$(basename ${lynndir})
           '
 
@@ -136,11 +131,27 @@ jobs:
           path: "${{ env.workdir_out }}/wrt_end.tar.zst"
           compression-level: 0
 
+      - if: github.event.inputs.no_cache == 'false' && github.event.inputs.build == 'true'
+        name: 恢复缓存
+        id: cache-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ env.workdir_out }}/immortalwrt/.ccache
+          key: ccache
+          restore-keys: ccache
+
       - if: github.event.inputs.build == 'true'
         name: 开始编译：${{ env.target }}
         run: |
+          if [ '${{ steps.cache-restore.outputs.cache-hit }}' == 'true' ]; then
+            p "缓存命中"
+          else
+            p "未命中缓存"
+          fi
+
           d '
             rm -f ${workdir}/wrt_end.tar.zst
+            tree -L 1 ${wrtdir}/.ccache || true
 
             cd ${wrtdir}
             p "开始编译"

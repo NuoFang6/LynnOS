@@ -57,6 +57,7 @@ jobs:
       target: ""
       build_success: ""
       wrtdir: ""
+      config_hash: ""
 
     steps:
       - if: github.event.inputs.build == 'true' && github.event.inputs.skip_max_space == 'false'
@@ -112,6 +113,8 @@ jobs:
             cat .config_pending | tee -a .config
             p "展开配置"
             make defconfig -j$(($(nproc) + 1))
+
+            . set_env config_hash $(sha256sum .config | head -c 6)
           "
 
       - name: 压缩编译目录
@@ -137,7 +140,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ env.immortalwrt_branch }}-${{ hashFiles('/mnt/ci/immortalwrt/.config') }}
+          key: ccache-${{ env.immortalwrt_branch }}-${{ env.config_hash }}
           restore-keys: ccache-${{ env.immortalwrt_branch }}
 
       - if: github.event.inputs.build == 'true'
@@ -183,7 +186,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ env.immortalwrt_branch }}-${{ hashFiles('/mnt/ci/immortalwrt/.config') }}
+          key: ccache-${{ env.immortalwrt_branch }}-${{ env.config_hash }}
 
       - if: always() && github.event.inputs.build == 'true'
         name: 上传日志文件夹

@@ -1,0 +1,40 @@
+diff --git a/package/mtk/drivers/warp/src/wed.c b/package/mtk/drivers/warp/src/wed.c
+index 0b834388f5..d5c5fd4c28 100644
+--- a/package/mtk/drivers/warp/src/wed.c
++++ b/package/mtk/drivers/warp/src/wed.c
+@@ -900,7 +900,7 @@ wed_proc_handle(struct wed_entry *wed, char choice, char *arg)
+ #ifdef WED_DYNAMIC_TXBM_SUPPORT
+ 	case WED_PROC_TX_DYNAMIC_ALLOC: {
+ 		if(IS_WED_HW_CAP(wed, WED_HW_CAP_DYN_TXBM))
+-			buf_alloc_task((unsigned long)wed);
++			buf_alloc_task(wed);
+ 		else
+ 			warp_dbg(WARP_DBG_ERR, "DYBM is not enabled!\n");
+ 	}
+@@ -908,7 +908,7 @@ wed_proc_handle(struct wed_entry *wed, char choice, char *arg)
+ 
+ 	case WED_PROC_TX_DYNAMIC_FREE: {
+ 		if(IS_WED_HW_CAP(wed, WED_HW_CAP_DYN_TXBM))
+-			buf_free_task((unsigned long)wed);
++			buf_free_task(wed);
+ 		else
+ 			warp_dbg(WARP_DBG_ERR, "DYBM is not enabled!\n");
+ 	}
+@@ -917,7 +917,7 @@ wed_proc_handle(struct wed_entry *wed, char choice, char *arg)
+ #ifdef WED_DYNAMIC_RXBM_SUPPORT
+ 	case WED_PROC_RX_DYNAMIC_ALLOC: {
+ 		if(IS_WED_HW_CAP(wed, WED_HW_CAP_DYN_RXBM))
+-			rxbm_alloc_handler((unsigned long)wed);
++			rxbm_alloc_handler(wed);
+ 		else
+ 			warp_dbg(WARP_DBG_ERR, "DYBM is not enabled!\n");
+ 	}
+@@ -925,7 +925,7 @@ wed_proc_handle(struct wed_entry *wed, char choice, char *arg)
+ 
+ 	case WED_PROC_RX_DYNAMIC_FREE: {
+ 		if(IS_WED_HW_CAP(wed, WED_HW_CAP_DYN_RXBM))
+-			rxbm_recycle_handler((unsigned long)wed);
++			rxbm_recycle_handler(wed);
+ 		else
+ 			warp_dbg(WARP_DBG_ERR, "DYBM is not enabled!\n");
+ 	}

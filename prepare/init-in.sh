@@ -143,8 +143,8 @@ cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_versi
 
 
 p "mtk-openwrt-feed"
-cp -af ./feeds/mtk_openwrt_feed/master/files/* .
-for file in $(find ./feeds/mtk_openwrt_feed/master/patches-base -name "*.patch" | sort); do patch -f -p1 -i ${file}; done
+cp -af ./feeds/mtk_openwrt_feed/25.12/files/* .
+for file in $(find ./feeds/mtk_openwrt_feed/25.12/patches-base -name "*.patch" | sort); do patch -f -p1 -i ${file}; done
 
 
 

@@ -106,7 +106,7 @@ jobs:
 
       - name: 准备编译目标设备 （prepare.sh）
         run: |
-          d "
+          d '
             cd ${wrtdir}
             bash ${lynndir}/target/${target}/prepare.sh
             p "追加配置"
@@ -114,8 +114,8 @@ jobs:
             p "展开配置"
             make defconfig -j$(($(nproc) + 1))
 
-            . set_env config_hash $(sha256sum "$(pwd)/.config" | head -c 6)
-          "
+            . set_env config_hash "$(sha256sum $(pwd)/.config | head -c 6)"
+          '
 
       - name: 压缩编译目录
         run: |

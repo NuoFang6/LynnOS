@@ -105,7 +105,8 @@ clone "24.10" https://github.com/QiuSimons/YAOF.git ./YAOF
 p "BBRv3"
     cp -rf ./YAOF/PATCH/kernel/bbr3/* ./target/linux/generic/hack-${linux_version}/
 p "复制 lrng 补丁"
-    cp -rf ./YAOF/PATCH/kernel/lrng/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ${lynndir}/patch/lrng/6.6/* ./target/linux/generic/hack-${linux_version}/
 p "其它补丁"
     cp -rf ./YAOF/PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/hack-${linux_version}/
     cp -rf ./YAOF/PATCH/kernel/6.7_FQ_packet_scheduling/* ./target/linux/generic/hack-${linux_version}/
@@ -119,7 +120,8 @@ p "BBRv3"
     cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
     rm -rf ./bbrv3
 p "复制 lrng 补丁"
-    cp -rf ${lynndir}/patch/lrng/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
+    cp -rf ${lynndir}/patch/lrng/6.18/* ./target/linux/generic/hack-${linux_version}/
 p "复制 mac80211 补丁"
     cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
 p "复制 tcp-collapse 补丁"

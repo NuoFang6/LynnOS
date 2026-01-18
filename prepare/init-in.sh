@@ -92,7 +92,7 @@ p "卸载 qBittorrent-Enhanced-Edition"
 p "卸载无法下载的包"
 ./scripts/feeds uninstall aic8800 || true
 p "卸载无法编译的包"
-./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli || true
+./scripts/feeds uninstall luci-app-advanced-reboot onionshare-cli exim luci-app-radicale python-zope-event python-zope-interface || true
 p "修复 elfutils"
 patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch || true
 
@@ -145,6 +145,9 @@ sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/comp
 # **`s|...|...|`**: 使用 `|` 作为分隔符，格式为 `s|旧字符串|新字符串|`。
 # **`\$`**: 在正则表达式中 `$` 是特殊字符（表示行尾），匹配字面含义的 `$` 需要加反斜杠转义。
 # **`g`**: 表示全局替换（如果一行中出现多次则全部替换）
+
+p "默认开启 Irqbalance"
+sed -i "s/enabled '0'/enabled '1'/g" ./feeds/packages/utils/irqbalance/files/irqbalance.config
 
 
 p "追加配置"

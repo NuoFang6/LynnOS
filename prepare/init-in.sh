@@ -73,10 +73,9 @@ clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
 wait && sync
 popd
 sed -i "1isrc-link add ${wrtdir}/package/add" feeds.conf.default # 这里一定要用绝对路径；将包含自定义订阅源的行移动到标准订阅源上方，即可覆盖标准订阅源
+sed -i "1isrc-git mtk_openwrt_feed https://git01.mediatek.com/openwrt/feeds/mtk-openwrt-feeds" feeds.conf.default
 # -i: 表示直接修改文件（in-place）。
 # 1i: 表示在第 1 行之前插入（insert）。
-
-
 
 p "下载其他仓库"
 # clone master https://github.com/sundaqiang/openwrt-packages.git ./add/openwrt-packages &
@@ -141,6 +140,13 @@ p "复制 mac80211 补丁"
 cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
 p "复制 tcp-collapse 补丁"
 cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_version}/
+
+
+p "mtk-openwrt-feed"
+cp -af ./feeds/mtk_openwrt_feed/master/files/* .
+for file in $(find ./feeds/mtk_openwrt_feed/master/patches-base -name "*.patch" | sort); do patch -f -p1 -i ${file}; done
+
+
 
 p "追加配置"
 echo "

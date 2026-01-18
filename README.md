@@ -125,9 +125,14 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
 
 ### [ ] 特定于 CMCC RAX3000M NAND
 - [ ] 调整
+  - [ ] 坏块处理
   - [ ] web 救砖界面
-  - [ ] 储存布局
-  - [ ] 闭源驱动
+  - [ ] 调整储存布局
+  - [ ] 有线闭源驱动
+  - [ ] 闭源wifi
+  - [ ] 提高最大wifi功率
+  - [ ] mtwifi原厂无线驱动
+  - [ ] 超频内存
   - [ ] 硬件卸载
   - TODO
 

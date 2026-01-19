@@ -114,8 +114,6 @@ p "其它补丁"
     cp -rf ./YAOF/PATCH/kernel/6.8_Boost_TCP_Performance_For_Many_Concurrent_Connections-bp_but_put_in_hack/* ./target/linux/generic/hack-${linux_version}/
     cp -rf ./YAOF/PATCH/kernel/arm/* ./target/linux/generic/hack-${linux_version}/
 rm -rf ./YAOF
-p "修复代码"
-    patch -p1 < ${lynndir}/patch/mtk_openwrt_feed/fix-wed-c-pointer-cast.patch
 else
 p "BBRv3"
     clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3

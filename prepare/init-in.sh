@@ -110,6 +110,8 @@ p "复制 lrng 补丁"
 rm -rf ./YAOF
 p "修复代码"
     patch -p1 < ${lynndir}/patch/mtk_openwrt_feed/fix-wed-c-pointer-cast.patch
+p "启用erofs，强制使用lz4hc压缩算法"
+    patch -p1 < ${lynndir}/patch/erofs/2410-add-erofs.patch
 else
 p "BBRv3"
     clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
@@ -136,9 +138,9 @@ patch -p1 <${lynndir}/patch/fw4/0004-luci-add-firewall-add-custom-nft-rule-suppo
 popd
 
 
-p "SquashFS 支持 Zstd 和 LZ4"
-patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
-sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/compile \$(curdir)/lz4/compile|' ./tools/Makefile
+# p "SquashFS 支持 Zstd 和 LZ4"
+# patch -p1 <${lynndir}/patch/squashfs/squashfs4_add_zstd_lz4_support.patch
+# sed -i 's|^\$(curdir)/squashfs4/compile :=.*zlib/compile$|& \$(curdir)/zstd/compile \$(curdir)/lz4/compile|' ./tools/Makefile
 # 这里的 `&` 代表匹配到的原始字符串。
 # **`-i`**: 表示直接修改文件内容（In-place edit）。
 # **`s|...|...|`**: 使用 `|` 作为分隔符，格式为 `s|旧字符串|新字符串|`。

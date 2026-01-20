@@ -1,0 +1,332 @@
+From 9ece943540185d4f7b661129005e2417355b2526 Mon Sep 17 00:00:00 2001
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+Date: Thu, 26 Jun 2025 01:14:32 +0800
+Subject: [PATCH 1/2] tools: add erofs-utils
+
+Add erofs-utils to create an EROFS-based rootfs for image generation.
+
+Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Link: https://github.com/openwrt/openwrt/pull/19244
+Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
+---
+ tools/Makefile             |  2 ++
+ tools/erofs-utils/Makefile | 40 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+ create mode 100644 tools/erofs-utils/Makefile
+
+diff --git a/tools/Makefile b/tools/Makefile
+index 1776f6459265fa..c2b36361a42d02 100644
+--- a/tools/Makefile
++++ b/tools/Makefile
+@@ -40,6 +40,7 @@ tools-y += cpio
+ tools-y += dosfstools
+ tools-y += e2fsprogs
+ tools-y += elfutils
++tools-y += erofs-utils
+ tools-y += expat
+ tools-y += fakeroot
+ tools-y += findutils
+@@ -99,6 +100,7 @@ $(curdir)/cmake/compile += $(curdir)/libressl/compile $(curdir)/ninja/compile $(
+ $(curdir)/dosfstools/compile := $(curdir)/automake/compile
+ $(curdir)/e2fsprogs/compile := $(curdir)/libtool/compile $(curdir)/util-linux/compile
+ $(curdir)/elfutils/compile := $(curdir)/m4/compile $(curdir)/zlib/compile $(curdir)/gnulib/compile $(curdir)/libtool/compile
++$(curdir)/erofs-utils/compile := $(curdir)/libtool/compile $(curdir)/xz/compile $(curdir)/lz4/compile $(curdir)/util-linux/compile
+ $(curdir)/fakeroot/compile := $(curdir)/libtool/compile
+ $(curdir)/findutils/compile := $(curdir)/bison/compile
+ $(curdir)/firmware-utils/compile += $(curdir)/cmake/compile
+diff --git a/tools/erofs-utils/Makefile b/tools/erofs-utils/Makefile
+new file mode 100644
+index 00000000000000..e25f2f8409c90f
+--- /dev/null
++++ b/tools/erofs-utils/Makefile
+@@ -0,0 +1,40 @@
++#
++# Copyright (C) 2009-2025 OpenWrt.org
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=erofs-utils
++PKG_VERSION:=1.8.9
++PKG_RELEASE:=1
++
++PKG_SOURCE_PROTO:=git
++PKG_SOURCE_URL=https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git
++PKG_MIRROR_HASH:=feab7386de6faf11cb29af5bfa240ea119b14bfd66c14d80de0509c1ab16dcc6
++PKG_SOURCE_DATE:=2025-06-26
++PKG_SOURCE_VERSION:=81169bf3cfd26b8f2b3aa3b20da23971168a90a9
++
++PKG_FIXUP:=autoreconf
++
++include $(INCLUDE_DIR)/host-build.mk
++
++HOST_CONFIGURE_ARGS=\
++	--enable-multithreading \
++	--enable-lzma \
++	--enable-lz4 \
++	--disable-fuse \
++	--with-uuid
++
++define Host/Install
++	$(INSTALL_BIN) $(HOST_BUILD_DIR)/mkfs/mkfs.erofs $(STAGING_DIR_HOST)/bin/
++	$(INSTALL_BIN) $(HOST_BUILD_DIR)/fsck/fsck.erofs $(STAGING_DIR_HOST)/bin/
++endef
++
++define Host/Clean
++	rm -f $(STAGING_DIR_HOST)/bin/mkfs.erofs
++	rm -f $(STAGING_DIR_HOST)/bin/fsck.erofs
++endef
++
++$(eval $(call HostBuild))
+
+From f7fa414d3b4d967a7e40b162977f48e1be430c1c Mon Sep 17 00:00:00 2001
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+Date: Thu, 26 Jun 2025 01:45:22 +0800
+Subject: [PATCH 2/2] image: add support for EROFS rootfs image generation
+
+Add support for generating EROFS rootfs images.
+
+The EROFS filesystem can offer competitive I/O performance while
+minimizing final image size when using the MicroLZMA compressor.
+
+Target platform: linux-x86_generic (target-i386_pentium4_musl)
+
+Filesystem     Image Size
+=============  ==========
+root.erofs     4882432
+root.ext4      109051904
+root.squashfs  4903302
+
+Co-Developed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Link: https://github.com/openwrt/openwrt/pull/19244
+Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
+---
+ config/Config-build.in           |  1 +
+ config/Config-images.in          | 17 +++++++++++++++++
+ config/Config-kernel.in          | 27 +++++++++++++++++++++++++++
+ include/image.mk                 | 17 +++++++++++++++++
+ scripts/target-metadata.pl       |  1 +
+ target/Config.in                 |  3 +++
+ target/linux/generic/config-6.12 | 11 +++++++++++
+ target/linux/generic/config-6.6  |  9 +++++++++
+ 8 files changed, 86 insertions(+)
+
+diff --git a/config/Config-build.in b/config/Config-build.in
+index 822073d61c2bcd..42b353ecf727ae 100644
+--- a/config/Config-build.in
++++ b/config/Config-build.in
+@@ -384,6 +384,7 @@ menu "Global build settings"
+ 	config TARGET_ROOTFS_SECURITY_LABELS
+ 		bool
+ 		select KERNEL_SQUASHFS_XATTR
++		select KERNEL_EROFS_FS_SECURITY
+ 		select KERNEL_EXT4_FS_SECURITY
+ 		select KERNEL_F2FS_FS_SECURITY
+ 		select KERNEL_UBIFS_FS_SECURITY
+diff --git a/config/Config-images.in b/config/Config-images.in
+index 21ce0b8d28e4f7..05476dac77edb6 100644
+--- a/config/Config-images.in
++++ b/config/Config-images.in
+@@ -87,6 +87,23 @@ menu "Target Images"
+ 
+ 	comment "Root filesystem images"
+ 
++	menuconfig TARGET_ROOTFS_EROFS
++		bool "erofs"
++		default y if USES_EROFS
++		select KERNEL_EROFS_FS
++		help
++		  Build a EROFS root filesystem.
++
++		config TARGET_EROFS_PCLUSTER_SIZE
++			int "physical cluster size (in KiB)"
++			depends on TARGET_ROOTFS_EROFS
++			default 64 if LOW_MEMORY_FOOTPRINT
++			default 1024 if (SMALL_FLASH && !LOW_MEMORY_FOOTPRINT)
++			default 256
++			help
++			  Specify the EROFS physical cluster size (must be equal
++			  to or a multiple of the filesystem block size).
++
+ 	menuconfig TARGET_ROOTFS_EXT4FS
+ 		bool "ext4"
+ 		default y if USES_EXT4
+diff --git a/config/Config-kernel.in b/config/Config-kernel.in
+index 57d693ce49b5f2..86a7804f96ac91 100644
+--- a/config/Config-kernel.in
++++ b/config/Config-kernel.in
+@@ -1278,6 +1278,23 @@ config KERNEL_BTRFS_FS
+ 	  Say Y here if you want to make the kernel to be able to boot off a
+ 	  BTRFS partition.
+ 
++config KERNEL_EROFS_FS
++	bool "Compile the kernel with built-in EROFS support"
++	help
++	  Say Y here if you want to make the kernel to be able to boot off a
++	  EROFS partition.
++
++config KERNEL_EROFS_FS_XATTR
++	bool "EROFS XATTR support"
++
++config KERNEL_EROFS_FS_ZIP
++	bool
++	default y if KERNEL_EROFS_FS
++
++config KERNEL_EROFS_FS_ZIP_LZMA
++	bool
++	default y if KERNEL_EROFS_FS
++
+ menu "Filesystem ACL and attr support options"
+ 	config USE_FS_ACL_ATTR
+ 		bool "Use filesystem ACL and attr support by default"
+@@ -1298,6 +1315,11 @@ menu "Filesystem ACL and attr support options"
+ 		select KERNEL_FS_POSIX_ACL
+ 		default y if USE_FS_ACL_ATTR
+ 
++	config KERNEL_EROFS_FS_POSIX_ACL
++		bool "Enable POSIX ACL for EROFS Filesystems"
++		select KERNEL_FS_POSIX_ACL
++		default y if USE_FS_ACL_ATTR
++
+ 	config KERNEL_EXT4_FS_POSIX_ACL
+ 		bool "Enable POSIX ACL for Ext4 Filesystems"
+ 		select KERNEL_FS_POSIX_ACL
+@@ -1440,6 +1462,11 @@ config KERNEL_LSM
+ 	default "lockdown,yama,loadpin,safesetid,integrity,selinux"
+ 	depends on KERNEL_SECURITY_SELINUX
+ 
++config KERNEL_EROFS_FS_SECURITY
++	bool "EROFS Security Labels"
++	default y if !SMALL_FLASH
++	select KERNEL_EROFS_FS_XATTR
++
+ config KERNEL_EXT4_FS_SECURITY
+ 	bool "Ext4 Security Labels"
+ 	default y if !SMALL_FLASH
+diff --git a/include/image.mk b/include/image.mk
+index 2eca62a6643ae6..262edd79d4eb1d 100644
+--- a/include/image.mk
++++ b/include/image.mk
+@@ -99,11 +99,22 @@ endif
+ 
+ JFFS2_BLOCKSIZE ?= 64k 128k
+ 
++EROFS_PCLUSTERSIZE := $(shell echo $$(($(CONFIG_TARGET_EROFS_PCLUSTER_SIZE)*1024)))
++EROFSOPT := -C$(EROFS_PCLUSTERSIZE)
++EROFSOPT += -Efragments,dedupe,ztailpacking -Uclear --all-root
++EROFSOPT += $(if $(SOURCE_DATE_EPOCH),-T$(SOURCE_DATE_EPOCH) --ignore-mtime)
++EROFSOPT += $(if $(CONFIG_SELINUX),,-x-1)
++EROFSCOMP := lz4hc,12
++# ifeq ($(CONFIG_EROFS_FS_ZIP_LZMA),y)
++# EROFSCOMP := lzma,109
++# endif
++
+ fs-types-$(CONFIG_TARGET_ROOTFS_SQUASHFS) += squashfs
+ fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addprefix jffs2-,$(JFFS2_BLOCKSIZE))
+ fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2_NAND) += $(addprefix jffs2-nand-,$(NAND_BLOCKSIZE))
+ fs-types-$(CONFIG_TARGET_ROOTFS_EXT4FS) += ext4
+ fs-types-$(CONFIG_TARGET_ROOTFS_UBIFS) += ubifs
++fs-types-$(CONFIG_TARGET_ROOTFS_EROFS) += erofs
+ fs-subtypes-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addsuffix -raw,$(addprefix jffs2-,$(JFFS2_BLOCKSIZE)))
+ 
+ TARGET_FILESYSTEMS := $(fs-types-y)
+@@ -309,6 +320,12 @@ define Image/mkfs/ext4
+ 		$@ $(call mkfs_target_dir,$(1))/
+ endef
+ 
++# Don't use the mkfs.erofs builtin $SOURCE_DATE_EPOCH behavior
++define Image/mkfs/erofs
++	env -u SOURCE_DATE_EPOCH $(STAGING_DIR_HOST)/bin/mkfs.erofs -z$(EROFSCOMP) $(EROFSOPT) \
++		$@ $(call mkfs_target_dir,$(1))
++endef
++
+ define Image/Manifest
+ 	$(if $(CONFIG_USE_APK), \
+ 		$(call apk,$(TARGET_DIR_ORIG)) list --quiet --manifest --no-network \
+diff --git a/scripts/target-metadata.pl b/scripts/target-metadata.pl
+index da42f04a24fee4..299dee92a7b609 100755
+--- a/scripts/target-metadata.pl
++++ b/scripts/target-metadata.pl
+@@ -18,6 +18,7 @@ (@)
+ 		/^dt$/ and $ret .= "\tselect USES_DEVICETREE\n";
+ 		/^dt-overlay$/ and $ret .= "\tselect HAS_DT_OVERLAY_SUPPORT\n";
+ 		/^emmc$/ and $ret .= "\tselect EMMC_SUPPORT\n";
++		/^erofs$/ and $ret .= "\tselect USES_EROFS\n";
+ 		/^ext4$/ and $ret .= "\tselect USES_EXT4\n";
+ 		/^fpu$/ and $ret .= "\tselect HAS_FPU\n";
+ 		/^gpio$/ and $ret .= "\tselect GPIO_SUPPORT\n";
+diff --git a/target/Config.in b/target/Config.in
+index c2395923d4d361..c0f3237ca9cfa7 100644
+--- a/target/Config.in
++++ b/target/Config.in
+@@ -69,6 +69,9 @@ config USES_JFFS2_NAND
+ config USES_EXT4
+ 	bool
+ 
++config USES_EROFS
++	bool
++
+ config USES_TARGZ
+ 	bool
+ 
+diff --git a/target/linux/generic/config-6.6 b/target/linux/generic/config-6.6
+index a8b5cabf88bfeb..7bf434ef0ae194 100644
+--- a/target/linux/generic/config-6.6
++++ b/target/linux/generic/config-6.6
+@@ -1840,6 +1840,15 @@ CONFIG_ELFCORE=y
+ CONFIG_EPOLL=y
+ # CONFIG_EQUALIZER is not set
+ # CONFIG_EROFS_FS is not set
++# CONFIG_EROFS_FS_DEBUG is not set
++# CONFIG_EROFS_FS_XATTR is not set
++# CONFIG_EROFS_FS_POSIX_ACL is not set
++# CONFIG_EROFS_FS_SECURITY is not set
++# CONFIG_EROFS_FS_ZIP is not set
++# CONFIG_EROFS_FS_ZIP_DEFLATE is not set
++# CONFIG_EROFS_FS_ONDEMAND is not set
++CONFIG_EROFS_FS_PCPU_KTHREAD=y
++CONFIG_EROFS_FS_PCPU_KTHREAD_HIPRI=y
+ # CONFIG_ET131X is not set
+ CONFIG_ETHERNET=y
+ # CONFIG_ETHOC is not set
+
+diff --git a/target/linux/mediatek/image/Makefile b/target/linux/mediatek/image/Makefile
+index 668d9a8cb03f50..711ec84ccaa86f 100644
+--- a/target/linux/mediatek/image/Makefile
++++ b/target/linux/mediatek/image/Makefile
+@@ -22,7 +22,7 @@ define Device/Default
+   KERNEL_INITRAMFS = kernel-bin | lzma | \
+ 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
+   KERNEL_LOADADDR = $(loadaddr-y)
+-  FILESYSTEMS := squashfs
++  FILESYSTEMS := squashfs erofs
+   DEVICE_DTS_DIR := $(DTS_DIR)
+   NETGEAR_ENC_MODEL :=
+   NETGEAR_ENC_REGION :=
+
+diff --git a/tools/erofs-utils/Makefile b/tools/erofs-utils/Makefile
+index e25f2f8409c90f..d047d276e5d3c2 100644
+--- a/tools/erofs-utils/Makefile
++++ b/tools/erofs-utils/Makefile
+@@ -7,14 +7,14 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=erofs-utils
+-PKG_VERSION:=1.8.9
++PKG_VERSION:=1.8.10
+ PKG_RELEASE:=1
+ 
+ PKG_SOURCE_PROTO:=git
+ PKG_SOURCE_URL=https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git
+-PKG_MIRROR_HASH:=feab7386de6faf11cb29af5bfa240ea119b14bfd66c14d80de0509c1ab16dcc6
+-PKG_SOURCE_DATE:=2025-06-26
+-PKG_SOURCE_VERSION:=81169bf3cfd26b8f2b3aa3b20da23971168a90a9
++PKG_MIRROR_HASH:=a21d244aee8cb216ac4436bf7f790e75fca113ea9a5512c8e4ac530c4983ef32
++PKG_SOURCE_DATE:=2025-07-15
++PKG_SOURCE_VERSION:=51b5939b5f783221310d25146e6a2019ba8129b6
+ 
+ PKG_FIXUP:=autoreconf
+ 

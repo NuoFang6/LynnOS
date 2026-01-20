@@ -107,12 +107,6 @@ p "BBRv3"
 p "复制 lrng 补丁"
     cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
     cp -rf ${lynndir}/patch/lrng/6.6/* ./target/linux/generic/hack-${linux_version}/
-p "其它补丁"
-    cp -rf ./YAOF/PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/hack-${linux_version}/
-    cp -rf ./YAOF/PATCH/kernel/6.7_FQ_packet_scheduling/* ./target/linux/generic/hack-${linux_version}/
-    cp -rf ./YAOF/PATCH/kernel/6.8_Better_data_locality_in_networking_fast_paths-bp_but_put_in_hack/* ./target/linux/generic/hack-${linux_version}/
-    cp -rf ./YAOF/PATCH/kernel/6.8_Boost_TCP_Performance_For_Many_Concurrent_Connections-bp_but_put_in_hack/* ./target/linux/generic/hack-${linux_version}/
-    cp -rf ./YAOF/PATCH/kernel/arm/* ./target/linux/generic/hack-${linux_version}/
 rm -rf ./YAOF
 p "修复代码"
     patch -p1 < ${lynndir}/patch/mtk_openwrt_feed/fix-wed-c-pointer-cast.patch
@@ -124,11 +118,12 @@ p "BBRv3"
 p "复制 lrng 补丁"
     cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
     cp -rf ${lynndir}/patch/lrng/6.12/* ./target/linux/generic/hack-${linux_version}/
+fi
+
 p "复制 mac80211 补丁"
     cp -rf ${lynndir}/patch/mac80211/* ./target/linux/generic/hack-${linux_version}/
 p "复制 tcp-collapse 补丁"
     cp -rf ${lynndir}/patch/tcp-collapse/* ./target/linux/generic/hack-${linux_version}/
-fi
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
@@ -172,6 +167,57 @@ CONFIG_BUILD_LOG_DIR="./logs"
 CONFIG_CCACHE=y
 
 " >> .config_pending
+
+echo "
+# 调优部分
+
+# 默认使用 fq_codel
+net.core.default_qdisc = fq_codel
+# 默认使用 BBR 拥塞控制算法，bbrv3 可以与 fq_codel 配合使用以获得更好的效果
+net.ipv4.tcp_congestion_control = bbr
+
+# 确保缓冲区足够用，7.5MB的udp和6MB的tcp对于路由器足够大了
+net.core.rmem_max = 7500000
+net.core.wmem_max = 7500000
+net.ipv4.tcp_rmem = 4096 131072 6291456
+net.ipv4.tcp_wmem = 4096 16384 6291456
+
+# 开启 TCP 连接复用 (主要用于出站连接，对作为客户端时有效)
+net.ipv4.tcp_tw_reuse = 1
+
+# 开启 TCP Fast Open
+# 1: 仅作为客户端开启
+# 2: 仅作为服务端开启
+# 3: 两端都开启
+# 应该设置为1, 3在国内会导致海外包被丢弃
+net.ipv4.tcp_fastopen = 1
+
+# 开启 MPTCP，默认不打开
+# net.mptcp.mptcp_enabled = 1
+
+# 关闭 MTU 探测，国内开启会有反效果
+net.ipv4.tcp_mtu_probing = 0
+
+# 默认是 1 (1/2 是数据, 1/2 是元数据)。
+# 改为 -2 (3/4 是数据, 1/4 是元数据)。
+# 在不增加 total 内存消耗的情况下，TCP 窗口变大 50%
+net.ipv4.tcp_adv_win_scale = -2
+
+# Cloudflare 设为 6MB (6291456)。
+# tcp_rmem max 只有 6MB，这里设为 5MB 即可。
+# 逻辑：当接收队列中的数据小于这个值时，如果不幸发生内存满，允许尝试整理(collapse)以挽救数据。
+# 超过这个值，直接丢包，避免 CPU 飙升导致的高延迟。
+net.ipv4.tcp_collapse_max_bytes = 5242880
+
+# 16KB-128KB 为合理值
+# 这能保证在高并发下内存极其可控
+# 需要搭配 bbr 使用
+net.ipv4.tcp_notsent_lowat = 131072
+
+# 系统级别最大打开文件数
+fs.file-max = 65535
+
+" >> ./package/base-files/files/etc/sysctl.d/10-default.conf
 
 CONFIG_CONTENT='
 CONFIG_CPU_IDLE_GOV_MENU=n

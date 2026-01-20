@@ -186,7 +186,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ${{ env.workdir_out }}/immortalwrt/.ccache
-          key: ccache-${{ env.immortalwrt_branch }}-${{ env.config_hash }}
+          key: ccache-${{ env.immortalwrt_branch }}-${{ env.config_hash }}-${{ github.run_id }}
 
       - if: always() && github.event.inputs.build == 'true'
         name: 上传日志文件夹

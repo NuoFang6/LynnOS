@@ -39,7 +39,7 @@ Signed-off-by: Leonidas P. Papadakos <papadakospan@gmail.com>
 +		};
 +		opp-1608000000 {
 +			opp-hz = /bits/ 64 <1608000000>;
-+			opp-microvolt = <1400000>;
++			opp-microvolt = <1425000>;
 +			clock-latency-ns = <40000>;
 +		};
  	};

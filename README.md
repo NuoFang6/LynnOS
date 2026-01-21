@@ -49,7 +49,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
 ### 通用
 - [ ] 调整
   - [x] BBRv3
-  - [ ] QUIC 参数
+  - [x] QUIC 参数
   - [ ] 自带默认配置
   - [x] LRNG
   - [x] irq 优化
@@ -62,7 +62,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [ ] 多种文件系统支持
   - [ ] 兼容通用架构的包
   - [x] zram 算法
-  - [ ] cake 等队列算法
+  - [x] cake 等队列算法
   - [ ] 使用稳定版主题
   - [ ] 本地 kmod 源
   - [ ] 每周编译
@@ -79,12 +79,12 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - ~~[ ] natflow~~ **同上**
 
 - [ ]软件包
-  - [ ] 替换 adguardhome
+  - [x] 替换 adguardhome
   - [ ] poweroffdevice
   - [ ] 美化终端
   - [ ] CURL HTTP3/QUIC 支持
-  - [ ] nano
-  - [ ] SQM 列队管理
+  - [x] nano
+  - [x] SQM 列队管理
   - [ ] UPnP
 
 - [ ] 编译流程
@@ -92,7 +92,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [ ] 更换镜像源
   - [ ] 更换 projectsmirrors.json 顺序
   - [ ] 缓存
-  - [ ] 并行clone
+  - [x] 并行clone
   - ~~[ ] 中文日志~~ **不兼容**
 
 
@@ -125,20 +125,23 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
 
 ### [ ] 特定于 CMCC RAX3000M NAND
 - [ ] 调整
-  - [ ] 坏块处理
+  - [x] 坏块处理
   - [ ] web 救砖界面
-  - [ ] 调整储存布局
-  - [ ] 有线闭源驱动
-  - [ ] 闭源wifi
+  - [x] 调整储存布局
   - [ ] 提高最大wifi功率
-  - [ ] mtwifi原厂无线驱动
+  - [x] 有线闭源驱动
+  - [x] mtwifi原厂无线驱动
   - [ ] 超频内存
-  - [ ] 硬件卸载
+  - [x] 硬件卸载
+  - [ ] 默认配置
+  - [x] 精调编译参数
   - TODO
 
 - [ ] 软件包
   - [ ] mtd 工具
   - [ ] 交换机相关
+  - [ ] samba
+  - [ ] lucky
 
 ---
 #### 感谢所有开发者

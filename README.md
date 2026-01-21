@@ -142,6 +142,7 @@ seed.config 配置：https://openwrt.org/docs/guide-developer/toolchain/use-buil
   - [ ] 交换机相关
   - [ ] samba
   - [ ] lucky
+  - [ ] easymesh
 
 ---
 #### 感谢所有开发者

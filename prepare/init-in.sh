@@ -62,6 +62,7 @@ clone master https://github.com/sirpdboy/luci-app-poweroffdevice.git ./add/luci-
 clone master https://github.com/SunBK201/UA3F.git ./add/ua3f &
 clone main https://github.com/EasyTier/luci-app-easytier.git ./add/luci-app-easytier &
 clone main https://github.com/sbwml/package_kernel_tcp-brutal ./add/tcp-brutal &
+clone main https://github.com/gdy666/luci-app-lucky.git ./add/lucky &
 wait && sync
 popd
 sed -i "1isrc-link add ${wrtdir}/package/add" feeds.conf.default # 这里一定要用绝对路径；将包含自定义订阅源的行移动到标准订阅源上方，即可覆盖标准订阅源

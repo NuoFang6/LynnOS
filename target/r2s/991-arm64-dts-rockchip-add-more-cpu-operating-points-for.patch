@@ -8,7 +8,7 @@ This allows for greater max frequency on rk3328 boards,
 increasing performance.
 
 硬件步进为 12.5mV
-降压了0.05V
+降压了0.025V
 
 It has been included in Armbian (a linux distibution for ARM boards)
 for a while now without any reported issues
@@ -29,17 +29,17 @@ Signed-off-by: Leonidas P. Papadakos <papadakospan@gmail.com>
  		};
 +		opp-1392000000 {
 +			opp-hz = /bits/ 64 <1392000000>;
-+			opp-microvolt = <1300000>;
++			opp-microvolt = <1325000>;
 +			clock-latency-ns = <40000>;
 +		};
 +		opp-1512000000 {
 +			opp-hz = /bits/ 64 <1512000000>;
-+			opp-microvolt = <1400000>;
++			opp-microvolt = <1425000>;
 +			clock-latency-ns = <40000>;
 +		};
 +		opp-1608000000 {
 +			opp-hz = /bits/ 64 <1608000000>;
-+			opp-microvolt = <1425000>;
++			opp-microvolt = <1450000>;
 +			clock-latency-ns = <40000>;
 +		};
  	};

@@ -157,6 +157,7 @@ echo "
 # LRNG
 CONFIG_PACKAGE_urandom-seed=n
 CONFIG_PACKAGE_urngd=n
+CONFIG_PACKAGE_rng-tools=n
 
 # Docker cgroup options
 CONFIG_DOCKER_CGROUP_OPTIONS=n

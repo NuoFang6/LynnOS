@@ -22,6 +22,6 @@ sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" "$network_conf"
 
 
 p "修改内核配置" # make kernel_nconfig CONFIG_TARGET=target、subtarget、env
-find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "cat ${targetdir}/kernel.config | tee -a {} > /dev/null"
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "cat ${targetdir}/kernel.config | tee -a '{}' > /dev/null"
 
 echo "结束"

@@ -309,7 +309,7 @@ CONFIG_LRNG_SYSCTL=y
 CONFIG_LRNG_TIMER_COMMON=y
 
 '
-find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a {} > /dev/null"
+find ./target/linux/ -name "config-${linux_version}" | xargs -I{} sh -c "echo '$CONFIG_CONTENT' | tee -a '{}' > /dev/null"
 
 # p "Vermagic 内核模块兼容" # 没有什么用
 # # wget https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/profiles.json

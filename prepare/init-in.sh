@@ -104,7 +104,6 @@ p "应用自定义修改"
 if [ "${current_version}" == "6.6" ]; then
 clone "24.10" https://github.com/QiuSimons/YAOF.git ./YAOF
 p "BBRv3"
-    mkdir -p ./target/linux/generic/hack-${linux_version}/
     cp -rf ./YAOF/PATCH/kernel/bbr3/* ./target/linux/generic/hack-${linux_version}/
 p "复制 lrng 补丁"
     cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
@@ -116,7 +115,6 @@ p "启用erofs，强制使用lz4hc压缩算法"
     patch -p1 < ${lynndir}/patch/erofs/2410-add-erofs.patch
 else
 p "BBRv3"
-    mkdir -p ./target/linux/generic/hack-${linux_version}/
     clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
     cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
     rm -rf ./bbrv3

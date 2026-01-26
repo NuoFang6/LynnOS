@@ -153,7 +153,7 @@ sed -i "s/enabled '0'/enabled '1'/g" ./feeds/packages/utils/irqbalance/files/irq
 
 
 p "追加配置"
-echo "
+echo '
 # LRNG
 CONFIG_PACKAGE_urandom-seed=n
 CONFIG_PACKAGE_urngd=n
@@ -170,7 +170,7 @@ CONFIG_BUILD_LOG_DIR="./logs"
 # Enable ccache
 CONFIG_CCACHE=y
 
-" >> .config_pending
+' >> .config_pending
 
 echo "
 # 调优部分

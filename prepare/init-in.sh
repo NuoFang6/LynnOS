@@ -23,7 +23,7 @@ sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 p "克隆 immortalwrt 到 ${workdir}/immortalwrt"
 . set_env "wrtdir" "${workdir}/immortalwrt"
 umask 0022
-if [ ${immortalwrt_branch} == "MTK2410" ]; then
+if [ "${immortalwrt_branch}" == "MTK2410" ]; then
     p "使用MTK优化分支"
     clone "openwrt-24.10-6.6" https://github.com/padavanonly/immortalwrt-mt798x-6.6.git ${wrtdir}
 else
@@ -101,9 +101,10 @@ patch -p1 < ${lynndir}/patch/elfutils/fix-elfutils-gcc15.patch || true
 
 
 p "应用自定义修改"
-if [ ${current_version} == "6.6" ]; then
+if [ "${current_version}" == "6.6" ]; then
 clone "24.10" https://github.com/QiuSimons/YAOF.git ./YAOF
 p "BBRv3"
+    mkdir -p ./target/linux/generic/hack-${linux_version}/
     cp -rf ./YAOF/PATCH/kernel/bbr3/* ./target/linux/generic/hack-${linux_version}/
 p "复制 lrng 补丁"
     cp -rf ${lynndir}/patch/lrng/v60/* ./target/linux/generic/hack-${linux_version}/
@@ -115,6 +116,7 @@ p "启用erofs，强制使用lz4hc压缩算法"
     patch -p1 < ${lynndir}/patch/erofs/2410-add-erofs.patch
 else
 p "BBRv3"
+    mkdir -p ./target/linux/generic/hack-${linux_version}/
     clone bbr-v3 https://github.com/nasbdh9/openwrt ./bbrv3
     cp -rf ./bbrv3/target/linux/generic/hack-${linux_version}/601-* ./target/linux/generic/hack-${linux_version}/
     rm -rf ./bbrv3

@@ -15,8 +15,13 @@ p "使用 O2 级别的优化、使用专属优化"
 patch -p1 < ${targetdir}/target.mk.patch
 
 p "交换 LAN/WAN 口"
-sed -i 's,"eth1" "eth0","eth0" "eth1",g' ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" ./target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+network_conf="./target/linux/rockchip/armv8/base-files/etc/board.d/02_network"
+if [ -f "$network_conf" ]; then
+    sed -i 's,"eth1" "eth0","eth0" "eth1",g' "$network_conf"
+    sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" "$network_conf"
+else
+    p "警告: 未找到 $network_conf，跳过交换 LAN/WAN 口"
+fi
 
 
 

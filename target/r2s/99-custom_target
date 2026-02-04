@@ -1,0 +1,95 @@
+# 这个脚本将在刷写后第一次启动时运行，用于执行自定义的初始配置任务。更新固件也会运行
+
+# 防止更新时也运行此脚本
+[ -f /etc/dont_delete_this_file ] && exit 0
+
+wait && sync
+
+tc qdisc replace dev eth0 root fq_codel || true
+tc qdisc replace dev eth1 root fq_codel || true
+
+
+uci batch << EOI
+del nginx._redirect2ssl
+delete nginx._lan.listen
+add_list nginx._lan.listen='80 default_server'
+add_list nginx._lan.listen='[::]:80 default_server'
+set nginx.global.uci_enable='true'
+EOI
+uci commit
+reload_config
+
+service uhttpd stop
+service uhttpd disable
+service sing-box stop
+service sing-box disable
+
+service uwsgi enable
+service uwsgi start
+service nginx enable
+service nginx start
+service ucitrack enable
+service ucitrack start
+
+
+uci set system.@system[0].zram_comp_algo='zstd'
+uci set upnpd.config.use_stun='1'
+uci set samba4.@samba[0].enable_extra_tuning='1'
+uci set network.globals.packet_steering='2'
+uci set luci.main.lang='zh_cn'
+
+uci batch << EOI
+set luci.diag.dns='bing.com'
+set luci.diag.ping='bing.com'
+set luci.diag.route='bing.com'
+EOI
+uci commit
+reload_config
+
+uci batch << EOI
+set firewall.@defaults[0].flow_offloading='1'
+set firewall.@defaults[0].forward='ACCEPT'
+set firewall.@defaults[0].fullcone='1'
+set firewall.@defaults[0].fullcone6='1'
+set firewall.@defaults[0].synflood_protect='0'
+EOI
+uci commit
+reload_config
+
+uci batch << EOI
+set argon.@global[0].blur='10'
+set argon.@global[0].blur_dark='10'
+set argon.@global[0].transparency='0.5'
+set argon.@global[0].transparency_dark='0.5'
+set argon.@global[0].online_wallpaper='none'
+EOI
+rm /www/luci-static/argon/background/README.md
+uci commit
+reload_config
+
+uci batch << EOI
+set cpufreq.cpufreq.governor0='schedutil'
+set cpufreq.cpufreq.minfreq0='408000'
+set cpufreq.cpufreq.maxfreq0='1608000'
+EOI
+uci commit
+reload_config
+
+uci batch << EOI
+set wireless.@wifi-device[0].disabled='0'
+EOI
+
+sed -e 's,https://downloads.immortalwrt.org,https://mirror.nju.edu.cn/immortalwrt,g' \
+    -e 's,https://mirrors.vsean.net/openwrt,https://mirror.nju.edu.cn/immortalwrt,g' \
+    -i.bak /etc/apk/repositories.d/distfeeds.list
+
+>/etc/crontabs/root
+
+touch /etc/dont_delete_this_file
+echo "uci-defaults/99-custom_target: 初始配置已完成。此文件用于防止更新后重复执行" >> /etc/dont_delete_this_file
+
+
+# 如果以代码 0 退出，则随后会被删除。
+# 以非零退出代码退出的脚本不会被删除，而是会在下次启动时重新执行，直到它们成功退出为止。
+wait && sync
+exit 0

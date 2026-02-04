@@ -1,0 +1,22 @@
+name: CI-debug
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: "ubuntu-24.04"
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          remove-large-packages: 'true'
+          remove-cached-tools: 'true'
+          remove-swapfile: 'true'
+
+      - uses: actions/checkout@v4
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3

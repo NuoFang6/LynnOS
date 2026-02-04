@@ -1,0 +1,11 @@
+--- feeds/mtk_openwrt_feed/feed/app/flowtable/Makefile	2026-01-18 09:44:05.000000000 +0800
++++ feeds/mtk_openwrt_feed/feed/app/flowtable/Makefile2	2026-01-18 10:20:45.705872045 +0800
+@@ -19,7 +19,7 @@
+ define Package/netfilter-flowtable
+   SECTION:=MTK Properties
+   CATEGORY:=MTK Properties
+-  DEPENDS:=+libnfnetlink +libmnl +kmod-nf-flow-netlink
++  DEPENDS:=+libnfnetlink +libmnl +kmod-nf-flow +kmod-nfnetlink +kmod-nf-conntrack-netlink
+   TITLE:=API to the in-kernel flow offload table
+   SUBMENU:=Applications
+ endef

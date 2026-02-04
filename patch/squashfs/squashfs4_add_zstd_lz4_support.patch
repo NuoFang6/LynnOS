@@ -1,0 +1,43 @@
+diff --git a/include/image.mk b/include/image.mk
+index 38005b2ab2..2469abe387 100644
+--- a/include/image.mk
++++ b/include/image.mk
+@@ -99,6 +99,12 @@ ifeq ($(CONFIG_SQUASHFS_XZ),y)
+   endif
+   SQUASHFSCOMP := xz $(LZMA_XZ_OPTIONS) $(BCJ_FILTER)
+ endif
++ifeq ($(CONFIG_SQUASHFS_ZSTD),y)
++  SQUASHFSCOMP := zstd -Xcompression-level 16
++endif
++ifeq ($(CONFIG_SQUASHFS_LZ4),y)
++  SQUASHFSCOMP := lz4 -Xhc
++endif
+ 
+ JFFS2_BLOCKSIZE ?= 64k 128k
+ 
+@@ -108,7 +114,7 @@ EROFSOPT += $(if $(SOURCE_DATE_EPOCH),-T$(SOURCE_DATE_EPOCH) --ignore-mtime)
+ EROFSOPT += $(if $(CONFIG_SELINUX),,-x-1)
+ EROFSCOMP := lz4hc,12
+ ifeq ($(CONFIG_EROFS_FS_ZIP_LZMA),y)
+-EROFSCOMP := lzma,109
++EROFSCOMP := lz4hc,12
+ endif
+ 
+ fs-types-$(CONFIG_TARGET_ROOTFS_SQUASHFS) += squashfs
+
+diff --git a/tools/squashfs4/Makefile b/tools/squashfs4/Makefile
+index 94679bd..ac90e79 100644
+--- a/tools/squashfs4/Makefile
++++ b/tools/squashfs4/Makefile
+@@ -24,9 +24,9 @@ include $(INCLUDE_DIR)/host-build.mk
+ define Host/Compile
+ 	+$(HOST_MAKE_VARS) \
+ 	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR)/squashfs-tools \
+-		LZ4_SUPPORT=0 \
++		LZ4_SUPPORT=1 \
+ 		LZO_SUPPORT=0 \
+-		ZSTD_SUPPORT=0 \
++		ZSTD_SUPPORT=1 \
+ 		GZIP_SUPPORT=1 \
+ 		XZ_SUPPORT=1 \
+ 		LZMA_XZ_SUPPORT=1 \
